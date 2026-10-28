@@ -63,6 +63,18 @@ class ShelfDao extends DatabaseAccessor<AppDatabase> with _$ShelfDaoMixin {
     });
   }
 
+  Future<ShelfItem?> getItemByBookId(String bookId) {
+    return (select(shelfItems)..where((t) => t.bookId.equals(bookId))).getSingleOrNull();
+  }
+
+  Future<bool> updateShelfItem(Insertable<ShelfItem> item) {
+    return update(shelfItems).replace(item);
+  }
+
+  Future<int> deleteShelfItemByBookId(String bookId) {
+    return (delete(shelfItems)..where((t) => t.bookId.equals(bookId))).go();
+  }
+
   Future<int> deleteShelfItem(String id) {
     return (delete(shelfItems)..where((t) => t.id.equals(id))).go();
   }

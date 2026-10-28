@@ -109,7 +109,15 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
       if (metadata != null) {
         final inserted = await _showBookConfirmDialog(isbn, metadata.title, metadata.authors);
         if (inserted && mounted) {
-          Navigator.of(context).pop(true);
+          if (Navigator.of(context).canPop()) {
+            Navigator.of(context).pop(true);
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('"${metadata.title}" added to shelf! 📖')),
+            );
+            _isProcessingSingle = false;
+            await _controller.start();
+          }
         } else {
           _isProcessingSingle = false;
           await _controller.start();
@@ -152,19 +160,34 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
         ),
       );
 
-      // Add to shelf if a shelf is selected
-      if (_selectedShelfId != null) {
-        final existingItems = await db.shelfDao.getItemsForShelf(_selectedShelfId!);
-        await db.shelfDao.insertShelfItem(
-          ShelfItemsCompanion.insert(
-            id: _uuid.v4(),
-            shelfId: _selectedShelfId!,
-            itemType: 'book',
-            bookId: drift.Value(bookId),
-            positionIndex: existingItems.length,
-          ),
-        );
+      // Add to shelf (ensure target shelf exists)
+      var targetShelfId = _selectedShelfId;
+      if (targetShelfId == null) {
+        final allShelves = await db.shelfDao.getAllShelves();
+        if (allShelves.isNotEmpty) {
+          targetShelfId = allShelves.first.id;
+        } else {
+          targetShelfId = _uuid.v4();
+          await db.shelfDao.insertShelf(
+            ShelvesCompanion.insert(
+              id: targetShelfId,
+              name: 'My Bookshelf',
+              sortOrder: 0,
+            ),
+          );
+        }
       }
+
+      final existingItems = await db.shelfDao.getItemsForShelf(targetShelfId);
+      await db.shelfDao.insertShelfItem(
+        ShelfItemsCompanion.insert(
+          id: _uuid.v4(),
+          shelfId: targetShelfId,
+          itemType: 'book',
+          bookId: drift.Value(bookId),
+          positionIndex: existingItems.length,
+        ),
+      );
     } catch (_) {}
   }
 
@@ -324,7 +347,19 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
                         backgroundColor: Colors.white,
                         foregroundColor: Colors.green.shade900,
                       ),
-                      onPressed: () => Navigator.of(context).pop(true),
+                      onPressed: () {
+                        if (Navigator.of(context).canPop()) {
+                          Navigator.of(context).pop(true);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Added $_batchCount books to shelf! 📚')),
+                          );
+                          setState(() {
+                            _batchCount = 0;
+                            _scannedIsbns.clear();
+                          });
+                        }
+                      },
                       child: const Text('Done'),
                     ),
                   ],

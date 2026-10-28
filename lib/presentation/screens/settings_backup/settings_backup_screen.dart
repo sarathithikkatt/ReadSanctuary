@@ -1,8 +1,10 @@
 import 'dart:io';
 
+import 'package:drift/drift.dart' as drift;
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../data/local/database.dart';
 import '../../../data/services/csv_import_service.dart';
@@ -119,6 +121,38 @@ class _SettingsBackupScreenState extends ConsumerState<SettingsBackupScreen> {
       final db = ref.read(appDatabaseProvider);
       await db.bookDao.insertBooks(parseResult.books);
 
+      // Populate shelf items for imported books so they render immediately
+      var shelves = await db.shelfDao.getAllShelves();
+      if (shelves.isEmpty) {
+        await db.shelfDao.insertShelf(
+          ShelvesCompanion.insert(
+            id: 'default-shelf-imported',
+            name: 'Imported Library',
+            sortOrder: 0,
+          ),
+        );
+        shelves = await db.shelfDao.getAllShelves();
+      }
+
+      final targetShelfId = shelves.first.id;
+      final existingItems = await db.shelfDao.getItemsForShelf(targetShelfId);
+      const uuid = Uuid();
+      final shelfItems = <ShelfItemsCompanion>[];
+
+      for (int i = 0; i < parseResult.books.length; i++) {
+        final b = parseResult.books[i];
+        shelfItems.add(
+          ShelfItemsCompanion.insert(
+            id: uuid.v4(),
+            shelfId: targetShelfId,
+            itemType: 'book',
+            bookId: drift.Value(b.id.value),
+            positionIndex: existingItems.length + i,
+          ),
+        );
+      }
+      await db.shelfDao.insertShelfItems(shelfItems);
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -138,13 +172,14 @@ class _SettingsBackupScreenState extends ConsumerState<SettingsBackupScreen> {
   }
 
   void _showProPaywallModal(String featureName) {
+    final messenger = ScaffoldMessenger.of(context);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24.0)),
       ),
-      builder: (context) => Padding(
+      builder: (modalContext) => Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -153,7 +188,7 @@ class _SettingsBackupScreenState extends ConsumerState<SettingsBackupScreen> {
             const SizedBox(height: 12),
             Text(
               'Unlock ShelfCraft Pro',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              style: Theme.of(modalContext).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
             ),
@@ -172,8 +207,8 @@ class _SettingsBackupScreenState extends ConsumerState<SettingsBackupScreen> {
               ),
               onPressed: () {
                 ref.read(isProUserProvider.notifier).setDebugProOverride(true);
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
+                Navigator.of(modalContext).pop();
+                messenger.showSnackBar(
                   const SnackBar(content: Text('Pro unlocked! Thank you! 🌟')),
                 );
               },
@@ -181,7 +216,7 @@ class _SettingsBackupScreenState extends ConsumerState<SettingsBackupScreen> {
             ),
             const SizedBox(height: 12),
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => Navigator.of(modalContext).pop(),
               child: const Text('Maybe Later'),
             ),
           ],

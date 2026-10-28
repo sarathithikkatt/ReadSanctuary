@@ -49,6 +49,29 @@ class ColorExtractor {
     }
   }
 
+  /// Generates a deterministic, aesthetically pleasing spine color palette from a title/seed string.
+  static SpineColors generateFromTitle(String seed) {
+    const palette = [
+      Color(0xFF2C3E50), // Navy
+      Color(0xFF8B0000), // Crimson
+      Color(0xFF2E4053), // Slate
+      Color(0xFF1E8449), // Forest Green
+      Color(0xFF6C3483), // Royal Purple
+      Color(0xFF935116), // Leather Brown
+      Color(0xFF1F618D), // Ocean Blue
+      Color(0xFF78281F), // Dark Mahogany
+      Color(0xFF117A65), // Dark Teal
+      Color(0xFF4A235A), // Deep Plum
+    ];
+
+    int hash = 0;
+    for (int i = 0; i < seed.length; i++) {
+      hash = (hash * 31 + seed.codeUnitAt(i)) & 0x7FFFFFFF;
+    }
+    final color = palette[hash % palette.length];
+    return fromColor(color);
+  }
+
   /// Calculates contrasting typography color for a given background color.
   /// Uses computeLuminance() > 0.5 ? Colors.black87 : Colors.white.
   static SpineColors fromColor(Color bgColor) {

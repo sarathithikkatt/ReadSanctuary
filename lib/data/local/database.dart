@@ -35,6 +35,29 @@ class AppDatabase extends _$AppDatabase {
   MigrationStrategy get migration => MigrationStrategy(
         beforeOpen: (details) async {
           await customStatement('PRAGMA foreign_keys = ON;');
+          final count = await customSelect('SELECT COUNT(*) AS c FROM shelves;')
+              .map((row) => row.read<int>('c'))
+              .getSingle();
+          if (count == 0) {
+            await into(shelves).insert(
+              ShelvesCompanion.insert(
+                id: 'default-shelf-reading',
+                name: 'Currently Reading',
+                woodThemeId: const Value('oak'),
+                wallThemeId: const Value('warm_cream'),
+                sortOrder: 0,
+              ),
+            );
+            await into(shelves).insert(
+              ShelvesCompanion.insert(
+                id: 'default-shelf-favorites',
+                name: 'Favorites & TBR',
+                woodThemeId: const Value('oak'),
+                wallThemeId: const Value('warm_cream'),
+                sortOrder: 1,
+              ),
+            );
+          }
         },
       );
 
