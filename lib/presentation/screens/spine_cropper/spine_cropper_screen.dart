@@ -43,6 +43,16 @@ class _SpineCropperScreenState extends State<SpineCropperScreen> {
     }
   }
 
+  @override
+  void didUpdateWidget(SpineCropperScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialImageBytes != oldWidget.initialImageBytes) {
+      setState(() {
+        _imageData = widget.initialImageBytes;
+      });
+    }
+  }
+
   Future<void> _pickImage(ImageSource source) async {
     try {
       final XFile? file = await _picker.pickImage(
@@ -149,25 +159,29 @@ class _SpineCropperScreenState extends State<SpineCropperScreen> {
 
   Widget _buildPickerPrompt() {
     return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
         children: [
           Icon(Icons.crop_original, size: 72, color: Colors.grey.shade600),
           const SizedBox(height: 16),
           const Text(
             'Take or choose a photo of the book spine',
+            textAlign: TextAlign.center,
             style: TextStyle(color: Colors.white70, fontSize: 16),
           ),
           const SizedBox(height: 24),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 16,
+            runSpacing: 12,
             children: [
               ElevatedButton.icon(
                 icon: const Icon(Icons.camera_alt),
                 label: const Text('Camera'),
                 onPressed: () => _pickImage(ImageSource.camera),
               ),
-              const SizedBox(width: 16),
               OutlinedButton.icon(
                 icon: const Icon(Icons.photo_library),
                 label: const Text('Gallery'),
@@ -178,8 +192,9 @@ class _SpineCropperScreenState extends State<SpineCropperScreen> {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildBottomActions() {
     return SafeArea(
@@ -189,15 +204,29 @@ class _SpineCropperScreenState extends State<SpineCropperScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            TextButton.icon(
-              icon: const Icon(Icons.refresh, color: Colors.white70),
-              label: const Text('Retake', style: TextStyle(color: Colors.white70)),
-              onPressed: () => setState(() => _imageData = null),
+            Expanded(
+              child: TextButton.icon(
+                icon: const Icon(Icons.refresh, color: Colors.white70),
+                label: const Text(
+                  'Retake',
+                  style: TextStyle(color: Colors.white70),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                onPressed: () => setState(() => _imageData = null),
+              ),
             ),
-            ElevatedButton.icon(
-              icon: const Icon(Icons.crop),
-              label: const Text('Crop & Save'),
-              onPressed: _isProcessing ? null : () => _cropController.crop(),
+            const SizedBox(width: 8),
+            Expanded(
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.crop),
+                label: const Text(
+                  'Crop & Save',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                onPressed: _isProcessing ? null : () => _cropController.crop(),
+              ),
             ),
           ],
         ),

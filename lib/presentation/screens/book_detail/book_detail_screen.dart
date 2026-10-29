@@ -233,10 +233,10 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.primary,
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
             ),
-            icon: const Icon(Icons.play_arrow),
-            label: const Text('Read Timer'),
+            icon: const Icon(Icons.play_arrow, size: 18),
+            label: const Text('Read Timer', maxLines: 1, overflow: TextOverflow.ellipsis),
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (_) => ReadingTimerScreen(book: book),
@@ -248,10 +248,10 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
         Expanded(
           child: OutlinedButton.icon(
             style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
             ),
-            icon: const Icon(Icons.document_scanner),
-            label: const Text('Quote OCR'),
+            icon: const Icon(Icons.document_scanner, size: 18),
+            label: const Text('Quote OCR', maxLines: 1, overflow: TextOverflow.ellipsis),
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (_) => OcrQuoteScanner(
@@ -306,27 +306,35 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    Icon(
-                      isCoverOut ? Icons.image : Icons.view_column,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    const SizedBox(width: 12),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Shelf Display Style',
-                          style: TextStyle(fontWeight: FontWeight.w600),
+                Expanded(
+                  child: Row(
+                    children: [
+                      Icon(
+                        isCoverOut ? Icons.image : Icons.view_column,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Shelf Display Style',
+                              style: TextStyle(fontWeight: FontWeight.w600),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Text(
+                              isCoverOut ? 'Front Cover View' : '2.5D Spine View',
+                              style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
                         ),
-                        Text(
-                          isCoverOut ? 'Front Cover View' : '2.5D Spine View',
-                          style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-                        ),
-                      ],
-                    ),
-                  ],
+                      ),
+                    ],
+                  ),
                 ),
                 Switch(
                   value: isCoverOut,
@@ -351,10 +359,15 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'Quotes & Notes',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            const Expanded(
+              child: Text(
+                'Quotes & Notes',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
+            const SizedBox(width: 8),
             TextButton.icon(
               icon: const Icon(Icons.add, size: 18),
               label: const Text('Add Note'),

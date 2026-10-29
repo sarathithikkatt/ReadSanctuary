@@ -242,10 +242,11 @@ class _ReadingTimerScreenState extends ConsumerState<ReadingTimerScreen> {
         title: const Text('Focus Reading Timer'),
       ),
       body: Center(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
               // Book Title & Author
               Text(

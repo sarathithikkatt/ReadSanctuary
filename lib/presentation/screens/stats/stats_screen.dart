@@ -161,10 +161,15 @@ class StatsScreen extends ConsumerWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  '$currentYear Reading Goal',
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                Expanded(
+                  child: Text(
+                    '$currentYear Reading Goal',
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
+                const SizedBox(width: 8),
                 Text(
                   '$finishedThisYear / $yearlyGoal books',
                   style: const TextStyle(fontWeight: FontWeight.w600),
@@ -204,9 +209,9 @@ class StatsScreen extends ConsumerWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
-        _buildSingleCounter('Total Books', '${books.length}', Icons.library_books),
-        _buildSingleCounter('Pages Read', '$totalPages', Icons.auto_stories),
-        _buildSingleCounter('Hours Spent', '$totalHours h', Icons.schedule),
+        Expanded(child: _buildSingleCounter('Total Books', '${books.length}', Icons.library_books)),
+        Expanded(child: _buildSingleCounter('Pages Read', '$totalPages', Icons.auto_stories)),
+        Expanded(child: _buildSingleCounter('Hours Spent', '$totalHours h', Icons.schedule)),
       ],
     );
   }
@@ -216,8 +221,18 @@ class StatsScreen extends ConsumerWidget {
       children: [
         Icon(icon, size: 28, color: Colors.grey.shade700),
         const SizedBox(height: 6),
-        Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        Text(label, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+        Text(
+          value,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        Text(
+          label,
+          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
       ],
     );
   }
@@ -258,6 +273,9 @@ class StatsScreen extends ConsumerWidget {
       );
     }
 
+    final maxPages = monthsData.values.fold(0, (max, v) => v > max ? v : max);
+    final calculatedMaxY = maxPages > 0 ? (maxPages * 1.25) : 10.0;
+
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -275,6 +293,8 @@ class StatsScreen extends ConsumerWidget {
               height: 180,
               child: BarChart(
                 BarChartData(
+                  minY: 0.0,
+                  maxY: calculatedMaxY,
                   barGroups: barGroups,
                   titlesData: FlTitlesData(
                     leftTitles: const AxisTitles(
