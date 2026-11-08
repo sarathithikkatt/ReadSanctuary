@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Centralized color palette and brand tokens for ShelfCraft.
+/// Centralized color palette and brand tokens for ReadSanctuary.
 abstract final class AppColors {
   // Brand Warm Oak & Amber
   static const Color primaryOak = Color(0xFFC79C5E);

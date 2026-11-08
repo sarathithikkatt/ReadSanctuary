@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Physical and digital book formats supported by ShelfCraft.
+/// Physical and digital book formats supported by ReadSanctuary.
 enum BookFormat {
   paperback('paperback', 'Paperback', Icons.menu_book, 170.0),
   hardcover('hardcover', 'Hardcover', Icons.book, 185.0),

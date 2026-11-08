@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:shelfcraft/data/local/database.dart';
-import 'package:shelfcraft/data/services/shelf_widget_service.dart';
-import 'package:shelfcraft/presentation/widgets/home_widget/shelf_home_widget_view.dart';
+import 'package:readsanctuary/data/local/database.dart';
+import 'package:readsanctuary/data/services/shelf_widget_service.dart';
+import 'package:readsanctuary/presentation/widgets/home_widget/shelf_home_widget_view.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('ShelfHomeWidgetView Widget Tests', () {
-    testWidgets('renders empty state correctly with title and ShelfCraft branding',
+    testWidgets('renders empty state correctly with title and ReadSanctuary branding',
         (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
@@ -25,7 +25,7 @@ void main() {
       );
 
       expect(find.text('Currently Reading'), findsOneWidget);
-      expect(find.text('ShelfCraft'), findsOneWidget);
+      expect(find.text('ReadSanctuary'), findsOneWidget);
       expect(find.text('Empty shelf • Tap to add books'), findsOneWidget);
     });
 
@@ -112,7 +112,7 @@ void main() {
 
       expect(find.text('Sci-Fi Shelf'), findsOneWidget);
       expect(find.text('(2)'), findsOneWidget);
-      expect(find.text('ShelfCraft'), findsOneWidget);
+      expect(find.text('ReadSanctuary'), findsOneWidget);
       expect(find.text('Project Hail Mary'), findsOneWidget);
       expect(find.text('Dune'), findsOneWidget);
       expect(find.text('Empty shelf • Tap to add books'), findsNothing);

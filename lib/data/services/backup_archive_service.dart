@@ -5,7 +5,7 @@ import 'dart:typed_data';
 import 'package:archive/archive.dart';
 import 'package:path/path.dart' as p;
 
-/// Metadata manifest stored inside every ShelfCraft backup archive (.zip).
+/// Metadata manifest stored inside every ReadSanctuary backup archive (.zip).
 class BackupManifest {
   final String appName;
   final int schemaVersion;
@@ -14,7 +14,7 @@ class BackupManifest {
   final int mediaFilesCount;
 
   const BackupManifest({
-    this.appName = 'ShelfCraft',
+    this.appName = 'ReadSanctuary',
     required this.schemaVersion,
     required this.timestamp,
     required this.bookCount,
@@ -30,7 +30,7 @@ class BackupManifest {
       };
 
   factory BackupManifest.fromJson(Map<String, dynamic> json) => BackupManifest(
-        appName: json['appName']?.toString() ?? 'ShelfCraft',
+        appName: json['appName']?.toString() ?? 'ReadSanctuary',
         schemaVersion: (json['schemaVersion'] as num?)?.toInt() ?? 1,
         timestamp: (json['timestamp'] as num?)?.toInt() ?? 0,
         bookCount: (json['bookCount'] as num?)?.toInt() ?? 0,
@@ -113,7 +113,7 @@ class BackupArchiveService {
     final manifestJson = jsonDecode(manifestContent) as Map<String, dynamic>;
     final manifest = BackupManifest.fromJson(manifestJson);
 
-    if (manifest.appName != 'ShelfCraft') {
+    if (manifest.appName != 'ReadSanctuary' && manifest.appName != 'ShelfCraft') {
       throw FormatException(
           'Incompatible backup from application: ${manifest.appName}');
     }

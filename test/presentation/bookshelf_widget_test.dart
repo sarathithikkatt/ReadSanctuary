@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shelfcraft/presentation/screens/bookshelf/widgets/book_spine_25d_widget.dart';
-import 'package:shelfcraft/presentation/screens/bookshelf/widgets/shelf_prop_widget.dart';
-import 'package:shelfcraft/presentation/screens/bookshelf/widgets/wooden_shelf_row.dart';
+import 'package:readsanctuary/presentation/screens/bookshelf/widgets/book_spine_25d_widget.dart';
+import 'package:readsanctuary/presentation/screens/bookshelf/widgets/shelf_prop_widget.dart';
+import 'package:readsanctuary/presentation/screens/bookshelf/widgets/wooden_shelf_row.dart';
 
 void main() {
   group('Verification Gate 3 - 2.5D Bookshelf & Spine Scaling Widget Tests',

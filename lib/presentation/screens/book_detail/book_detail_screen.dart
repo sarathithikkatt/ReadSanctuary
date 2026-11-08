@@ -77,7 +77,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
     final thoughts = notes.where((n) => n.noteType == 'thought').toList();
 
     final buffer = StringBuffer();
-    buffer.writeln('📚 ShelfCraft Reading Review: "${book.title}"');
+    buffer.writeln('📚 ReadSanctuary Reading Review: "${book.title}"');
     buffer.writeln('✍️ Author(s): ${authors.join(', ')}');
     if (book.rating != null && book.rating! > 0) {
       buffer.writeln('⭐ Rating: ${book.rating!.toStringAsFixed(2)} / 5.0');
@@ -122,7 +122,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
       }
     }
 
-    buffer.writeln('\nTracked with ShelfCraft — 2.5D Visual Bookshelf 📚✨');
+    buffer.writeln('\nTracked with ReadSanctuary — Visual Bookshelf & Reading Companion 📚✨');
 
     await SharePlus.instance.share(
       ShareParams(

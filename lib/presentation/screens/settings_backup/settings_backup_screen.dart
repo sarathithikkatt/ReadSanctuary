@@ -74,7 +74,7 @@ class _SettingsBackupScreenState extends ConsumerState<SettingsBackupScreen> {
     try {
       final FileSaveLocation? result = await getSaveLocation(
         suggestedName:
-            'shelfcraft_backup_${DateTime.now().millisecondsSinceEpoch}.zip',
+            'readsanctuary_backup_${DateTime.now().millisecondsSinceEpoch}.zip',
       );
       if (result == null) return;
 
@@ -245,7 +245,7 @@ class _SettingsBackupScreenState extends ConsumerState<SettingsBackupScreen> {
     try {
       final FileSaveLocation? result = await getSaveLocation(
         suggestedName:
-            'shelfcraft_library_${DateTime.now().millisecondsSinceEpoch}.csv',
+            'readsanctuary_library_${DateTime.now().millisecondsSinceEpoch}.csv',
       );
       if (result == null) return;
 
@@ -287,7 +287,7 @@ class _SettingsBackupScreenState extends ConsumerState<SettingsBackupScreen> {
           builder: (ctx) => AlertDialog(
             title: const Text('Creator Debug Menu 🛠️'),
             content: Text(
-              'ShelfCraft Pro is currently ACTIVE.\nUnlock Source: $source\n\nWould you like to reset back to Free tier for testing?',
+              'ReadSanctuary Pro is currently ACTIVE.\nUnlock Source: $source\n\nWould you like to reset back to Free tier for testing?',
             ),
             actions: [
               TextButton(
@@ -342,7 +342,7 @@ class _SettingsBackupScreenState extends ConsumerState<SettingsBackupScreen> {
                 ProStatusBanner(
                   isPro: isPro,
                   onTap: !isPro
-                      ? () => ProPaywallSheet.show(context, 'ShelfCraft Pro')
+                      ? () => ProPaywallSheet.show(context, 'ReadSanctuary Pro')
                       : null,
                 ),
 
@@ -474,7 +474,7 @@ class _SettingsBackupScreenState extends ConsumerState<SettingsBackupScreen> {
                         child: Column(
                           children: [
                             Text(
-                              'ShelfCraft v1.0.0',
+                              'ReadSanctuary v1.0.0',
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Colors.grey.shade500,

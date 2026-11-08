@@ -1,4 +1,4 @@
-# 📚 ShelfCraft — Visual Bookshelf & Reading Companion
+# 📚 ReadSanctuary — Visual Bookshelf & Reading Companion
 
 > **A tactile, local-first, 2.5D visual book tracker, in-app eBook reader, and personal library crafted for readers who love books.**
 
@@ -11,12 +11,12 @@
 
 ## 🧭 Navigation
 - Looking for technical architecture, database schemas, and build setup? 👉 Check out the [**Developer Guide (README_DEV.md)**](README_DEV.md).
-- Reading this guide? Below is the complete walkthrough of every ShelfCraft feature and how to make the most of it as a reader.
+- Reading this guide? Below is the complete walkthrough of every ReadSanctuary feature and how to make the most of it as a reader.
 
 ---
 
 ## Table of Contents
-1. [Why ShelfCraft?](#-why-shelfcraft)
+1. [Why ReadSanctuary?](#-why-ReadSanctuary)
 2. [Feature Highlights at a Glance](#-feature-highlights-at-a-glance)
 3. [Getting Started](#-getting-started)
    - [Initial Launch](#initial-launch)
@@ -74,15 +74,15 @@
 
 ---
 
-## 🌟 Why ShelfCraft?
+## 🌟 Why ReadSanctuary?
 
 Most modern reading trackers treat books like flat spreadsheets or ad-stuffed social feeds. You are forced into proprietary ecosystems, bombarded with recommendations you didn't ask for, or forced to photograph hundreds of spines manually just to get a bookshelf that looks decent.
 
-**ShelfCraft is built differently:**
+**ReadSanctuary is built differently:**
 * **Instant Procedural Beauty:** Books look like real, tangible volumes the second you add them. Spines scale their thickness based on actual page count, heights adjust for hardcovers vs mass-market paperbacks, and lighting shaders create realistic depth.
 * **Built-in eBook Reading:** Read your own `.epub` and `.pdf` files directly in the app with customized typography, night themes, and automatic reading session tracking.
 * **True Local Ownership:** Your reading log belongs to you. Everything is stored in an open SQLite database directly on your device.
-* **Fractional Series Novellas:** Read a `#0.5` prequel or `#2.5` interlude? ShelfCraft places it in the exact reading order instead of breaking sorting.
+* **Fractional Series Novellas:** Read a `#0.5` prequel or `#2.5` interlude? ReadSanctuary places it in the exact reading order instead of breaking sorting.
 * **Granular Sub-Ratings:** Rate books across Plot, Characters, Writing, and Pacing with 0.25-step precision and an auto-averaging helper.
 * **Camera-Ready OCR Quotes:** Scan passages right off the physical page using on-device machine learning. No typing required.
 * **Zero Hostile Lock-In:** Export all your books, covers, and notes as portable files anytime for free.
@@ -117,7 +117,7 @@ Most modern reading trackers treat books like flat spreadsheets or ad-stuffed so
 ## 🚀 Getting Started
 
 ### Initial Launch
-1. When you first launch ShelfCraft, three default shelves are automatically set up:
+1. When you first launch ReadSanctuary, three default shelves are automatically set up:
    - 📖 **Currently Reading**
    - ⏳ **Want to Read (TBR)**
    - 🏆 **Finished**
@@ -125,7 +125,7 @@ Most modern reading trackers treat books like flat spreadsheets or ad-stuffed so
 3. If you have years of reading history on Goodreads or The StoryGraph, head to **Settings & Backup** to import your CSV file right away.
 
 ### App Navigation Layout
-ShelfCraft is organized into four main tabs along the bottom navigation bar:
+ReadSanctuary is organized into four main tabs along the bottom navigation bar:
 
 1. **Bookshelf (Home):** Your 2.5D wooden shelves, displaying your books, props, and decorative items.
 2. **Scan ISBN:** The camera scanner for adding single books or batch-scanning entire physical stacks.
@@ -146,7 +146,7 @@ Every book placed on your shelf is rendered in 2.5D perspective with realistic d
   * **Hardcover:** 185 dp tall with bold profile
   * **Paperback:** 170 dp tall standard trade size
   * **eBook / Audio:** 160 dp compact size
-* **Smart Contrast Typography:** ShelfCraft analyzes the cover art's vibrant and dominant colors using palette extraction. If the book spine is dark, it renders crisp white title and author lettering; if light, it uses rich dark charcoal lettering.
+* **Smart Contrast Typography:** ReadSanctuary analyzes the cover art's vibrant and dominant colors using palette extraction. If the book spine is dark, it renders crisp white title and author lettering; if light, it uses rich dark charcoal lettering.
 * **3D Cylindrical Shader:** Overlaid gradient shading simulates crease shadows, ridge highlights, and edge drop-offs for tactile realism.
 
 #### Custom Spine & Sprayed-Edge Cropper
@@ -205,14 +205,14 @@ Experience your books in tactile 3D:
 
 #### Android Home Screen App Widget
 Keep your reading journey front and center without launching the app:
-1. Add the **ShelfCraft Widget** to your Android home screen.
+1. Add the **ReadSanctuary Widget** to your Android home screen.
 2. The widget displays your Currently Reading book cover, title, author, reading progress bar, and your active streak flame counter.
 3. Automatically updates whenever you log a session or change book status.
 
 #### 1-Click Social Shelf Exporter
 Show off your monthly reads or favorite collections on Instagram Stories, Threads, or TikTok:
 1. Tap the **Share** (`📤`) icon in the top app bar of the Bookshelf screen.
-2. ShelfCraft captures a crisp, high-resolution graphic (rendered at 3.0× pixel density for crisp retina screens) of your entire bookshelf.
+2. ReadSanctuary captures a crisp, high-resolution graphic (rendered at 3.0× pixel density for crisp retina screens) of your entire bookshelf.
 3. The system share sheet appears automatically, allowing you to save the image, send it in messages, or post directly to social apps.
 
 ---
@@ -223,32 +223,32 @@ Show off your monthly reads or favorite collections on Instagram Stories, Thread
 1. Tap the **Scan ISBN** tab in the bottom bar.
 2. Point your camera at the ISBN-13 or ISBN-10 barcode on the back of any physical book.
 3. The red aiming reticle instantly recognizes the barcode and triggers a medium haptic pulse.
-4. ShelfCraft queries OpenLibrary and Google Books in the background and opens the book entry with cover, title, author, and page count pre-populated.
+4. ReadSanctuary queries OpenLibrary and Google Books in the background and opens the book entry with cover, title, author, and page count pre-populated.
 5. Tap **Add to Shelf**.
 
 #### Rapid Batch Scanning Mode
 Cataloging an entire room or bookshelf?
 1. In the **Scan ISBN** tab, toggle **Batch Mode** in the top-right corner.
 2. Select the target shelf where scanned books should go.
-3. Scan barcodes one after another. ShelfCraft chirps/vibrates on each scan, increments the scanned counter, and queues background lookups and shelf insertions automatically without interrupting your camera stream.
+3. Scan barcodes one after another. ReadSanctuary chirps/vibrates on each scan, increments the scanned counter, and queues background lookups and shelf insertions automatically without interrupting your camera stream.
 4. Scan 20 books in 30 seconds!
 
 #### Manual Book Creation & Editing
 For indie books, self-published titles, or uncataloged editions:
 1. On the Bookshelf screen, tap the floating **+ Add Book** button.
 2. Enter the Title, Author, Page Count, Format, and Reading Status.
-3. ShelfCraft automatically creates a complementary color scheme based on the title letters and assigns the book to your selected shelf.
+3. ReadSanctuary automatically creates a complementary color scheme based on the title letters and assigns the book to your selected shelf.
 4. You can edit every single field (including custom cover images, authors, sub-ratings, and series info) at any time from the Book Detail screen.
 
 #### Fractional Series Sorting (Novellas & #0.5)
 Fantasy and romance series frequently have prequel novellas, companion shorts, and half-volumes (e.g., Book `0.5`, `1.5`, `2.5`).
-* Unlike other apps that force integers or break ordering, ShelfCraft natively stores series numbers as high-precision decimals (`double`/`REAL`).
+* Unlike other apps that force integers or break ordering, ReadSanctuary natively stores series numbers as high-precision decimals (`double`/`REAL`).
 * If you set **Series Name:** `The Way of Kings` and **Series Vol:** `2.5`, your novella (*Edgedancer*) sorts canonically between Book 2 (*Words of Radiance*) and Book 3 (*Oathbringer*).
 
 #### Dual-API Automatic Metadata Lookup
-ShelfCraft features an intelligent dual-engine lookup system:
+ReadSanctuary features an intelligent dual-engine lookup system:
 1. **Primary Lookup (OpenLibrary):** Queries the non-profit OpenLibrary API for work and edition records to fetch community-curated metadata and high-resolution book covers.
-2. **Fallback & Field Enrichment (Google Books):** If OpenLibrary returns a 404, or if page count or cover art is missing, ShelfCraft automatically supplements the missing fields from Google Books API v1.
+2. **Fallback & Field Enrichment (Google Books):** If OpenLibrary returns a 404, or if page count or cover art is missing, ReadSanctuary automatically supplements the missing fields from Google Books API v1.
 3. You get complete metadata and cover art without worrying about dead APIs.
 
 #### Reading Statuses & Multiple Formats
@@ -265,7 +265,7 @@ Organize your library across all formats:
 Never lose a loaned book again:
 1. In the Book Detail edit dialog, set the book's status to **Lent Out**.
 2. Enter the **Borrower Name** (e.g., *"Alex"*) and the **Lent Date**.
-3. ShelfCraft displays a friendly reminder badge showing who has the book and for how many days.
+3. ReadSanctuary displays a friendly reminder badge showing who has the book and for how many days.
 
 #### Free Public Domain eBook Catalog (Gutenberg)
 Looking for something classic to read?
@@ -292,7 +292,7 @@ Five generic stars aren't enough for avid reviewers.
 Save unforgettable quotes directly from the printed page without manual typing:
 1. Open the book detail screen and tap **Scan Quote (OCR)**.
 2. Snap a clear photo of the printed page.
-3. ShelfCraft's on-device Machine Learning (`google_mlkit_text_recognition`) analyzes the text blocks.
+3. ReadSanctuary's on-device Machine Learning (`google_mlkit_text_recognition`) analyzes the text blocks.
 4. Tap recognized text segments to insert them into your quote editor.
 5. Add the page number and optional chapter notes, then tap **Save Quote**.
 6. The quote is saved locally to your book notes and can be copied or shared anytime.
@@ -306,7 +306,7 @@ Keep reading notes organized:
 #### 1-Click Social Review Sharing
 Share your ratings and thoughts with fellow readers:
 1. On the Book Detail screen, tap the **Share** (`📤`) button in the app bar.
-2. ShelfCraft formats your review into a clean card containing:
+2. ReadSanctuary formats your review into a clean card containing:
    * Book Title & Authors
    * Overall Star Rating (e.g., `★★★★½ (4.50 / 5)`)
    * Sub-ratings breakdown (Plot, Characters, Writing, Pacing)
@@ -318,7 +318,7 @@ Share your ratings and thoughts with fellow readers:
 ### 4. In-App eBook & PDF Reading
 
 #### Reflowable EPUB Reader
-ShelfCraft includes a pure-Dart, high-performance EPUB reader built right into the app:
+ReadSanctuary includes a pure-Dart, high-performance EPUB reader built right into the app:
 * **Zero Bloat:** No external reading apps required.
 * **Clean Reading Surface:** Distraction-free pagination with chapter headers, progress percentage, and tap zones.
 * **Automatic Status Promotion:** Opening a book from Want to Read (TBR) automatically marks it as Currently Reading.
@@ -339,11 +339,11 @@ Customize your reading experience for maximum comfort:
 * Jump directly to any chapter with one tap.
 
 #### Automatic Reading Session Logging
-* When you exit the reader, ShelfCraft computes the active reading duration and chapter progress.
+* When you exit the reader, ReadSanctuary computes the active reading duration and chapter progress.
 * Automatically records a `ReadingSession` into your database, updating your reading streak and speed metrics!
 
 #### In-App PDF Reader
-* For PDFs, research papers, and graphic novels, ShelfCraft provides an integrated PDF viewer with zoom, horizontal/vertical paging, and thumbnail navigation.
+* For PDFs, research papers, and graphic novels, ReadSanctuary provides an integrated PDF viewer with zoom, horizontal/vertical paging, and thumbnail navigation.
 
 ---
 
@@ -352,19 +352,19 @@ Customize your reading experience for maximum comfort:
 #### Using the Reading Timer
 Track your reading sessions and focus without distraction:
 1. Open any book in your "Currently Reading" list and tap **Start Reading Session**.
-2. ShelfCraft displays a distraction-free, large-numeral timer with your starting page.
+2. ReadSanctuary displays a distraction-free, large-numeral timer with your starting page.
 3. Tap **Start Timer**. Read at your own pace.
 4. When finished reading, tap **Finish Session**.
 5. Enter your new current page number.
-6. ShelfCraft records your active reading duration, total pages turned, and your reading speed.
+6. ReadSanctuary records your active reading duration, total pages turned, and your reading speed.
 
 #### Background-Kill Protection
 Never lose a reading session to an operating system memory clean-up:
-* ShelfCraft continuously syncs timer state and start timestamps to resilient on-device storage (`SharedPreferences`).
+* ReadSanctuary continuously syncs timer state and start timestamps to resilient on-device storage (`SharedPreferences`).
 * If your phone battery dies, incoming phone calls interrupt you, or the OS terminates background processes, your timer resumes from the exact second when you reopen the app.
 
 #### Pages-per-Minute Speed Calculations
-Upon finishing a session, ShelfCraft calculates:
+Upon finishing a session, ReadSanctuary calculates:
 * Total minutes read
 * Total pages read
 * **Reading Pace:** Pages per minute (e.g., `0.85 pages/min`)
@@ -379,13 +379,13 @@ Tap the **Stats** tab to see your reading habits visualized:
 #### Daily Reading Streak & Streak Protection
 * **Current Streak:** Consecutive days with at least one logged reading session.
 * **Longest Streak:** Your all-time personal best reading streak.
-* **"Today Pending" Grace Period:** If you read yesterday, ShelfCraft keeps your streak flame alive throughout today with a `Today Pending ⏳` badge, giving you until midnight to log your reading.
+* **"Today Pending" Grace Period:** If you read yesterday, ReadSanctuary keeps your streak flame alive throughout today with a `Today Pending ⏳` badge, giving you until midnight to log your reading.
 
 #### Manual Missed-Day Backfill
 Life happens. If you read offline during a flight or forgot your phone during a weekend camping trip:
 1. In the Book Detail screen or Stats screen, tap **Log Session Manually**.
 2. Select the past date you read, along with minutes and pages.
-3. ShelfCraft's streak engine recalculates the timeline, bridges the gap, and restores your active streak!
+3. ReadSanctuary's streak engine recalculates the timeline, bridges the gap, and restores your active streak!
 
 #### Monthly Reading Velocity Charts
 * Interactive bar charts (`fl_chart`) display pages read month-by-month.
@@ -408,12 +408,12 @@ Life happens. If you read offline during a flight or forgot your phone during a 
 ### 7. Anti-Lock-In Backups, Data Freedom & Cloud Sync
 
 #### Goodreads & StoryGraph CSV Migration
-Moving your library to ShelfCraft is seamless:
+Moving your library to ReadSanctuary is seamless:
 1. Export your library CSV from Goodreads (Account Settings → Export Library) or The StoryGraph (Manage Account → Export Data).
 2. Save the CSV file onto your phone.
-3. In ShelfCraft, open **Settings & Backup** and tap **Import from Goodreads / StoryGraph CSV**.
+3. In ReadSanctuary, open **Settings & Backup** and tap **Import from Goodreads / StoryGraph CSV**.
 4. Select your CSV file.
-5. ShelfCraft cleans Excel-escaped ISBN strings (e.g., `="9780140283297"`), maps exclusive shelves (`to-read`, `currently-reading`, `read`), parses fractional novella series entries, and transactionally imports your entire reading history into your local SQLite database in seconds!
+5. ReadSanctuary cleans Excel-escaped ISBN strings (e.g., `="9780140283297"`), maps exclusive shelves (`to-read`, `currently-reading`, `read`), parses fractional novella series entries, and transactionally imports your entire reading history into your local SQLite database in seconds!
 
 #### 100% Free Offline ZIP Backups & Full Restoration
 We believe you should never pay to access or export your own data:
@@ -423,21 +423,21 @@ We believe you should never pay to access or export your own data:
 #### RFC-4180 CSV Export with Sub-Ratings
 Export your entire collection anytime:
 * Exports Title, Authors, ISBN, Pages, Format, Status, Overall Rating, and all four Sub-Ratings (`Rating Plot`, `Rating Characters`, `Rating Writing`, `Rating Pacing`).
-* 100% roundtrip fidelity: any CSV exported from ShelfCraft can be imported right back with zero data loss.
+* 100% roundtrip fidelity: any CSV exported from ReadSanctuary can be imported right back with zero data loss.
 
 #### Offline Gift Codes & Creator Passkey
 Want to gift Pro features to friends, beta testers, or book club members without paying?
 * Open **Settings & Backup** and tap **Redeem Gift Code / Voucher** (or tap *"Have a Gift Code? Redeem Here"* on the upgrade paywall).
 * **Supported Codes:**
-  * Curated codes: `GIFT-SHELFCRAFT`, `BOOKWORM-PRO`, `SLOWREAD-VIP`, `READMORE-2026`
+  * Curated codes: `GIFT-ReadSanctuary`, `BOOKWORM-PRO`, `SLOWREAD-VIP`, `READMORE-2026`
   * Voucher pattern: Any `GIFT-` followed by letters or digits (e.g. `GIFT-FRIEND100`, `GIFT-SARATH`)
   * Creator debug passkey: `DEV-OVERRIDE-2026`
 * Pro is permanently unlocked in on-device persistent storage (`SharedPreferences`) without requiring app store payments or internet connection!
-* **Creator Easter Egg:** Tap the *"ShelfCraft v1.0.0"* footer 7 times in Settings to open the secret redemption dialog.
+* **Creator Easter Egg:** Tap the *"ReadSanctuary v1.0.0"* footer 7 times in Settings to open the secret redemption dialog.
 
 #### Automated Google Drive AppData Sync (Pro)
 For hands-free cloud redundancy:
-* Connect your Google account. ShelfCraft uses strictly the sandboxed `drive.appdata` scope.
+* Connect your Google account. ReadSanctuary uses strictly the sandboxed `drive.appdata` scope.
 * **Privacy Guarantee:** The app *only* reads and writes inside its own hidden application folder; it cannot view, access, or modify your personal files, Google Docs, or Google Photos.
 * 1-click automatic backup and cloud restoration across devices.
 
@@ -445,7 +445,7 @@ For hands-free cloud redundancy:
 
 ## 💎 Free vs. Pro Features
 
-ShelfCraft is committed to a **generous free tier with zero lock-in**:
+ReadSanctuary is committed to a **generous free tier with zero lock-in**:
 
 | Capability | Free Community Edition | Pro Supporter Tier |
 | :--- | :---: | :---: |
@@ -471,34 +471,34 @@ ShelfCraft is committed to a **generous free tier with zero lock-in**:
 
 ## ❓ Frequently Asked Questions (FAQ)
 
-### Does ShelfCraft require an Internet connection?
-**No.** ShelfCraft is offline-first. All books, in-app EPUB reading, reading timers, streaks, notes, and local backups work completely offline in Airplane Mode. Internet access is only used when looking up new ISBN barcodes, downloading Gutenberg eBooks, or backing up to Google Drive.
+### Does ReadSanctuary require an Internet connection?
+**No.** ReadSanctuary is offline-first. All books, in-app EPUB reading, reading timers, streaks, notes, and local backups work completely offline in Airplane Mode. Internet access is only used when looking up new ISBN barcodes, downloading Gutenberg eBooks, or backing up to Google Drive.
 
-### Can I read EPUB and PDF books directly inside ShelfCraft?
-**Yes!** ShelfCraft has a built-in reflowable EPUB reader with Light, Sepia, and Night modes, customizable fonts and font sizes, and chapter navigation. You can also view PDF files without third-party apps.
+### Can I read EPUB and PDF books directly inside ReadSanctuary?
+**Yes!** ReadSanctuary has a built-in reflowable EPUB reader with Light, Sepia, and Night modes, customizable fonts and font sizes, and chapter navigation. You can also view PDF files without third-party apps.
 
-### Will ShelfCraft show advertisements?
-**Never.** ShelfCraft is an ad-free experience.
+### Will ReadSanctuary show advertisements?
+**Never.** ReadSanctuary is an ad-free experience.
 
 ### What happens to my library if I switch phones?
-Simply tap **Export Local Archive (.zip)** under Settings & Backup. Move that single zip file to your new phone (via AirDrop, USB, Drive, or email), tap **Restore Local Archive (.zip)** in ShelfCraft, and your entire library—including all covers, custom spines, sub-ratings, and notes—will load identically. Pro users can also restore from Google Drive in one tap.
+Simply tap **Export Local Archive (.zip)** under Settings & Backup. Move that single zip file to your new phone (via AirDrop, USB, Drive, or email), tap **Restore Local Archive (.zip)** in ReadSanctuary, and your entire library—including all covers, custom spines, sub-ratings, and notes—will load identically. Pro users can also restore from Google Drive in one tap.
 
-### How does ShelfCraft calculate spine thickness?
+### How does ReadSanctuary calculate spine thickness?
 Spine thickness is calculated directly from the book's verified page count using a smooth proportional curve (`pages / 14.0`, bounded between 26 and 62 logical pixels). A 150-page novella will look visibly slimmer than an 800-page hardcover.
 
 ### Can I give Pro to a friend or activate it offline?
-**Yes!** In Settings & Backup, tap **Redeem Gift Code / Voucher** and type any code prefixed with `GIFT-` (or use `GIFT-SHELFCRAFT`, `BOOKWORM-PRO`, etc.). Pro features will be unlocked permanently on that device without any payment.
+**Yes!** In Settings & Backup, tap **Redeem Gift Code / Voucher** and type any code prefixed with `GIFT-` (or use `GIFT-ReadSanctuary`, `BOOKWORM-PRO`, etc.). Pro features will be unlocked permanently on that device without any payment.
 
 ---
 
 ## 🛡️ Privacy & Local-First Promise
 
-1. **No Accounts Required:** You don't need to create a username or password to use ShelfCraft.
+1. **No Accounts Required:** You don't need to create a username or password to use ReadSanctuary.
 2. **On-Device Database:** Your reading list, ratings, notes, and reading times live in an open SQLite database on your hardware.
 3. **Zero Analytics Tracking:** We do not track your reading speed, what books you read, or sell reading habits to publishers or advertisers.
-4. **Sandboxed Cloud:** Even if you use Pro Google Drive sync, ShelfCraft requests only `drive.appdata` permissions, keeping your cloud backup encrypted in your private sandboxed folder.
+4. **Sandboxed Cloud:** Even if you use Pro Google Drive sync, ReadSanctuary requests only `drive.appdata` permissions, keeping your cloud backup encrypted in your private sandboxed folder.
 
 ---
 
-*ShelfCraft — Handcrafted for readers, book collectors, and slow-reading enthusiasts.*  
+*ReadSanctuary — Handcrafted for readers, book collectors, and slow-reading enthusiasts.*  
 *Have questions or want to contribute? Check out the [**Developer Guide (README_DEV.md)**](README_DEV.md).*

@@ -40,7 +40,7 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ShelfCraft',
+        title: const Text('ReadSanctuary',
             style: TextStyle(fontWeight: FontWeight.bold)),
         actions: [
           IconButton(

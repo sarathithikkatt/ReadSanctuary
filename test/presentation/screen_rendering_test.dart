@@ -8,16 +8,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:shelfcraft/core/utils/color_extractor.dart';
-import 'package:shelfcraft/data/local/database.dart';
-import 'package:shelfcraft/data/services/revenuecat_service.dart';
-import 'package:shelfcraft/presentation/screens/book_detail/book_detail_screen.dart';
-import 'package:shelfcraft/presentation/screens/book_detail/ocr_quote_scanner.dart';
-import 'package:shelfcraft/presentation/screens/bookshelf/bookshelf_screen.dart';
-import 'package:shelfcraft/presentation/screens/settings_backup/settings_backup_screen.dart';
-import 'package:shelfcraft/presentation/screens/spine_cropper/spine_cropper_screen.dart';
-import 'package:shelfcraft/presentation/screens/stats/stats_screen.dart';
-import 'package:shelfcraft/presentation/screens/timer/reading_timer_screen.dart';
+import 'package:readsanctuary/core/utils/color_extractor.dart';
+import 'package:readsanctuary/data/local/database.dart';
+import 'package:readsanctuary/data/services/revenuecat_service.dart';
+import 'package:readsanctuary/presentation/screens/book_detail/book_detail_screen.dart';
+import 'package:readsanctuary/presentation/screens/book_detail/ocr_quote_scanner.dart';
+import 'package:readsanctuary/presentation/screens/bookshelf/bookshelf_screen.dart';
+import 'package:readsanctuary/presentation/screens/settings_backup/settings_backup_screen.dart';
+import 'package:readsanctuary/presentation/screens/spine_cropper/spine_cropper_screen.dart';
+import 'package:readsanctuary/presentation/screens/stats/stats_screen.dart';
+import 'package:readsanctuary/presentation/screens/timer/reading_timer_screen.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -309,7 +309,7 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.text('Settings & Data Backup'), findsOneWidget);
-        expect(find.text('ShelfCraft Free'), findsOneWidget);
+        expect(find.text('ReadSanctuary Free'), findsOneWidget);
         expect(tester.takeException(), isNull);
 
         // Pro tier
@@ -317,7 +317,7 @@ void main() {
             wrapWithMaterial(const SettingsBackupScreen(), isPro: true));
         await tester.pumpAndSettle();
 
-        expect(find.text('ShelfCraft Pro Active'), findsOneWidget);
+        expect(find.text('ReadSanctuary Pro Active'), findsOneWidget);
         expect(tester.takeException(), isNull);
 
         await tester.pumpWidget(const SizedBox());

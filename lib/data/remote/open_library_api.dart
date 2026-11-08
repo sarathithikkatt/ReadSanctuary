@@ -12,7 +12,7 @@ class OpenLibraryApi {
                 connectTimeout: const Duration(seconds: 10),
                 receiveTimeout: const Duration(seconds: 10),
                 headers: {
-                  'User-Agent': 'ShelfCraft/1.0 (bookshelf-app)',
+                  'User-Agent': 'ReadSanctuary/1.0 (bookshelf-app)',
                 },
               ),
             );

@@ -20,7 +20,7 @@ class FreeBookService {
                 connectTimeout: const Duration(seconds: 10),
                 receiveTimeout: const Duration(seconds: 15),
                 headers: {
-                  'User-Agent': 'ShelfCraft/1.0 (free-books-reader)',
+                  'User-Agent': 'ReadSanctuary/1.0 (free-books-reader)',
                 },
               ),
             ),

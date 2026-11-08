@@ -7,14 +7,14 @@ import 'presentation/screens/settings_backup/settings_backup_screen.dart';
 import 'presentation/screens/stats/stats_screen.dart';
 
 /// Root application widget configuring navigation tabs, state persistence, and Material 3 theme.
-class ShelfCraftApp extends StatefulWidget {
-  const ShelfCraftApp({super.key});
+class ReadSanctuaryApp extends StatefulWidget {
+  const ReadSanctuaryApp({super.key});
 
   @override
-  State<ShelfCraftApp> createState() => _ShelfCraftAppState();
+  State<ReadSanctuaryApp> createState() => _ReadSanctuaryAppState();
 }
 
-class _ShelfCraftAppState extends State<ShelfCraftApp> {
+class _ReadSanctuaryAppState extends State<ReadSanctuaryApp> {
   int _currentIndex = 0;
 
   static const _screens = [
@@ -27,7 +27,7 @@ class _ShelfCraftAppState extends State<ShelfCraftApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'ShelfCraft',
+      title: 'ReadSanctuary',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       home: Scaffold(

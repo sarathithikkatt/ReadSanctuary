@@ -43,7 +43,7 @@ class ProPaywallSheet extends ConsumerWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Unlock ShelfCraft Pro',
+            'Unlock ReadSanctuary Pro',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -89,7 +89,7 @@ class ProPaywallSheet extends ConsumerWidget {
                   );
               if (context.mounted) Navigator.of(context).pop();
               messenger.showSnackBar(
-                const SnackBar(content: Text('Pro unlocked! Thank you for supporting ShelfCraft! 🌟')),
+                const SnackBar(content: Text('Pro unlocked! Thank you for supporting ReadSanctuary! 🌟')),
               );
             },
             child: const Text(

@@ -210,7 +210,7 @@ class ImageStorageHelper {
       onReceiveProgress: onProgress,
       options: Options(
         headers: {
-          'User-Agent': 'Mozilla/5.0 (compatible; ShelfCraft/1.0)',
+          'User-Agent': 'Mozilla/5.0 (compatible; ReadSanctuary/1.0)',
         },
         followRedirects: true,
       ),

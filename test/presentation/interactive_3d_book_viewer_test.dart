@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shelfcraft/data/local/database.dart';
-import 'package:shelfcraft/presentation/screens/bookshelf/widgets/book_cover_tilt_widget.dart';
-import 'package:shelfcraft/presentation/screens/bookshelf/widgets/book_spine_25d_widget.dart';
-import 'package:shelfcraft/presentation/screens/bookshelf/widgets/interactive_3d_book_viewer.dart';
+import 'package:readsanctuary/data/local/database.dart';
+import 'package:readsanctuary/presentation/screens/bookshelf/widgets/book_cover_tilt_widget.dart';
+import 'package:readsanctuary/presentation/screens/bookshelf/widgets/book_spine_25d_widget.dart';
+import 'package:readsanctuary/presentation/screens/bookshelf/widgets/interactive_3d_book_viewer.dart';
 
 void main() {
   const testBook = Book(

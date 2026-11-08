@@ -43,7 +43,7 @@ class ProStatusBanner extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        isPro ? 'ShelfCraft Pro Active' : 'ShelfCraft Free',
+                        isPro ? 'ReadSanctuary Pro Active' : 'ReadSanctuary Free',
                         style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,

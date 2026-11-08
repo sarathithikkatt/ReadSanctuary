@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">ShelfCraft</string>
-    <string name="shelf_widget_name">ShelfCraft Shelf</string>
+    <string name="app_name">ReadSanctuary</string>
+    <string name="shelf_widget_name">ReadSanctuary Shelf</string>
     <string name="shelf_widget_description">Displays your virtual bookshelf right on your home screen.</string>
 </resources>

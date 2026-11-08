@@ -4,8 +4,8 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shelfcraft/core/utils/image_storage_helper.dart';
-import 'package:shelfcraft/data/remote/free_book_service.dart';
+import 'package:readsanctuary/core/utils/image_storage_helper.dart';
+import 'package:readsanctuary/data/remote/free_book_service.dart';
 
 class MockAdapter implements HttpClientAdapter {
   final ResponseBody Function(RequestOptions options) handler;

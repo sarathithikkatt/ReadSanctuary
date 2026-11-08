@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.shelfcraft" "\0"
-            VALUE "FileDescription", "shelfcraft" "\0"
+            VALUE "CompanyName", "com.readsanctuary" "\0"
+            VALUE "FileDescription", "ReadSanctuary" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "shelfcraft" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 com.shelfcraft. All rights reserved." "\0"
-            VALUE "OriginalFilename", "shelfcraft.exe" "\0"
-            VALUE "ProductName", "shelfcraft" "\0"
+            VALUE "InternalName", "readsanctuary" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 com.readsanctuary. All rights reserved." "\0"
+            VALUE "OriginalFilename", "readsanctuary.exe" "\0"
+            VALUE "ProductName", "ReadSanctuary" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

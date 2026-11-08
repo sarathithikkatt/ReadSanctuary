@@ -20,8 +20,8 @@ class ShelfWidgetService {
   static const String _prefSelectedShelfKey = 'widget_selected_shelf_id';
   static const String widgetImageKey = 'shelf_widget_image';
   static const String widgetTitleKey = 'shelf_widget_title';
-  static const String androidWidgetName = 'ShelfCraftWidgetProvider';
-  static const String iOSWidgetName = 'ShelfCraftWidget';
+  static const String androidWidgetName = 'ReadSanctuaryWidgetProvider';
+  static const String iOSWidgetName = 'ReadSanctuaryWidget';
 
   ShelfWidgetService({required this.shelfDao});
 

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shelfcraft/core/utils/streak_calculator.dart';
+import 'package:readsanctuary/core/utils/streak_calculator.dart';
 
 void main() {
   group('Verification Gate 4 - Streak Calculation Logic Tests', () {

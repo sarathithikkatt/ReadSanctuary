@@ -1,4 +1,4 @@
-package com.shelfcraft.shelfcraft
+package com.readsanctuary.readsanctuary
 
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
@@ -10,7 +10,7 @@ import android.view.View
 import android.widget.RemoteViews
 import java.io.File
 
-class ShelfCraftWidgetProvider : AppWidgetProvider() {
+class ReadSanctuaryWidgetProvider : AppWidgetProvider() {
 
     override fun onUpdate(
         context: Context,
@@ -33,7 +33,7 @@ class ShelfCraftWidgetProvider : AppWidgetProvider() {
 
             // Retrieve rendered shelf image path
             val imagePath = widgetData.getString("flutter.shelf_widget_image", null)
-            val shelfTitle = widgetData.getString("flutter.shelf_widget_title", "ShelfCraft")
+            val shelfTitle = widgetData.getString("flutter.shelf_widget_title", "ReadSanctuary")
 
             var hasValidImage = false
             if (!imagePath.isNullOrEmpty()) {

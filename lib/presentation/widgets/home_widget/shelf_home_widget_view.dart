@@ -61,7 +61,7 @@ class ShelfHomeWidgetView extends StatelessWidget {
         ),
         child: Stack(
           children: [
-            // Header: Shelf Name & ShelfCraft Brand Tag
+            // Header: Shelf Name & ReadSanctuary Brand Tag
             Positioned(
               top: 10.0,
               left: 14.0,
@@ -128,7 +128,7 @@ class ShelfHomeWidgetView extends StatelessWidget {
                       borderRadius: BorderRadius.circular(8.0),
                     ),
                     child: Text(
-                      'ShelfCraft',
+                      'ReadSanctuary',
                       style: TextStyle(
                         fontSize: 10.0,
                         fontWeight: FontWeight.bold,

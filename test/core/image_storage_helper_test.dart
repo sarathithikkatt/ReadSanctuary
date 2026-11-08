@@ -2,7 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shelfcraft/core/utils/image_storage_helper.dart';
+import 'package:readsanctuary/core/utils/image_storage_helper.dart';
 
 void main() {
   late Directory tempDir;

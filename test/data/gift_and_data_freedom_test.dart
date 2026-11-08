@@ -1,10 +1,10 @@
 import 'package:drift/drift.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:shelfcraft/core/utils/streak_calculator.dart';
-import 'package:shelfcraft/data/local/database.dart';
-import 'package:shelfcraft/data/services/csv_import_service.dart';
-import 'package:shelfcraft/data/services/revenuecat_service.dart';
+import 'package:readsanctuary/core/utils/streak_calculator.dart';
+import 'package:readsanctuary/data/local/database.dart';
+import 'package:readsanctuary/data/services/csv_import_service.dart';
+import 'package:readsanctuary/data/services/revenuecat_service.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

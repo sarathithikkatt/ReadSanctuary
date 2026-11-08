@@ -7,13 +7,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:shelfcraft/core/utils/image_storage_helper.dart';
-import 'package:shelfcraft/data/local/database.dart';
-import 'package:shelfcraft/data/services/epub_service.dart';
-import 'package:shelfcraft/presentation/screens/book_detail/widgets/book_action_buttons.dart';
-import 'package:shelfcraft/presentation/screens/book_search/book_search_screen.dart';
-import 'package:shelfcraft/presentation/screens/epub_reader/epub_reader_screen.dart';
-import 'package:shelfcraft/presentation/screens/pdf_reader/pdf_reader_screen.dart';
+import 'package:readsanctuary/core/utils/image_storage_helper.dart';
+import 'package:readsanctuary/data/local/database.dart';
+import 'package:readsanctuary/data/services/epub_service.dart';
+import 'package:readsanctuary/presentation/screens/book_detail/widgets/book_action_buttons.dart';
+import 'package:readsanctuary/presentation/screens/book_search/book_search_screen.dart';
+import 'package:readsanctuary/presentation/screens/epub_reader/epub_reader_screen.dart';
+import 'package:readsanctuary/presentation/screens/pdf_reader/pdf_reader_screen.dart';
 
 class FakeEpubService extends EpubService {
   @override

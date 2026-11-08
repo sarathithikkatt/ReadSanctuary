@@ -1,6 +1,6 @@
-# 🛠️ ShelfCraft — Developer & Architecture Manual
+# 🛠️ ReadSanctuary — Developer & Architecture Manual
 
-> **Comprehensive technical architecture, engineering specifications, database design, algorithms, and contribution guidelines for ShelfCraft.**
+> **Comprehensive technical architecture, engineering specifications, database design, algorithms, and contribution guidelines for ReadSanctuary.**
 
 [![Flutter Version](https://img.shields.io/badge/Flutter-3.24%2B-02569B?logo=flutter)](https://flutter.dev)
 [![Dart Version](https://img.shields.io/badge/Dart-3.5%2B-0175C2?logo=dart)](https://dart.dev)
@@ -14,7 +14,7 @@
 
 ## 🧭 Navigation
 - Looking for user instructions, features, and how to use the app? 👉 Check out the [**User Guide (README.md)**](README.md).
-- Developing, modifying, or testing ShelfCraft? You are in the right place!
+- Developing, modifying, or testing ReadSanctuary? You are in the right place!
 
 ---
 
@@ -53,7 +53,7 @@
 
 ## 🏗️ Architecture & Design Principles
 
-ShelfCraft is architected as an **Offline-First, Local-First, Clean Architecture** mobile application using Flutter and Dart.
+ReadSanctuary is architected as an **Offline-First, Local-First, Clean Architecture** mobile application using Flutter and Dart.
 
 ```mermaid
 flowchart TD
@@ -196,7 +196,7 @@ lib/
 
 ### Schema Definition (Schema V3)
 
-ShelfCraft uses **Drift** on top of SQLite, ensuring high-speed transactional reliability and typed Dart mappings.
+ReadSanctuary uses **Drift** on top of SQLite, ensuring high-speed transactional reliability and typed Dart mappings.
 
 ```sql
 -- Schema Version 3
@@ -259,7 +259,7 @@ CREATE TABLE books (
 2. **`REAL` Type for `series_index`:**  
    Storing `series_index` as an SQLite `REAL` (`double` in Dart) allows precise query sorting for novellas (`0.5`, `1.5`, `2.5`).
 3. **Relative Paths for Media Assets:**  
-   ShelfCraft strictly stores filenames relative to `<ApplicationDocumentsDirectory>/media/`. Restoring backups across Android and iOS maintains 100% path resolution.
+   ReadSanctuary strictly stores filenames relative to `<ApplicationDocumentsDirectory>/media/`. Restoring backups across Android and iOS maintains 100% path resolution.
 4. **Foreign Key Cascades:**  
    `ON DELETE CASCADE` is enforced at the database driver level. Deleting a book automatically removes its shelf placement, reading history sessions, and notes in an atomic transaction.
 
@@ -286,7 +286,7 @@ Drift DAOs provide reactive streams to the presentation layer:
 
 ### 1. Procedural 2.5D Spine Engine & Lighting Shaders
 
-The 2.5D procedural spine widget ([`BookSpine25DWidget`](file:///d:/Dev/ShelfCraft/lib/presentation/screens/bookshelf/widgets/book_spine_25d_widget.dart)) translates physical book dimensions into an interactive visual element without requiring photography.
+The 2.5D procedural spine widget ([`BookSpine25DWidget`](file:///d:/Dev/ReadSanctuary/lib/presentation/screens/bookshelf/widgets/book_spine_25d_widget.dart)) translates physical book dimensions into an interactive visual element without requiring photography.
 
 #### Mathematical Dimensions
 * **Width Calculation:**
@@ -324,10 +324,10 @@ LinearGradient(
 
 ### 2. In-App Pure-Dart EPUB Reader Architecture
 
-[`EpubService`](file:///d:/Dev/ShelfCraft/lib/data/services/epub_service.dart) parses `.epub` archives into structured chapters and metadata using pure Dart:
+[`EpubService`](file:///d:/Dev/ReadSanctuary/lib/data/services/epub_service.dart) parses `.epub` archives into structured chapters and metadata using pure Dart:
 
 #### Why Pure Dart (`archive` + `xml`)?
-Third-party EPUB libraries (e.g. `epubx`) have strict legacy dependency bounds on `image ^3.x`, conflicting directly with `crop_your_image ^2.0.1` (`image ^4.x`). By implementing the open IDPF EPUB specification natively with `archive` and `xml`, ShelfCraft avoids dependency gridlock.
+Third-party EPUB libraries (e.g. `epubx`) have strict legacy dependency bounds on `image ^3.x`, conflicting directly with `crop_your_image ^2.0.1` (`image ^4.x`). By implementing the open IDPF EPUB specification natively with `archive` and `xml`, ReadSanctuary avoids dependency gridlock.
 
 #### EPUB Processing Flow:
 ```mermaid
@@ -367,25 +367,25 @@ Sub-ratings are fully preserved in RFC-4180 CSV exports and displayed as color-c
 
 ### 4. Android Home Screen Widget & Platform Channels
 
-ShelfCraft integrates with the Android AppWidget framework using `home_widget` and Kotlin:
-* **Native Provider:** `ShelfCraftWidgetProvider.kt` receives broadcast intents and renders `res/layout/shelf_craft_widget.xml`.
-* **Synchronization Service:** [`ShelfWidgetService`](file:///d:/Dev/ShelfCraft/lib/data/services/shelf_widget_service.dart) writes current book data (title, author, progress percentage, cover path, and streak count) to widget shared preferences and triggers `HomeWidget.updateWidget()`.
+ReadSanctuary integrates with the Android AppWidget framework using `home_widget` and Kotlin:
+* **Native Provider:** `ReadSanctuaryWidgetProvider.kt` receives broadcast intents and renders `res/layout/shelf_craft_widget.xml`.
+* **Synchronization Service:** [`ShelfWidgetService`](file:///d:/Dev/ReadSanctuary/lib/data/services/shelf_widget_service.dart) writes current book data (title, author, progress percentage, cover path, and streak count) to widget shared preferences and triggers `HomeWidget.updateWidget()`.
 * **Triggers:** Automatically invoked whenever a reading session is finished or when a book's reading status changes.
 
 ---
 
 ### 5. Dual-API Book Lookup & Gutenberg Free eBooks
 
-[`BookLookupService`](file:///d:/Dev/ShelfCraft/lib/data/remote/book_lookup_service.dart) combines OpenLibrary with Google Books:
+[`BookLookupService`](file:///d:/Dev/ReadSanctuary/lib/data/remote/book_lookup_service.dart) combines OpenLibrary with Google Books:
 1. **Primary Lookup (OpenLibrary):** Queries `openlibrary.org/isbn/{isbn}.json`.
 2. **Field Enrichment (Google Books):** If page count or cover art is missing, queries `googleapis.com/books/v1/volumes?q=isbn:{isbn}` to backfill.
-3. **Free Gutenberg Catalog:** [`FreeBookService`](file:///d:/Dev/ShelfCraft/lib/data/remote/free_book_service.dart) searches the Gutendex API (`gutendex.com/books/?search=...`) to download public domain EPUB books with one click.
+3. **Free Gutenberg Catalog:** [`FreeBookService`](file:///d:/Dev/ReadSanctuary/lib/data/remote/free_book_service.dart) searches the Gutendex API (`gutendex.com/books/?search=...`) to download public domain EPUB books with one click.
 
 ---
 
 ### 6. Clean-Room CSV Import & Export Engine
 
-[`CsvImportService`](file:///d:/Dev/ShelfCraft/lib/data/services/csv_import_service.dart) provides RFC-4180 compliant CSV import and export without using GPL-licensed code.
+[`CsvImportService`](file:///d:/Dev/ReadSanctuary/lib/data/services/csv_import_service.dart) provides RFC-4180 compliant CSV import and export without using GPL-licensed code.
 
 #### Goodreads Quirks Handled:
 * **Escaped Excel Formulas:** Regex extracts raw digits from `="9780140283297"`.
@@ -396,7 +396,7 @@ ShelfCraft integrates with the Android AppWidget framework using `home_widget` a
 
 ### 7. Image Storage & Relative Path Contract
 
-File handling is managed by [`ImageStorageHelper`](file:///d:/Dev/ShelfCraft/lib/core/utils/image_storage_helper.dart):
+File handling is managed by [`ImageStorageHelper`](file:///d:/Dev/ReadSanctuary/lib/core/utils/image_storage_helper.dart):
 * Media directory: `<ApplicationDocumentsDirectory>/media/covers/` and `<ApplicationDocumentsDirectory>/media/spines/`.
 * SQLite stores **strictly relative paths** (e.g., `media/covers/abc-123.jpg`).
 * At runtime, `ImageStorageHelper.resolveToAbsolute(relativePath)` builds the current platform path, preventing broken images during OS container updates or cross-device restore.
@@ -405,8 +405,8 @@ File handling is managed by [`ImageStorageHelper`](file:///d:/Dev/ShelfCraft/lib
 
 ### 8. Focus Reading Timer & OS-Kill Resilience
 
-[`ReadingTimerScreen`](file:///d:/Dev/ShelfCraft/lib/presentation/screens/timer/reading_timer_screen.dart) continuously synchronizes state to `SharedPreferences`:
-* Keys: `shelfcraft_reading_timer_start_ms`, `shelfcraft_reading_timer_is_running`, `shelfcraft_reading_timer_accumulated_seconds`.
+[`ReadingTimerScreen`](file:///d:/Dev/ReadSanctuary/lib/presentation/screens/timer/reading_timer_screen.dart) continuously synchronizes state to `SharedPreferences`:
+* Keys: `ReadSanctuary_reading_timer_start_ms`, `ReadSanctuary_reading_timer_is_running`, `ReadSanctuary_reading_timer_accumulated_seconds`.
 * Upon app restart:
   $$\text{Elapsed} = \text{accumulatedSeconds} + \left(\frac{\text{nowMs} - \text{startMs}}{1000}\right)$$
 * Recalculates elapsed time down to the exact second, making it immune to Android/iOS memory kills.
@@ -415,7 +415,7 @@ File handling is managed by [`ImageStorageHelper`](file:///d:/Dev/ShelfCraft/lib
 
 ### 9. Daily Streak & Habit Engine
 
-[`StreakCalculator`](file:///d:/Dev/ShelfCraft/lib/core/utils/streak_calculator.dart) is a deterministic pure function:
+[`StreakCalculator`](file:///d:/Dev/ReadSanctuary/lib/core/utils/streak_calculator.dart) is a deterministic pure function:
 * Normalizes all reading session timestamps into unique date strings (`yyyy-MM-dd`).
 * **Active Streak Logic:** If today has a session, counts backwards consecutively. If not, but yesterday has a session, maintains the streak in `Today Pending ⏳` state.
 * **Manual Backfill:** Retroactive sessions logged for missed days immediately restore the streak.
@@ -424,7 +424,7 @@ File handling is managed by [`ImageStorageHelper`](file:///d:/Dev/ShelfCraft/lib
 
 ### 10. Backup Archiver & Cloud Sync Architecture
 
-[`BackupArchiveService`](file:///d:/Dev/ShelfCraft/lib/data/services/backup_archive_service.dart) manages library backups:
+[`BackupArchiveService`](file:///d:/Dev/ReadSanctuary/lib/data/services/backup_archive_service.dart) manages library backups:
 1. **WAL Flushing:** Runs `PRAGMA wal_checkpoint(FULL);` before packaging so all SQLite transactions commit to disk.
 2. **Packaging:** Bundles `app_database.sqlite`, `media/covers`, `media/spines`, and `backup_manifest.json` into a `.zip` file using `archive`.
 3. **Restoration:** Validates manifest schema version, restores database file, unpacks media assets, and invalidates Drift cache.
@@ -434,13 +434,13 @@ File handling is managed by [`ImageStorageHelper`](file:///d:/Dev/ShelfCraft/lib
 
 ### 11. RevenueCat & Offline Gift Code Entitlement Engine
 
-[`RevenueCatService`](file:///d:/Dev/ShelfCraft/lib/data/services/revenuecat_service.dart) manages Pro entitlements:
+[`RevenueCatService`](file:///d:/Dev/ReadSanctuary/lib/data/services/revenuecat_service.dart) manages Pro entitlements:
 * `isProUserProvider`: Reactive `StateNotifierProvider<bool>` tracking Pro status.
 * **Offline Gift Codes:**
-  * Checks curated codes (`GIFT-SHELFCRAFT`, `BOOKWORM-PRO`, `SLOWREAD-VIP`, `READMORE-2026`).
+  * Checks curated codes (`GIFT-ReadSanctuary`, `BOOKWORM-PRO`, `SLOWREAD-VIP`, `READMORE-2026`).
   * Matches wildcard voucher pattern `RegExp(r'^GIFT-[A-Z0-9]{4,10}$')`.
   * Developer override: `DEV-OVERRIDE-2026`.
-  * Persists `shelfcraft_pro_gift_unlocked = true` in `SharedPreferences`.
+  * Persists `ReadSanctuary_pro_gift_unlocked = true` in `SharedPreferences`.
 * **Secret 7-Tap Easter Egg:** Tapping the version label in Settings 7 times opens the secret voucher redemption dialog.
 
 ---
@@ -458,15 +458,15 @@ File handling is managed by [`ImageStorageHelper`](file:///d:/Dev/ShelfCraft/lib
 ### Clone & Installation
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/shelfcraft.git
-cd shelfcraft
+git clone https://github.com/your-username/ReadSanctuary.git
+cd ReadSanctuary
 
 # Fetch dependencies
 flutter pub get
 ```
 
 ### Code Generation
-ShelfCraft uses `build_runner` for Drift table classes, DAOs, and Riverpod annotations:
+ReadSanctuary uses `build_runner` for Drift table classes, DAOs, and Riverpod annotations:
 ```bash
 # Run code generation once
 dart run build_runner build --delete-conflicting-outputs
@@ -485,7 +485,7 @@ flutter run -d windows
 
 ## 🧪 Testing & Quality Assurance
 
-ShelfCraft includes a comprehensive automated test suite covering unit logic, database transactions, widget rendering, and end-to-end user journeys.
+ReadSanctuary includes a comprehensive automated test suite covering unit logic, database transactions, widget rendering, and end-to-end user journeys.
 
 ### Test Directory Layout
 ```text
@@ -533,7 +533,7 @@ All pull requests must pass `flutter analyze lib/` and `flutter test` with **0 e
 
 ## ⚖️ Licensing & Clean-Room Compliance
 
-* **Clean-Room Guarantee:** ShelfCraft does not incorporate or derive code from GPL-licensed software (such as Openreads).
+* **Clean-Room Guarantee:** ReadSanctuary does not incorporate or derive code from GPL-licensed software (such as Openreads).
 * **Allowed Dependencies:** All third-party packages in `pubspec.yaml` must adhere to permissive open-source licenses: **MIT**, **BSD-2-Clause**, **BSD-3-Clause**, or **Apache-2.0**.
 * Any new package proposal must be audited for licensing compliance prior to merging.
 

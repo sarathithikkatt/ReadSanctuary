@@ -5,8 +5,8 @@ import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
-import 'package:shelfcraft/data/services/backup_archive_service.dart';
-import 'package:shelfcraft/data/services/revenuecat_service.dart';
+import 'package:readsanctuary/data/services/backup_archive_service.dart';
+import 'package:readsanctuary/data/services/revenuecat_service.dart';
 
 void main() {
   late Directory tempBaseDir;
@@ -82,7 +82,7 @@ void main() {
         // 4. Verify manifest integrity directly from the ZIP bytes
         final zipBytes = await zipFile.readAsBytes();
         final manifest = backupService.inspectAndVerifyArchive(zipBytes);
-        expect(manifest.appName, 'ShelfCraft');
+        expect(manifest.appName, 'ReadSanctuary');
         expect(manifest.schemaVersion, 1);
         expect(manifest.bookCount, 42);
         expect(manifest.mediaFilesCount, 3);

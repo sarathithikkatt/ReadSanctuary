@@ -1,4 +1,4 @@
-package com.shelfcraft.shelfcraft
+package com.readsanctuary.readsanctuary
 
 import io.flutter.embedding.android.FlutterActivity
 

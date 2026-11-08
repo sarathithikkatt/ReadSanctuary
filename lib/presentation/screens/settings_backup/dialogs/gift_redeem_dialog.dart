@@ -54,7 +54,7 @@ class _GiftRedeemDialogState extends ConsumerState<GiftRedeemDialog> {
         const SnackBar(
           backgroundColor: Colors.amber,
           content: Text(
-            '🎉 Gift Code Accepted! ShelfCraft Pro is now unlocked for life!',
+            '🎉 Gift Code Accepted! ReadSanctuary Pro is now unlocked for life!',
             style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
           ),
           duration: Duration(seconds: 4),
@@ -109,7 +109,7 @@ class _GiftRedeemDialogState extends ConsumerState<GiftRedeemDialog> {
               enableSuggestions: false,
               decoration: InputDecoration(
                 labelText: 'Gift or Promo Code',
-                hintText: 'e.g. GIFT-SHELFCRAFT',
+                hintText: 'e.g. GIFT-READSANCTUARY',
                 prefixIcon: const Icon(Icons.vpn_key_outlined),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 errorText: _errorMessage,
@@ -121,7 +121,7 @@ class _GiftRedeemDialogState extends ConsumerState<GiftRedeemDialog> {
               spacing: 6,
               runSpacing: 4,
               children: [
-                _buildCodeHint('GIFT-SHELFCRAFT'),
+                _buildCodeHint('GIFT-READSANCTUARY'),
                 _buildCodeHint('BOOKWORM-PRO'),
                 _buildCodeHint('READMORE-2026'),
               ],

@@ -26,7 +26,7 @@ class BackupOperationResult {
 /// Service managing automated Google Drive AppData sandbox backup & restore,
 /// SQLite WAL checkpointing, and local anti-lock-in ZIP export/import.
 class GoogleDriveBackupService {
-  static const String backupFileName = 'shelfcraft_backup.zip';
+  static const String backupFileName = 'readsanctuary_backup.zip';
   final GoogleSignIn _googleSignIn;
   final BackupArchiveService _archiveService;
 

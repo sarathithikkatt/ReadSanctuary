@@ -1,11 +1,11 @@
 import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shelfcraft/app.dart';
-import 'package:shelfcraft/data/local/database.dart';
+import 'package:readsanctuary/app.dart';
+import 'package:readsanctuary/data/local/database.dart';
 
 void main() {
-  testWidgets('ShelfCraftApp smoke test pumps successfully',
+  testWidgets('ReadSanctuaryApp smoke test pumps successfully',
       (WidgetTester tester) async {
     final testDb = AppDatabase(NativeDatabase.memory());
 
@@ -14,12 +14,12 @@ void main() {
         overrides: [
           appDatabaseProvider.overrideWithValue(testDb),
         ],
-        child: const ShelfCraftApp(),
+        child: const ReadSanctuaryApp(),
       ),
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('ShelfCraft'), findsWidgets);
+    expect(find.text('ReadSanctuary'), findsWidgets);
     expect(find.text('Bookshelf'), findsOneWidget);
     expect(find.text('Scan ISBN'), findsOneWidget);
     expect(find.text('Stats'), findsOneWidget);

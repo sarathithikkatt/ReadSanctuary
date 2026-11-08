@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:shelfcraft/app.dart';
-import 'package:shelfcraft/data/local/database.dart';
-import 'package:shelfcraft/data/services/csv_import_service.dart';
-import 'package:shelfcraft/presentation/screens/bookshelf/widgets/book_spine_25d_widget.dart';
+import 'package:readsanctuary/app.dart';
+import 'package:readsanctuary/data/local/database.dart';
+import 'package:readsanctuary/data/services/csv_import_service.dart';
+import 'package:readsanctuary/presentation/screens/bookshelf/widgets/book_spine_25d_widget.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -24,7 +24,7 @@ void main() {
       overrides: [
         appDatabaseProvider.overrideWithValue(db),
       ],
-      child: const ShelfCraftApp(),
+      child: const ReadSanctuaryApp(),
     );
   }
 
@@ -38,7 +38,7 @@ void main() {
       await tester.pumpWidget(buildTestableApp());
       await tester.pumpAndSettle();
 
-      expect(find.text('ShelfCraft'), findsWidgets);
+      expect(find.text('ReadSanctuary'), findsWidgets);
       expect(find.text('Bookshelf'), findsOneWidget);
       expect(find.text('Scan ISBN'), findsOneWidget);
       expect(find.text('Stats'), findsOneWidget);
@@ -194,7 +194,7 @@ void main() {
       await tester.tap(find.text('Google Drive AppData Backup'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Unlock ShelfCraft Pro'), findsOneWidget);
+      expect(find.text('Unlock ReadSanctuary Pro'), findsOneWidget);
       expect(find.text('Unlock Lifetime Pro (\$9.99)'), findsOneWidget);
 
       // Unlock Pro via button in modal
@@ -203,12 +203,12 @@ void main() {
       await tester.tap(unlockBtn);
       await tester.pumpAndSettle();
 
-      expect(find.text('ShelfCraft Pro Active'), findsOneWidget);
+      expect(find.text('ReadSanctuary Pro Active'), findsOneWidget);
 
       // Return to bookshelf tab
       await tester.tap(find.text('Bookshelf'));
       await tester.pumpAndSettle();
-      expect(find.text('ShelfCraft'), findsWidgets);
+      expect(find.text('ReadSanctuary'), findsWidgets);
 
       await tester.pumpWidget(const SizedBox());
       await tester.pumpAndSettle();

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shelfcraft/data/services/csv_import_service.dart';
+import 'package:readsanctuary/data/services/csv_import_service.dart';
 
 void main() {
   late CsvImportService service;

@@ -4,10 +4,10 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shelfcraft/core/utils/color_extractor.dart';
-import 'package:shelfcraft/data/remote/book_lookup_service.dart';
-import 'package:shelfcraft/data/remote/google_books_api.dart';
-import 'package:shelfcraft/data/remote/open_library_api.dart';
+import 'package:readsanctuary/core/utils/color_extractor.dart';
+import 'package:readsanctuary/data/remote/book_lookup_service.dart';
+import 'package:readsanctuary/data/remote/google_books_api.dart';
+import 'package:readsanctuary/data/remote/open_library_api.dart';
 
 /// Lightweight custom HttpClientAdapter to mock Dio HTTP responses.
 class MockDioAdapter implements HttpClientAdapter {

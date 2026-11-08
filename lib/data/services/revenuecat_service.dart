@@ -16,17 +16,20 @@ class ProUserNotifier extends StateNotifier<bool> {
 
   /// Standard curated promo/gift codes accepted offline
   static const Set<String> validGiftCodes = {
+    'GIFT-READSANCTUARY',
     'GIFT-SHELFCRAFT',
     'BOOKWORM-PRO',
     'SLOWREAD-VIP',
     'READMORE-2026',
     'COMMUNITY-GIFT',
     'PRO-LIFETIME-GIFT',
+    'READSANCTUARY-VIP',
     'SHELFCRAFT-VIP',
   };
 
   /// Creator master passkeys
   static const Set<String> creatorPasskeys = {
+    'READSANCTUARY-CREATOR',
     'SHELFCRAFT-CREATOR',
     'CREATOR-KEY-2026',
     'DEV-UNLOCKED',

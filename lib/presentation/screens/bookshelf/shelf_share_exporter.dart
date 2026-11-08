@@ -14,7 +14,7 @@ class ShelfShareExporter {
   static Future<File?> exportAndShare({
     required GlobalKey repaintBoundaryKey,
     String? shareText,
-    String filename = 'shelfcraft_bookshelf.png',
+    String filename = 'readsanctuary_bookshelf.png',
   }) async {
     try {
       final boundary = repaintBoundaryKey.currentContext?.findRenderObject()
@@ -33,7 +33,7 @@ class ShelfShareExporter {
       await SharePlus.instance.share(
         ShareParams(
           files: [XFile(file.path, mimeType: 'image/png')],
-          text: shareText ?? 'Organized with #ShelfCraft 📚✨',
+          text: shareText ?? 'Organized with #ReadSanctuary 📚✨',
         ),
       );
 

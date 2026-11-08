@@ -1,10 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shelfcraft/domain/models/book_metadata.dart';
-import 'package:shelfcraft/data/remote/book_lookup_service.dart';
-import 'package:shelfcraft/data/remote/free_book_service.dart';
-import 'package:shelfcraft/data/remote/google_books_api.dart';
-import 'package:shelfcraft/data/remote/open_library_api.dart';
+import 'package:readsanctuary/domain/models/book_metadata.dart';
+import 'package:readsanctuary/data/remote/book_lookup_service.dart';
+import 'package:readsanctuary/data/remote/free_book_service.dart';
+import 'package:readsanctuary/data/remote/google_books_api.dart';
+import 'package:readsanctuary/data/remote/open_library_api.dart';
 
 void main() {
   group('Live Network Integration Tests', () {

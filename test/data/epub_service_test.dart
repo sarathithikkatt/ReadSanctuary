@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:archive/archive.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shelfcraft/data/services/epub_service.dart';
+import 'package:readsanctuary/data/services/epub_service.dart';
 
 void main() {
   group('EpubService Unit Tests', () {
