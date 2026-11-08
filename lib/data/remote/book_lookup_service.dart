@@ -3,79 +3,82 @@ import '../../domain/models/book_metadata.dart';
 import 'google_books_api.dart';
 import 'open_library_api.dart';
 
-/// Unified service providing dual-API book lookup with OpenLibrary as primary
-/// and Google Books as automatic enrichment/fallback.
+/// Unified service providing dual-API book lookup with Google Books as primary metadata source
+/// and OpenLibrary (Internet Archive) as automatic enrichment/fallback.
 class BookLookupService {
-  final OpenLibraryApi _openLibraryApi;
   final GoogleBooksApi _googleBooksApi;
+  final OpenLibraryApi _openLibraryApi;
 
   BookLookupService({
-    OpenLibraryApi? openLibraryApi,
     GoogleBooksApi? googleBooksApi,
-  })  : _openLibraryApi = openLibraryApi ?? OpenLibraryApi(),
-        _googleBooksApi = googleBooksApi ?? GoogleBooksApi();
+    OpenLibraryApi? openLibraryApi,
+  })  : _googleBooksApi = googleBooksApi ?? GoogleBooksApi(),
+        _openLibraryApi = openLibraryApi ?? OpenLibraryApi();
 
   /// Looks up a book by ISBN-10 or ISBN-13.
-  /// Queries OpenLibrary first; if page count or cover is missing, enriches from Google Books.
+  /// Queries Google Books API first for rich metadata (descriptions, covers, page counts).
+  /// If missing key fields or not found, enriches / falls back to OpenLibrary.
   Future<BookMetadata?> lookupByIsbn(String rawIsbn) async {
-    final clean = OpenLibraryApi.cleanIsbn(rawIsbn);
+    final clean = GoogleBooksApi.cleanIsbn(rawIsbn);
     if (clean.isEmpty) return null;
 
-    BookMetadata? olResult;
+    BookMetadata? gbResult;
     try {
-      olResult = await _openLibraryApi.getByIsbn(clean);
+      gbResult = await _googleBooksApi.getByIsbn(clean);
     } catch (_) {}
 
-    // If OpenLibrary completely failed or returned null, try Google Books
-    if (olResult == null) {
+    // If Google Books completely failed or returned null, try OpenLibrary
+    if (gbResult == null) {
       try {
-        return await _googleBooksApi.getByIsbn(clean);
+        return await _openLibraryApi.getByIsbn(clean);
       } catch (_) {
         return null;
       }
     }
 
     // Check if enrichment is required (missing pageCount, coverUrl, or authors)
-    final needsEnrichment = olResult.pageCount == null ||
-        olResult.coverUrl == null ||
-        olResult.authors.isEmpty;
+    final needsEnrichment = gbResult.pageCount == null ||
+        gbResult.coverUrl == null ||
+        gbResult.authors.isEmpty;
 
     if (needsEnrichment) {
       try {
-        final gbResult = await _googleBooksApi.getByIsbn(clean);
-        if (gbResult != null) {
-          return olResult.copyWith(
-            title: olResult.title.isNotEmpty ? olResult.title : gbResult.title,
-            subtitle: olResult.subtitle ?? gbResult.subtitle,
-            authors: olResult.authors.isNotEmpty ? olResult.authors : gbResult.authors,
-            pageCount: olResult.pageCount ?? gbResult.pageCount,
-            coverUrl: olResult.coverUrl ?? gbResult.coverUrl,
-            publisher: olResult.publisher ?? gbResult.publisher,
-            publishYear: olResult.publishYear ?? gbResult.publishYear,
-            description: olResult.description ?? gbResult.description,
-            isbn13: olResult.isbn13 ?? gbResult.isbn13,
+        final olResult = await _openLibraryApi.getByIsbn(clean);
+        if (olResult != null) {
+          return gbResult.copyWith(
+            title: gbResult.title.isNotEmpty ? gbResult.title : olResult.title,
+            subtitle: gbResult.subtitle ?? olResult.subtitle,
+            authors: gbResult.authors.isNotEmpty
+                ? gbResult.authors
+                : olResult.authors,
+            pageCount: gbResult.pageCount ?? olResult.pageCount,
+            coverUrl: gbResult.coverUrl ?? olResult.coverUrl,
+            publisher: gbResult.publisher ?? olResult.publisher,
+            publishYear: gbResult.publishYear ?? olResult.publishYear,
+            description: gbResult.description ?? olResult.description,
+            isbn13: gbResult.isbn13 ?? olResult.isbn13,
           );
         }
       } catch (_) {}
     }
 
-    return olResult;
+    return gbResult;
   }
 
   /// Searches books by keywords/title/author.
-  /// First checks OpenLibrary, falling back to Google Books if no results.
+  /// First checks Google Books for rich metadata, falling back to OpenLibrary if no results.
   Future<List<BookMetadata>> search(String query) async {
     if (query.trim().isEmpty) return [];
 
     try {
-      final olResults = await _openLibraryApi.search(query);
-      if (olResults.isNotEmpty) {
-        return olResults;
+      final gbResults = await _googleBooksApi.search(query);
+      if (gbResults.isNotEmpty) {
+        return gbResults;
       }
     } catch (_) {}
 
     try {
-      return await _googleBooksApi.search(query);
+      return await _openLibraryApi.search(query);
     } catch (_) {
       return [];
     }
@@ -84,7 +87,7 @@ class BookLookupService {
 
 final bookLookupServiceProvider = Provider<BookLookupService>((ref) {
   return BookLookupService(
-    openLibraryApi: ref.watch(openLibraryApiProvider),
     googleBooksApi: ref.watch(googleBooksApiProvider),
+    openLibraryApi: ref.watch(openLibraryApiProvider),
   );
 });

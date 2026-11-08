@@ -24,7 +24,8 @@ void main() {
   group('ImageStorageHelper Tests', () {
     test('Saves cover bytes and returns relative path', () async {
       final bytes = Uint8List.fromList([1, 2, 3, 4, 5]);
-      final relativePath = await storageHelper.saveCoverBytes(bytes, filename: 'test_cover.jpg');
+      final relativePath =
+          await storageHelper.saveCoverBytes(bytes, filename: 'test_cover.jpg');
 
       expect(relativePath, 'covers/test_cover.jpg');
       expect(await storageHelper.fileExists(relativePath), isTrue);
@@ -37,10 +38,25 @@ void main() {
 
     test('Saves spine bytes and returns relative path', () async {
       final bytes = Uint8List.fromList([10, 20, 30]);
-      final relativePath = await storageHelper.saveSpineBytes(bytes, filename: 'test_spine.jpg');
+      final relativePath =
+          await storageHelper.saveSpineBytes(bytes, filename: 'test_spine.jpg');
 
       expect(relativePath, 'spines/test_spine.jpg');
       expect(await storageHelper.fileExists(relativePath), isTrue);
+    });
+
+    test('Saves PDF bytes and returns relative path', () async {
+      final pdfBytes = Uint8List.fromList([0x25, 0x50, 0x44, 0x46]); // %PDF
+      final relativePath =
+          await storageHelper.savePdfBytes(pdfBytes, filename: 'sample_book.pdf');
+
+      expect(relativePath, 'pdfs/sample_book.pdf');
+      expect(await storageHelper.fileExists(relativePath), isTrue);
+
+      final absPath = await storageHelper.resolveAbsolutePath(relativePath);
+      final file = File(absPath);
+      expect(await file.exists(), isTrue);
+      expect(await file.readAsBytes(), pdfBytes);
     });
 
     test('Deletes file by relative path', () async {

@@ -24,7 +24,8 @@ class OcrQuoteScanner extends ConsumerStatefulWidget {
 }
 
 class _OcrQuoteScannerState extends ConsumerState<OcrQuoteScanner> {
-  final TextRecognizer _textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
+  final TextRecognizer _textRecognizer =
+      TextRecognizer(script: TextRecognitionScript.latin);
   final ImagePicker _picker = ImagePicker();
   static const _uuid = Uuid();
 
@@ -56,7 +57,8 @@ class _OcrQuoteScannerState extends ConsumerState<OcrQuoteScanner> {
       setState(() => _isRecognizing = true);
 
       final inputImage = InputImage.fromFilePath(file.path);
-      final RecognizedText recognized = await _textRecognizer.processImage(inputImage);
+      final RecognizedText recognized =
+          await _textRecognizer.processImage(inputImage);
 
       setState(() {
         _isRecognizing = false;
@@ -111,12 +113,11 @@ class _OcrQuoteScannerState extends ConsumerState<OcrQuoteScanner> {
       appBar: AppBar(
         title: const Text('Scan Quote (OCR)'),
         actions: [
-          if (_contentController.text.isNotEmpty)
-            IconButton(
-              icon: const Icon(Icons.check),
-              tooltip: 'Save Note',
-              onPressed: _saveNote,
-            ),
+          IconButton(
+            icon: const Icon(Icons.check),
+            tooltip: 'Save Note',
+            onPressed: _saveNote,
+          ),
         ],
       ),
       body: _isRecognizing
@@ -136,11 +137,14 @@ class _OcrQuoteScannerState extends ConsumerState<OcrQuoteScanner> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // Book Title Header
-                  Text(
-                    widget.bookTitle,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 16),
+                  if (widget.bookTitle.isNotEmpty) ...[
+                    Text(
+                      widget.bookTitle,
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
 
                   // Capture Buttons
                   Row(
@@ -149,7 +153,8 @@ class _OcrQuoteScannerState extends ConsumerState<OcrQuoteScanner> {
                         child: ElevatedButton.icon(
                           icon: const Icon(Icons.camera_alt),
                           label: const Text('Take Photo'),
-                          onPressed: () => _captureAndRecognize(ImageSource.camera),
+                          onPressed: () =>
+                              _captureAndRecognize(ImageSource.camera),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -157,59 +162,93 @@ class _OcrQuoteScannerState extends ConsumerState<OcrQuoteScanner> {
                         child: OutlinedButton.icon(
                           icon: const Icon(Icons.photo_library),
                           label: const Text('Pick Image'),
-                          onPressed: () => _captureAndRecognize(ImageSource.gallery),
+                          onPressed: () =>
+                              _captureAndRecognize(ImageSource.gallery),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 20),
 
-                  if (_recognizedText.isNotEmpty || _contentController.text.isNotEmpty) ...[
-                    // Note Type Selector
-                    SegmentedButton<String>(
-                      segments: const [
-                        ButtonSegment(value: 'quote', label: Text('Quote')),
-                        ButtonSegment(value: 'thought', label: Text('Thought')),
-                        ButtonSegment(value: 'character', label: Text('Character')),
+                  // Note Type Selector
+                  SegmentedButton<String>(
+                    segments: const [
+                      ButtonSegment(value: 'quote', label: Text('Quote')),
+                      ButtonSegment(value: 'thought', label: Text('Thought')),
+                      ButtonSegment(
+                          value: 'character', label: Text('Character')),
+                    ],
+                    selected: {_noteType},
+                    onSelectionChanged: (set) =>
+                        setState(() => _noteType = set.first),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Page Number Input
+                  TextField(
+                    controller: _pageController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Page Number (optional)',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.bookmark_border),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  if (_recognizedText.isNotEmpty) ...[
+                    Row(
+                      children: [
+                        Icon(Icons.auto_awesome,
+                            size: 16, color: Colors.amber.shade800),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Text extracted via OCR • Edit if needed',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.amber.shade900,
+                          ),
+                        ),
                       ],
-                      selected: {_noteType},
-                      onSelectionChanged: (set) => setState(() => _noteType = set.first),
                     ),
-                    const SizedBox(height: 16),
-
-                    // Page Number Input
-                    TextField(
-                      controller: _pageController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: 'Page Number (optional)',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.bookmark_border),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Editable Quote Content Field
-                    TextField(
-                      controller: _contentController,
-                      maxLines: 8,
-                      decoration: const InputDecoration(
-                        labelText: 'Recognized Quote Text',
-                        border: OutlineInputBorder(),
-                        alignLabelWithHint: true,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14.0),
-                      ),
-                      icon: const Icon(Icons.save),
-                      label: const Text('Save to Book Notes'),
-                      onPressed: _saveNote,
-                    ),
+                    const SizedBox(height: 8),
                   ],
+
+                  // Editable Quote Content Field
+                  TextField(
+                    controller: _contentController,
+                    maxLines: 6,
+                    decoration: InputDecoration(
+                      labelText: 'Quote or Note Content',
+                      hintText:
+                          'Type quote manually or tap Scan Page to extract from camera...',
+                      border: const OutlineInputBorder(),
+                      alignLabelWithHint: true,
+                      suffixIcon: _contentController.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                setState(() {
+                                  _contentController.clear();
+                                  _recognizedText = '';
+                                });
+                              },
+                            )
+                          : null,
+                    ),
+                    onChanged: (_) => setState(() {}),
+                  ),
+                  const SizedBox(height: 20),
+
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14.0),
+                    ),
+                    icon: const Icon(Icons.save),
+                    label: const Text('Save to Book Notes'),
+                    onPressed: _saveNote,
+                  ),
                 ],
               ),
             ),

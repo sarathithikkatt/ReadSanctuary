@@ -29,7 +29,8 @@ void main() {
   }
 
   group('End-to-End User Flow Tests', () {
-    testWidgets('E2E: App boots, verifies default shelves, adds book, opens details, edits and logs session',
+    testWidgets(
+        'E2E: App boots, verifies default shelves, adds book, opens details, edits and logs session',
         (WidgetTester tester) async {
       await tester.binding.setSurfaceSize(const Size(800, 1200));
 
@@ -62,11 +63,17 @@ void main() {
       expect(find.text('Add Book to Shelf'), findsOneWidget);
 
       // Fill in fields
-      await tester.enterText(find.widgetWithText(TextField, 'Book Title *'), 'The Way of Kings');
-      await tester.enterText(find.widgetWithText(TextField, 'Author *'), 'Brandon Sanderson');
-      await tester.enterText(find.widgetWithText(TextField, 'Page Count'), '1007');
-      await tester.enterText(find.widgetWithText(TextField, 'Series (optional)'), 'The Stormlight Archive');
-      await tester.enterText(find.widgetWithText(TextField, 'Vol # (e.g. 1.5)'), '1.0');
+      await tester.enterText(
+          find.widgetWithText(TextField, 'Book Title *'), 'The Way of Kings');
+      await tester.enterText(
+          find.widgetWithText(TextField, 'Author *'), 'Brandon Sanderson');
+      await tester.enterText(
+          find.widgetWithText(TextField, 'Page Count'), '1007');
+      await tester.enterText(
+          find.widgetWithText(TextField, 'Series (optional)'),
+          'The Stormlight Archive');
+      await tester.enterText(
+          find.widgetWithText(TextField, 'Vol # (e.g. 1.5)'), '1.0');
 
       // Submit
       await tester.tap(find.widgetWithText(ElevatedButton, 'Add Book'));
@@ -81,7 +88,8 @@ void main() {
       expect(book.seriesName, 'The Stormlight Archive');
       expect(book.seriesIndex, 1.0);
 
-      final shelfItems = await db.shelfDao.getItemsForShelf(defaultShelves.first.id);
+      final shelfItems =
+          await db.shelfDao.getItemsForShelf(defaultShelves.first.id);
       expect(shelfItems.length, 1);
       expect(shelfItems.first.bookId, book.id);
 
@@ -125,7 +133,8 @@ void main() {
 
       // Start timer
       final playFab = find.byWidgetPredicate(
-        (widget) => widget is FloatingActionButton && widget.heroTag == 'play_btn',
+        (widget) =>
+            widget is FloatingActionButton && widget.heroTag == 'play_btn',
       );
       expect(playFab, findsOneWidget);
       await tester.tap(playFab);
@@ -133,7 +142,8 @@ void main() {
 
       // Pause timer
       final pauseFab = find.byWidgetPredicate(
-        (widget) => widget is FloatingActionButton && widget.heroTag == 'pause_btn',
+        (widget) =>
+            widget is FloatingActionButton && widget.heroTag == 'pause_btn',
       );
       expect(pauseFab, findsOneWidget);
       await tester.tap(pauseFab);
@@ -141,7 +151,8 @@ void main() {
 
       // Stop & Finish session
       final stopFab = find.byWidgetPredicate(
-        (widget) => widget is FloatingActionButton && widget.heroTag == 'stop_btn',
+        (widget) =>
+            widget is FloatingActionButton && widget.heroTag == 'stop_btn',
       );
       expect(stopFab, findsOneWidget);
       await tester.tap(stopFab);
@@ -187,7 +198,8 @@ void main() {
       expect(find.text('Unlock Lifetime Pro (\$9.99)'), findsOneWidget);
 
       // Unlock Pro via button in modal
-      final unlockBtn = find.widgetWithText(ElevatedButton, 'Unlock Lifetime Pro (\$9.99)');
+      final unlockBtn =
+          find.widgetWithText(ElevatedButton, 'Unlock Lifetime Pro (\$9.99)');
       await tester.tap(unlockBtn);
       await tester.pumpAndSettle();
 
@@ -204,7 +216,8 @@ void main() {
       await tester.pump(Duration.zero);
     });
 
-    testWidgets('E2E: CSV Import Populates Database and Shelf Items', (WidgetTester tester) async {
+    testWidgets('E2E: CSV Import Populates Database and Shelf Items',
+        (WidgetTester tester) async {
       final csvService = CsvImportService();
       const goodreadsCsv = '''
 Book Id,Title,Author,Additional Authors,ISBN,ISBN13,My Rating,Average Rating,Publisher,Binding,Number of Pages,Year Published,Original Publication Year,Date Read,Date Added,Bookshelves,Bookshelves with positions,Exclusive Shelf,My Review,Spoiler,Private Notes,Read Count,Recommended For,Recommended By,Owned Copies

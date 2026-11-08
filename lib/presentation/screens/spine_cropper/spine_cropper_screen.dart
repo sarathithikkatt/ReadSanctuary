@@ -142,7 +142,8 @@ class _SpineCropperScreenState extends State<SpineCropperScreen> {
                   withCircleUi: false,
                   baseColor: Colors.black,
                   maskColor: Colors.black.withOpacity(0.7),
-                  cornerDotBuilder: (size, edgeAlignment) => const SizedBox.shrink(),
+                  cornerDotBuilder: (size, edgeAlignment) =>
+                      const SizedBox.shrink(),
                 ),
                 if (_isProcessing)
                   Container(
@@ -163,38 +164,39 @@ class _SpineCropperScreenState extends State<SpineCropperScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.crop_original, size: 72, color: Colors.grey.shade600),
-          const SizedBox(height: 16),
-          const Text(
-            'Take or choose a photo of the book spine',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.white70, fontSize: 16),
-          ),
-          const SizedBox(height: 24),
-          Wrap(
-            alignment: WrapAlignment.center,
-            spacing: 16,
-            runSpacing: 12,
-            children: [
-              ElevatedButton.icon(
-                icon: const Icon(Icons.camera_alt),
-                label: const Text('Camera'),
-                onPressed: () => _pickImage(ImageSource.camera),
-              ),
-              OutlinedButton.icon(
-                icon: const Icon(Icons.photo_library),
-                label: const Text('Gallery'),
-                style: OutlinedButton.styleFrom(foregroundColor: Colors.white),
-                onPressed: () => _pickImage(ImageSource.gallery),
-              ),
-            ],
-          ),
-        ],
+          children: [
+            Icon(Icons.crop_original, size: 72, color: Colors.grey.shade600),
+            const SizedBox(height: 16),
+            const Text(
+              'Take or choose a photo of the book spine',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.white70, fontSize: 16),
+            ),
+            const SizedBox(height: 24),
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 16,
+              runSpacing: 12,
+              children: [
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.camera_alt),
+                  label: const Text('Camera'),
+                  onPressed: () => _pickImage(ImageSource.camera),
+                ),
+                OutlinedButton.icon(
+                  icon: const Icon(Icons.photo_library),
+                  label: const Text('Gallery'),
+                  style:
+                      OutlinedButton.styleFrom(foregroundColor: Colors.white),
+                  onPressed: () => _pickImage(ImageSource.gallery),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildBottomActions() {
     return SafeArea(

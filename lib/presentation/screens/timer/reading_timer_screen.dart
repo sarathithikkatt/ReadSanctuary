@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../core/utils/formatters.dart';
 import '../../../data/local/database.dart';
 
 /// Reading focus timer screen with background-kill resilient SharedPreferences state persistence,
@@ -140,7 +141,8 @@ class _ReadingTimerScreenState extends ConsumerState<ReadingTimerScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Book: ${widget.book.title}', style: const TextStyle(fontWeight: FontWeight.bold)),
+            Text('Book: ${widget.book.title}',
+                style: const TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             Text('Time: ${_formatDuration(_elapsedSeconds)}'),
             const SizedBox(height: 16),
@@ -223,15 +225,8 @@ class _ReadingTimerScreenState extends ConsumerState<ReadingTimerScreen> {
     }
   }
 
-  String _formatDuration(int totalSeconds) {
-    final hours = totalSeconds ~/ 3600;
-    final minutes = (totalSeconds % 3600) ~/ 60;
-    final seconds = totalSeconds % 60;
-    if (hours > 0) {
-      return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
-    }
-    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
-  }
+  String _formatDuration(int totalSeconds) =>
+      Formatters.formatDuration(totalSeconds);
 
   @override
   Widget build(BuildContext context) {
@@ -252,7 +247,8 @@ class _ReadingTimerScreenState extends ConsumerState<ReadingTimerScreen> {
               Text(
                 widget.book.title,
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 6),
               Text(
@@ -293,14 +289,16 @@ class _ReadingTimerScreenState extends ConsumerState<ReadingTimerScreen> {
                       heroTag: 'pause_btn',
                       backgroundColor: Colors.amber.shade700,
                       onPressed: _pauseTimer,
-                      child: const Icon(Icons.pause, size: 36, color: Colors.white),
+                      child: const Icon(Icons.pause,
+                          size: 36, color: Colors.white),
                     )
                   else
                     FloatingActionButton.large(
                       heroTag: 'play_btn',
                       backgroundColor: color,
                       onPressed: _startTimer,
-                      child: const Icon(Icons.play_arrow, size: 36, color: Colors.white),
+                      child: const Icon(Icons.play_arrow,
+                          size: 36, color: Colors.white),
                     ),
                   if (_elapsedSeconds > 0) ...[
                     const SizedBox(width: 24),

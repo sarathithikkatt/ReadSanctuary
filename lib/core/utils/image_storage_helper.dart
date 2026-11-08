@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -58,6 +59,16 @@ class ImageStorageHelper {
     return spinesDir;
   }
 
+  /// Subdirectory for uploaded/downloaded book PDFs: `<media>/pdfs/`.
+  Future<Directory> getPdfsDirectory() async {
+    final mediaDir = await getMediaDirectory();
+    final pdfsDir = Directory(p.join(mediaDir.path, 'pdfs'));
+    if (!await pdfsDir.exists()) {
+      await pdfsDir.create(recursive: true);
+    }
+    return pdfsDir;
+  }
+
   /// Converts a relative path (e.g., 'covers/123.jpg') into an absolute file system path.
   Future<String> resolveAbsolutePath(String relativePath) async {
     final mediaDir = await getMediaDirectory();
@@ -111,7 +122,8 @@ class ImageStorageHelper {
   }
 
   /// Copies an existing file into the covers directory and returns the relative path.
-  Future<String> copyCoverFile(File sourceFile, {String? targetFilename}) async {
+  Future<String> copyCoverFile(File sourceFile,
+      {String? targetFilename}) async {
     final coversDir = await getCoversDirectory();
     final ext = p.extension(sourceFile.path).replaceAll('.', '');
     final name = targetFilename ?? '${_uuid.v4()}.${ext.isEmpty ? "jpg" : ext}';
@@ -121,7 +133,8 @@ class ImageStorageHelper {
   }
 
   /// Copies an existing file into the spines directory and returns the relative path.
-  Future<String> copySpineFile(File sourceFile, {String? targetFilename}) async {
+  Future<String> copySpineFile(File sourceFile,
+      {String? targetFilename}) async {
     final spinesDir = await getSpinesDirectory();
     final ext = p.extension(sourceFile.path).replaceAll('.', '');
     final name = targetFilename ?? '${_uuid.v4()}.${ext.isEmpty ? "jpg" : ext}';
@@ -149,6 +162,82 @@ class ImageStorageHelper {
       filename: filename,
       extension: extension,
     );
+  }
+
+  /// Saves raw bytes as a PDF or EPUB file and returns the relative path (e.g. 'pdfs/{filename}.pdf' or 'pdfs/{filename}.epub').
+  Future<String> savePdfBytes(
+    Uint8List bytes, {
+    String? filename,
+  }) async {
+    final pdfsDir = await getPdfsDirectory();
+    final name = filename != null
+        ? (filename.contains('.') ? filename : '$filename.pdf')
+        : '${_uuid.v4()}.pdf';
+    final file = File(p.join(pdfsDir.path, name));
+    await file.writeAsBytes(bytes);
+    return p.join('pdfs', name).replaceAll(r'\', '/');
+  }
+
+  /// Copies an existing PDF/EPUB file into the pdfs directory and returns the relative path.
+  Future<String> copyPdfFile(File sourceFile, {String? targetFilename}) async {
+    final pdfsDir = await getPdfsDirectory();
+    final name = targetFilename != null
+        ? (targetFilename.contains('.') ? targetFilename : '$targetFilename.pdf')
+        : '${_uuid.v4()}.pdf';
+    final targetFile = File(p.join(pdfsDir.path, name));
+    await sourceFile.copy(targetFile.path);
+    return p.join('pdfs', name).replaceAll(r'\', '/');
+  }
+
+  /// Downloads a PDF or EPUB from [url] and stores it in pdfs directory.
+  /// Returns relative path (e.g. 'pdfs/{bookId}.pdf' or 'pdfs/{bookId}.epub').
+  Future<String> downloadAndSavePdf(
+    String url, {
+    String? filename,
+    void Function(int count, int total)? onProgress,
+  }) async {
+    final pdfsDir = await getPdfsDirectory();
+    final isEpub = url.toLowerCase().contains('.epub');
+    final defaultExt = isEpub ? 'epub' : 'pdf';
+    final name = filename != null
+        ? (filename.contains('.') ? filename : '$filename.$defaultExt')
+        : '${_uuid.v4()}.$defaultExt';
+    final targetPath = p.join(pdfsDir.path, name);
+
+    await _dio.download(
+      url,
+      targetPath,
+      onReceiveProgress: onProgress,
+      options: Options(
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (compatible; ShelfCraft/1.0)',
+        },
+        followRedirects: true,
+      ),
+    );
+
+    return p.join('pdfs', name).replaceAll(r'\', '/');
+  }
+
+  /// Opens native file picker to select a PDF or EPUB file, copies it to `<media>/pdfs/`,
+  /// and returns the relative path (e.g. 'pdfs/{bookId}.pdf' or 'pdfs/{bookId}.epub').
+  /// Returns null if user cancelled selection.
+  Future<String?> pickAndSavePdf({String? bookId}) async {
+    const typeGroup = XTypeGroup(
+      label: 'eBooks & Documents (PDF / EPUB)',
+      extensions: ['pdf', 'epub', 'epub3'],
+      mimeTypes: ['application/pdf', 'application/epub+zip'],
+    );
+
+    final file = await openFile(acceptedTypeGroups: [typeGroup]);
+    if (file == null) return null;
+
+    final bytes = await file.readAsBytes();
+    final ext = p.extension(file.name).replaceAll('.', '').toLowerCase();
+    final effectiveExt = (ext == 'epub' || ext == 'epub3') ? 'epub' : 'pdf';
+    final filename =
+        bookId != null ? '$bookId.$effectiveExt' : '${_uuid.v4()}.$effectiveExt';
+    return savePdfBytes(bytes, filename: filename);
   }
 }
 

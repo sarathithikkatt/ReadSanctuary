@@ -6,7 +6,9 @@ void main() {
     // Reference date fixed to 2026-10-28 at 14:00:00 local time
     final refDate = DateTime(2026, 10, 28, 14, 0, 0);
 
-    test('Consecutive days reading calculates currentStreak and longestStreak correctly', () {
+    test(
+        'Consecutive days reading calculates currentStreak and longestStreak correctly',
+        () {
       // 4 consecutive days: Today (Oct 28), Oct 27, Oct 26, Oct 25
       final sessions = [
         DateTime(2026, 10, 28, 9, 30).millisecondsSinceEpoch,
@@ -25,7 +27,9 @@ void main() {
       expect(result.isTodayCompleted, isTrue);
     });
 
-    test('Today pending preserves streak when user read yesterday but not yet today', () {
+    test(
+        'Today pending preserves streak when user read yesterday but not yet today',
+        () {
       // 3 consecutive days ending yesterday (Oct 27, Oct 26, Oct 25). No session on Oct 28.
       final sessions = [
         DateTime(2026, 10, 27, 20, 00).millisecondsSinceEpoch,
@@ -60,7 +64,8 @@ void main() {
       expect(result.isTodayCompleted, isFalse);
     });
 
-    test('Manual backfill of a missed past date bridges and restores streak', () {
+    test('Manual backfill of a missed past date bridges and restores streak',
+        () {
       // Past gap: Read Oct 25, Oct 26, [MISSED Oct 27], Read Oct 28 (today)
       final sessionsWithGap = [
         DateTime(2026, 10, 28, 10, 00).millisecondsSinceEpoch,
@@ -94,7 +99,9 @@ void main() {
       expect(afterBackfill.isTodayCompleted, isTrue);
     });
 
-    test('Accurately tracks historical longest streak higher than current streak', () {
+    test(
+        'Accurately tracks historical longest streak higher than current streak',
+        () {
       // Historical 5-day streak in September
       final historicalStreak = [
         DateTime(2026, 9, 1).millisecondsSinceEpoch,
@@ -119,7 +126,9 @@ void main() {
       expect(result.longestStreak, 5);
     });
 
-    test('Multiple sessions on the same day do not falsely inflate streak count', () {
+    test(
+        'Multiple sessions on the same day do not falsely inflate streak count',
+        () {
       // 3 sessions today and 2 sessions yesterday
       final sessions = [
         DateTime(2026, 10, 28, 8, 0).millisecondsSinceEpoch,

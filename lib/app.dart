@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+
+import 'core/theme/app_theme.dart';
 import 'presentation/screens/bookshelf/bookshelf_screen.dart';
 import 'presentation/screens/scanner/barcode_scanner_screen.dart';
 import 'presentation/screens/settings_backup/settings_backup_screen.dart';
 import 'presentation/screens/stats/stats_screen.dart';
 
+/// Root application widget configuring navigation tabs, state persistence, and Material 3 theme.
 class ShelfCraftApp extends StatefulWidget {
   const ShelfCraftApp({super.key});
 
@@ -14,7 +17,7 @@ class ShelfCraftApp extends StatefulWidget {
 class _ShelfCraftAppState extends State<ShelfCraftApp> {
   int _currentIndex = 0;
 
-  final _screens = const [
+  static const _screens = [
     BookshelfScreen(),
     BarcodeScannerScreen(),
     StatsScreen(),
@@ -26,14 +29,7 @@ class _ShelfCraftAppState extends State<ShelfCraftApp> {
     return MaterialApp(
       title: 'ShelfCraft',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFFC79C5E), // Warm oak amber
-          brightness: Brightness.light,
-        ),
-        scaffoldBackgroundColor: const Color(0xFFF7F2EC),
-      ),
+      theme: AppTheme.lightTheme,
       home: Scaffold(
         body: IndexedStack(
           index: _currentIndex,
@@ -41,7 +37,8 @@ class _ShelfCraftAppState extends State<ShelfCraftApp> {
         ),
         bottomNavigationBar: NavigationBar(
           selectedIndex: _currentIndex,
-          onDestinationSelected: (index) => setState(() => _currentIndex = index),
+          onDestinationSelected: (index) =>
+              setState(() => _currentIndex = index),
           destinations: const [
             NavigationDestination(
               icon: Icon(Icons.shelves),

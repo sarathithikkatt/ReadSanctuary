@@ -4,13 +4,16 @@ import '../../domain/models/book_metadata.dart';
 
 class GoogleBooksApi {
   final Dio _dio;
+  final String? apiKey;
 
-  GoogleBooksApi({Dio? dio}) : _dio = dio ?? Dio(
-    BaseOptions(
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 10),
-    ),
-  );
+  GoogleBooksApi({Dio? dio, this.apiKey})
+      : _dio = dio ??
+            Dio(
+              BaseOptions(
+                connectTimeout: const Duration(seconds: 10),
+                receiveTimeout: const Duration(seconds: 10),
+              ),
+            );
 
   /// Cleans ISBN string by removing hyphens and spaces.
   static String cleanIsbn(String raw) {
@@ -23,16 +26,22 @@ class GoogleBooksApi {
     if (isbn.isEmpty) return null;
 
     try {
+      final queryParams = <String, dynamic>{'q': 'isbn:$isbn'};
+      if (apiKey != null && apiKey!.isNotEmpty) {
+        queryParams['key'] = apiKey;
+      }
+
       final response = await _dio.get(
         'https://www.googleapis.com/books/v1/volumes',
-        queryParameters: {'q': 'isbn:$isbn'},
+        queryParameters: queryParams,
       );
 
       if (response.statusCode == 200 && response.data is Map<String, dynamic>) {
         final data = response.data as Map<String, dynamic>;
         final items = data['items'] as List<dynamic>?;
         if (items != null && items.isNotEmpty) {
-          return _parseVolumeItem(items.first as Map<String, dynamic>, fallbackIsbn: isbn);
+          return _parseVolumeItem(items.first as Map<String, dynamic>,
+              fallbackIsbn: isbn);
         }
       }
     } catch (_) {}
@@ -42,12 +51,17 @@ class GoogleBooksApi {
   /// Search books by free text query or keywords.
   Future<List<BookMetadata>> search(String query, {int maxResults = 20}) async {
     try {
+      final queryParams = <String, dynamic>{
+        'q': query,
+        'maxResults': maxResults,
+      };
+      if (apiKey != null && apiKey!.isNotEmpty) {
+        queryParams['key'] = apiKey;
+      }
+
       final response = await _dio.get(
         'https://www.googleapis.com/books/v1/volumes',
-        queryParameters: {
-          'q': query,
-          'maxResults': maxResults,
-        },
+        queryParameters: queryParams,
       );
 
       if (response.statusCode == 200 && response.data is Map<String, dynamic>) {
@@ -62,7 +76,8 @@ class GoogleBooksApi {
     return [];
   }
 
-  BookMetadata _parseVolumeItem(Map<String, dynamic> item, {String? fallbackIsbn}) {
+  BookMetadata _parseVolumeItem(Map<String, dynamic> item,
+      {String? fallbackIsbn}) {
     final volumeInfo = (item['volumeInfo'] as Map<String, dynamic>?) ?? {};
     final title = volumeInfo['title']?.toString() ?? 'Unknown Title';
     final subtitle = volumeInfo['subtitle']?.toString();
@@ -83,7 +98,8 @@ class GoogleBooksApi {
     String? coverUrl;
     if (volumeInfo['imageLinks'] is Map) {
       final images = volumeInfo['imageLinks'] as Map<String, dynamic>;
-      final rawUrl = images['thumbnail']?.toString() ?? images['smallThumbnail']?.toString();
+      final rawUrl = images['thumbnail']?.toString() ??
+          images['smallThumbnail']?.toString();
       if (rawUrl != null) {
         coverUrl = rawUrl.replaceFirst('http://', 'https://');
       }

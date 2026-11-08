@@ -12,20 +12,38 @@ class SessionDao extends DatabaseAccessor<AppDatabase> with _$SessionDaoMixin {
   Stream<List<ReadingSession>> watchSessionsForBook(String bookId) {
     return (select(readingSessions)
           ..where((t) => t.bookId.equals(bookId))
-          ..orderBy([(t) => OrderingTerm(expression: t.startTime, mode: OrderingMode.desc)]))
+          ..orderBy([
+            (t) =>
+                OrderingTerm(expression: t.startTime, mode: OrderingMode.desc)
+          ]))
         .watch();
   }
 
   Future<List<ReadingSession>> getSessionsForBook(String bookId) {
     return (select(readingSessions)
           ..where((t) => t.bookId.equals(bookId))
-          ..orderBy([(t) => OrderingTerm(expression: t.startTime, mode: OrderingMode.desc)]))
+          ..orderBy([
+            (t) =>
+                OrderingTerm(expression: t.startTime, mode: OrderingMode.desc)
+          ]))
         .get();
+  }
+
+  Stream<List<ReadingSession>> watchAllSessions() {
+    return (select(readingSessions)
+          ..orderBy([
+            (t) =>
+                OrderingTerm(expression: t.startTime, mode: OrderingMode.desc)
+          ]))
+        .watch();
   }
 
   Future<List<ReadingSession>> getAllSessions() {
     return (select(readingSessions)
-          ..orderBy([(t) => OrderingTerm(expression: t.startTime, mode: OrderingMode.desc)]))
+          ..orderBy([
+            (t) =>
+                OrderingTerm(expression: t.startTime, mode: OrderingMode.desc)
+          ]))
         .get();
   }
 
@@ -40,14 +58,20 @@ class SessionDao extends DatabaseAccessor<AppDatabase> with _$SessionDaoMixin {
   Stream<List<BookNote>> watchNotesForBook(String bookId) {
     return (select(bookNotes)
           ..where((t) => t.bookId.equals(bookId))
-          ..orderBy([(t) => OrderingTerm(expression: t.createdAt, mode: OrderingMode.desc)]))
+          ..orderBy([
+            (t) =>
+                OrderingTerm(expression: t.createdAt, mode: OrderingMode.desc)
+          ]))
         .watch();
   }
 
   Future<List<BookNote>> getNotesForBook(String bookId) {
     return (select(bookNotes)
           ..where((t) => t.bookId.equals(bookId))
-          ..orderBy([(t) => OrderingTerm(expression: t.createdAt, mode: OrderingMode.desc)]))
+          ..orderBy([
+            (t) =>
+                OrderingTerm(expression: t.createdAt, mode: OrderingMode.desc)
+          ]))
         .get();
   }
 

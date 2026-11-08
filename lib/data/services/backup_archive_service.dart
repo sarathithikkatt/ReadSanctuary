@@ -68,7 +68,8 @@ class BackupArchiveService {
       final mediaEntities = mediaDir.listSync(recursive: true);
       for (final entity in mediaEntities) {
         if (entity is File) {
-          final relativePath = p.relative(entity.path, from: mediaDir.parent.path);
+          final relativePath =
+              p.relative(entity.path, from: mediaDir.parent.path);
           // Normalize slashes for ZIP format portability
           final normalizedPath = relativePath.replaceAll(r'\', '/');
           final bytes = await entity.readAsBytes();
@@ -86,7 +87,8 @@ class BackupArchiveService {
       mediaFilesCount: mediaCount,
     );
     final manifestBytes = utf8.encode(jsonEncode(manifest.toJson()));
-    archive.addFile(ArchiveFile(manifestFileName, manifestBytes.length, manifestBytes));
+    archive.addFile(
+        ArchiveFile(manifestFileName, manifestBytes.length, manifestBytes));
 
     // 4. Encode to ZIP and write to output file
     final zipEncoder = ZipEncoder();
@@ -103,7 +105,8 @@ class BackupArchiveService {
     final archive = ZipDecoder().decodeBytes(zipBytes);
     final manifestFile = archive.findFile(manifestFileName);
     if (manifestFile == null) {
-      throw const FormatException('Corrupt backup: missing backup_manifest.json');
+      throw const FormatException(
+          'Corrupt backup: missing backup_manifest.json');
     }
 
     final manifestContent = utf8.decode(manifestFile.content as List<int>);
@@ -111,7 +114,8 @@ class BackupArchiveService {
     final manifest = BackupManifest.fromJson(manifestJson);
 
     if (manifest.appName != 'ShelfCraft') {
-      throw FormatException('Incompatible backup from application: ${manifest.appName}');
+      throw FormatException(
+          'Incompatible backup from application: ${manifest.appName}');
     }
 
     if (manifest.schemaVersion > currentSchemaVersion) {

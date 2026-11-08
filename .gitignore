@@ -1,3 +1,7 @@
+# Root test captures and temporary emulator screenshots
+/*.png
+/*.jpg
+
 # Miscellaneous
 *.class
 *.log

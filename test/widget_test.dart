@@ -5,7 +5,8 @@ import 'package:shelfcraft/app.dart';
 import 'package:shelfcraft/data/local/database.dart';
 
 void main() {
-  testWidgets('ShelfCraftApp smoke test pumps successfully', (WidgetTester tester) async {
+  testWidgets('ShelfCraftApp smoke test pumps successfully',
+      (WidgetTester tester) async {
     final testDb = AppDatabase(NativeDatabase.memory());
 
     await tester.pumpWidget(

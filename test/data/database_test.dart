@@ -66,12 +66,60 @@ void main() {
       expect(reFetched!.status, 'finished');
       expect(reFetched.rating, 5.0);
 
+      // PDF updates
+      await db.bookDao.updateBookPdf(bookId, 'pdfs/sample.pdf');
+      await db.bookDao.updateBookLastReadPage(bookId, 42);
+      final pdfUpdated = await db.bookDao.getBookById(bookId);
+      expect(pdfUpdated!.pdfPath, 'pdfs/sample.pdf');
+      expect(pdfUpdated.lastReadPage, 42);
+
       // Delete
       final deletedCount = await db.bookDao.deleteBook(bookId);
       expect(deletedCount, 1);
 
       final afterDelete = await db.bookDao.getBookById(bookId);
       expect(afterDelete, isNull);
+    });
+
+    test('Can save and update granular sub-ratings (plot, characters, writing, pacing)', () async {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final bookId = uuid.v4();
+
+      final book = BooksCompanion.insert(
+        id: bookId,
+        title: 'Project Hail Mary',
+        authors: '["Andy Weir"]',
+        status: 'finished',
+        spineColorHex: 0xFF003366,
+        spineTextHex: 0xFFFFFFFF,
+        rating: const Value(4.75),
+        ratingPlot: const Value(5.0),
+        ratingCharacters: const Value(4.75),
+        ratingWriting: const Value(4.5),
+        ratingPacing: const Value(4.75),
+        createdAt: now,
+        updatedAt: now,
+      );
+
+      await db.bookDao.insertBook(book);
+
+      final fetched = await db.bookDao.getBookById(bookId);
+      expect(fetched, isNotNull);
+      expect(fetched!.rating, 4.75);
+      expect(fetched.ratingPlot, 5.0);
+      expect(fetched.ratingCharacters, 4.75);
+      expect(fetched.ratingWriting, 4.5);
+      expect(fetched.ratingPacing, 4.75);
+
+      // Update a sub-rating
+      final updated = fetched.copyWith(
+        ratingWriting: const Value(4.75),
+        updatedAt: DateTime.now().millisecondsSinceEpoch,
+      );
+      await db.bookDao.updateBook(updated);
+
+      final reFetched = await db.bookDao.getBookById(bookId);
+      expect(reFetched!.ratingWriting, 4.75);
     });
 
     test('Can batch insert books transactionally', () async {
@@ -97,7 +145,8 @@ void main() {
   });
 
   group('Phase 1 Database Tests - Fractional seriesIndex Sorting', () {
-    test('Sorts books accurately by fractional seriesIndex: 0.5, 1.0, 1.5, 2.0', () async {
+    test('Sorts books accurately by fractional seriesIndex: 0.5, 1.0, 1.5, 2.0',
+        () async {
       final now = DateTime.now().millisecondsSinceEpoch;
       const seriesName = 'The Stormlight Archive';
 
@@ -218,7 +267,9 @@ void main() {
       expect(items, isEmpty);
     });
 
-    test('Deleting a Book cascades to ShelfItems, ReadingSessions, and BookNotes', () async {
+    test(
+        'Deleting a Book cascades to ShelfItems, ReadingSessions, and BookNotes',
+        () async {
       final now = DateTime.now().millisecondsSinceEpoch;
       final bookId = uuid.v4();
       final shelfId = uuid.v4();
@@ -301,7 +352,8 @@ void main() {
   });
 
   group('Phase 1 Database Tests - Reactive Streams & Shelf Reordering', () {
-    test('ShelfDao reorderShelfItems updates position indices in order', () async {
+    test('ShelfDao reorderShelfItems updates position indices in order',
+        () async {
       final shelfId = uuid.v4();
       final item1 = uuid.v4();
       final item2 = uuid.v4();
@@ -316,9 +368,12 @@ void main() {
       );
 
       await db.shelfDao.insertShelfItems([
-        ShelfItemsCompanion.insert(id: item1, shelfId: shelfId, itemType: 'gap', positionIndex: 0),
-        ShelfItemsCompanion.insert(id: item2, shelfId: shelfId, itemType: 'gap', positionIndex: 1),
-        ShelfItemsCompanion.insert(id: item3, shelfId: shelfId, itemType: 'gap', positionIndex: 2),
+        ShelfItemsCompanion.insert(
+            id: item1, shelfId: shelfId, itemType: 'gap', positionIndex: 0),
+        ShelfItemsCompanion.insert(
+            id: item2, shelfId: shelfId, itemType: 'gap', positionIndex: 1),
+        ShelfItemsCompanion.insert(
+            id: item3, shelfId: shelfId, itemType: 'gap', positionIndex: 2),
       ]);
 
       // Reorder: item3, item1, item2

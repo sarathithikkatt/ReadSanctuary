@@ -272,6 +272,7 @@ class GoogleDriveBackupService {
   }
 }
 
-final googleDriveBackupServiceProvider = Provider<GoogleDriveBackupService>((ref) {
+final googleDriveBackupServiceProvider =
+    Provider<GoogleDriveBackupService>((ref) {
   return GoogleDriveBackupService();
 });

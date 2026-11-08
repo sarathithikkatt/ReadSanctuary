@@ -1,83 +1,12 @@
 import 'package:flutter/material.dart';
 
-/// Wood theme definition containing colors for top perspective surface, fascia, and bevels.
-class ShelfWoodTheme {
-  final String id;
-  final String name;
-  final Color topSurfaceFront;
-  final Color topSurfaceBack;
-  final Color fasciaColor;
-  final Color fasciaHighlight;
-  final Color fasciaShadow;
+import '../../../../core/theme/shelf_themes.dart';
 
-  const ShelfWoodTheme({
-    required this.id,
-    required this.name,
-    required this.topSurfaceFront,
-    required this.topSurfaceBack,
-    required this.fasciaColor,
-    required this.fasciaHighlight,
-    required this.fasciaShadow,
-  });
-
-  static const oak = ShelfWoodTheme(
-    id: 'oak',
-    name: 'Classic Oak',
-    topSurfaceFront: Color(0xFFC79C5E),
-    topSurfaceBack: Color(0xFFA87E42),
-    fasciaColor: Color(0xFF986F35),
-    fasciaHighlight: Color(0xFFDEBA82),
-    fasciaShadow: Color(0xFF6B4C20),
-  );
-
-  static const walnut = ShelfWoodTheme(
-    id: 'walnut',
-    name: 'Dark Walnut',
-    topSurfaceFront: Color(0xFF5D4332),
-    topSurfaceBack: Color(0xFF453023),
-    fasciaColor: Color(0xFF38261B),
-    fasciaHighlight: Color(0xFF785B46),
-    fasciaShadow: Color(0xFF241710),
-  );
-
-  static const mahogany = ShelfWoodTheme(
-    id: 'mahogany',
-    name: 'Rich Mahogany',
-    topSurfaceFront: Color(0xFF753B35),
-    topSurfaceBack: Color(0xFF582823),
-    fasciaColor: Color(0xFF4B1F1B),
-    fasciaHighlight: Color(0xFF96524B),
-    fasciaShadow: Color(0xFF311310),
-  );
-
-  static const birch = ShelfWoodTheme(
-    id: 'birch',
-    name: 'Light Birch',
-    topSurfaceFront: Color(0xFFE5D7C2),
-    topSurfaceBack: Color(0xFFCFC0A8),
-    fasciaColor: Color(0xFFBAAA91),
-    fasciaHighlight: Color(0xFFF5EFE4),
-    fasciaShadow: Color(0xFF968770),
-  );
-
-  static ShelfWoodTheme fromId(String id) {
-    switch (id.toLowerCase()) {
-      case 'walnut':
-        return walnut;
-      case 'mahogany':
-        return mahogany;
-      case 'birch':
-        return birch;
-      case 'oak':
-      default:
-        return oak;
-    }
-  }
-}
+export '../../../../core/theme/shelf_themes.dart';
 
 /// CustomPainter rendering the 2.5D wooden shelf:
-/// 1. Top perspective trapezoid surface.
-/// 2. Front wooden fascia with top bevel highlight and bottom shadow.
+/// 1. Top perspective trapezoid surface with wood gradient/highlights.
+/// 2. Front wooden fascia with top bevel highlight and bottom shadow groove.
 /// 3. Soft bottom drop shadow cast onto the wall below.
 class WoodenShelfPainter extends CustomPainter {
   final ShelfWoodTheme woodTheme;
@@ -185,7 +114,8 @@ class WoodenShelfRow extends StatelessWidget {
   final String shelfId;
   final String shelfName;
   final String woodThemeId;
-  final Color wallColor;
+  final String wallThemeId;
+  final Color? wallColor;
   final List<Widget> items;
   final bool isReorderable;
   final ReorderCallback? onReorder;
@@ -196,9 +126,10 @@ class WoodenShelfRow extends StatelessWidget {
     required this.shelfId,
     required this.shelfName,
     this.woodThemeId = 'oak',
-    this.wallColor = const Color(0xFFF7F2EC),
+    this.wallThemeId = 'warm_cream',
+    this.wallColor,
     required this.items,
-    this.isReorderable = false,
+    this.isReorderable = true,
     this.onReorder,
     this.shelfHeight = 200.0,
   });
@@ -206,6 +137,7 @@ class WoodenShelfRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final woodTheme = ShelfWoodTheme.fromId(woodThemeId);
+    final wallTheme = ShelfWallTheme.fromId(wallThemeId);
     const topSurfaceDepth = 14.0;
     const fasciaHeight = 18.0;
     const shadowDepth = 10.0;
@@ -213,7 +145,16 @@ class WoodenShelfRow extends StatelessWidget {
 
     return RepaintBoundary(
       child: Container(
-        color: wallColor,
+        decoration: BoxDecoration(
+          color: wallColor ?? wallTheme.fallbackColor,
+          image: wallTheme.assetPath != null
+              ? DecorationImage(
+                  image: AssetImage(wallTheme.assetPath!),
+                  fit: BoxFit.cover,
+                  opacity: 0.85,
+                )
+              : null,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -225,11 +166,33 @@ class WoodenShelfRow extends StatelessWidget {
                   ? ReorderableListView(
                       scrollDirection: Axis.horizontal,
                       onReorder: onReorder!,
+                      proxyDecorator: (Widget child, int index,
+                          Animation<double> animation) {
+                        return AnimatedBuilder(
+                          animation: animation,
+                          builder: (BuildContext context, Widget? _) {
+                            final double animValue = Curves.easeInOut
+                                .transform(animation.value);
+                            final double scale = 1.0 + (0.05 * animValue);
+                            return Transform.scale(
+                              scale: scale,
+                              alignment: Alignment.bottomCenter,
+                              child: Material(
+                                color: Colors.transparent,
+                                shadowColor: Colors.transparent,
+                                elevation: 0,
+                                child: child,
+                              ),
+                            );
+                          },
+                        );
+                      },
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
                       children: [
                         for (int i = 0; i < items.length; i++)
                           KeyedSubtree(
-                            key: items[i].key ?? ValueKey('$shelfId-item-$i'),
+                            key: ValueKey(
+                                'shelf_item_${items[i].key ?? '$shelfId-$i'}'),
                             child: Align(
                               alignment: Alignment.bottomCenter,
                               child: items[i],

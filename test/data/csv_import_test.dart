@@ -25,7 +25,8 @@ Book Id,Title,Author,Author l-f,Additional Authors,ISBN,ISBN13,My Rating,Average
 
       // Book 1: Escaped quotes in title and review, valid ISBN13, explicit page count
       final book1 = result.books[0];
-      expect(book1.title.value, 'The "Ultimate" Hitchhiker\'s Guide to the Galaxy');
+      expect(book1.title.value,
+          'The "Ultimate" Hitchhiker\'s Guide to the Galaxy');
       expect(book1.isbn13.value, '9780345453747');
       expect(book1.pageCount.value, 815);
       expect(book1.status.value, 'finished');
@@ -71,12 +72,14 @@ Book Id,Title,Author,ISBN13,My Rating,Number of Pages,Exclusive Shelf
     });
 
     test('Sanitizes various ISBN formats properly', () {
-      expect(CsvImportService.sanitizeIsbn('="9780140283297"'), '9780140283297');
+      expect(
+          CsvImportService.sanitizeIsbn('="9780140283297"'), '9780140283297');
       expect(CsvImportService.sanitizeIsbn('="014028329X"'), '014028329X');
       expect(CsvImportService.sanitizeIsbn('=""'), isNull);
       expect(CsvImportService.sanitizeIsbn(''), isNull);
       expect(CsvImportService.sanitizeIsbn(null), isNull);
-      expect(CsvImportService.sanitizeIsbn('978-0-14-028329-7'), '9780140283297');
+      expect(
+          CsvImportService.sanitizeIsbn('978-0-14-028329-7'), '9780140283297');
     });
   });
 

@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 
+import '../../../../core/constants/book_formats.dart';
+
 /// 2.5D Procedural and Custom Book Spine widget.
 /// Renders realistic 3D lighting, dynamic width scaling based on page count,
 /// format-based heights, and vertical typography.
@@ -38,18 +40,7 @@ class BookSpine25DWidget extends StatelessWidget {
 
   /// Height formula based on physical book format.
   static double calculateSpineHeight(String format) {
-    switch (format.toLowerCase()) {
-      case 'hardcover':
-        return 185.0;
-      case 'paperback':
-        return 170.0;
-      case 'ebook':
-        return 160.0;
-      case 'audiobook':
-        return 165.0;
-      default:
-        return 170.0;
-    }
+    return BookFormat.calculateSpineHeight(format);
   }
 
   /// 3D Cylindrical shadow gradient overlay to simulate spine curve, ridge highlight, and edge shadows.
@@ -110,7 +101,8 @@ class BookSpine25DWidget extends StatelessWidget {
                     fit: BoxFit.cover,
                   )
                 else
-                  _buildProceduralSpine(spineColor, textColor, authorText, width),
+                  _buildProceduralSpine(
+                      spineColor, textColor, authorText, width),
 
                 // Layer 2: 3D Cylindrical Lighting Shader Overlay
                 Container(
@@ -154,7 +146,8 @@ class BookSpine25DWidget extends StatelessWidget {
           // Vertical Typography
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 2.0),
+              padding:
+                  const EdgeInsets.symmetric(vertical: 4.0, horizontal: 2.0),
               child: RotatedBox(
                 quarterTurns: 1,
                 child: Row(

@@ -21,7 +21,8 @@ class BarcodeScannerScreen extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<BarcodeScannerScreen> createState() => _BarcodeScannerScreenState();
+  ConsumerState<BarcodeScannerScreen> createState() =>
+      _BarcodeScannerScreenState();
 }
 
 class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
@@ -107,7 +108,8 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
       Navigator.of(context).pop(); // dismiss loading dialog
 
       if (metadata != null) {
-        final inserted = await _showBookConfirmDialog(isbn, metadata.title, metadata.authors);
+        final inserted = await _showBookConfirmDialog(
+            isbn, metadata.title, metadata.authors);
         if (inserted && mounted) {
           if (Navigator.of(context).canPop()) {
             Navigator.of(context).pop(true);
@@ -191,7 +193,8 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
     } catch (_) {}
   }
 
-  Future<bool> _showBookConfirmDialog(String isbn, String title, List<String> authors) async {
+  Future<bool> _showBookConfirmDialog(
+      String isbn, String title, List<String> authors) async {
     return await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
@@ -200,11 +203,16 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                Text(title,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 16)),
                 const SizedBox(height: 4),
-                Text(authors.join(', '), style: TextStyle(color: Colors.grey.shade700)),
+                Text(authors.join(', '),
+                    style: TextStyle(color: Colors.grey.shade700)),
                 const SizedBox(height: 8),
-                Text('ISBN: $isbn', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+                Text('ISBN: $isbn',
+                    style:
+                        TextStyle(color: Colors.grey.shade500, fontSize: 12)),
               ],
             ),
             actions: [
@@ -305,9 +313,11 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
                         isExpanded: true,
                         style: const TextStyle(color: Colors.white),
                         items: shelves
-                            .map((s) => DropdownMenuItem(value: s.id, child: Text(s.name)))
+                            .map((s) => DropdownMenuItem(
+                                value: s.id, child: Text(s.name)))
                             .toList(),
-                        onChanged: (val) => setState(() => _selectedShelfId = val),
+                        onChanged: (val) =>
+                            setState(() => _selectedShelfId = val),
                       ),
                     );
                   },
@@ -323,12 +333,16 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
               left: 24,
               right: 24,
               child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 14.0, horizontal: 20.0),
+                padding: const EdgeInsets.symmetric(
+                    vertical: 14.0, horizontal: 20.0),
                 decoration: BoxDecoration(
                   color: Colors.green.shade700,
                   borderRadius: BorderRadius.circular(30.0),
                   boxShadow: const [
-                    BoxShadow(color: Colors.black45, blurRadius: 8.0, offset: Offset(0, 3)),
+                    BoxShadow(
+                        color: Colors.black45,
+                        blurRadius: 8.0,
+                        offset: Offset(0, 3)),
                   ],
                 ),
                 child: Row(
@@ -352,7 +366,9 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
                           Navigator.of(context).pop(true);
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Added $_batchCount books to shelf! 📚')),
+                            SnackBar(
+                                content: Text(
+                                    'Added $_batchCount books to shelf! 📚')),
                           );
                           setState(() {
                             _batchCount = 0;

@@ -5,7 +5,8 @@ import 'package:shelfcraft/presentation/screens/bookshelf/widgets/shelf_prop_wid
 import 'package:shelfcraft/presentation/screens/bookshelf/widgets/wooden_shelf_row.dart';
 
 void main() {
-  group('Verification Gate 3 - 2.5D Bookshelf & Spine Scaling Widget Tests', () {
+  group('Verification Gate 3 - 2.5D Bookshelf & Spine Scaling Widget Tests',
+      () {
     testWidgets(
       'Pumps WoodenShelfRow with 15 books of varying page counts and formats without layout overflow',
       (WidgetTester tester) async {
@@ -101,7 +102,8 @@ void main() {
       },
     );
 
-    testWidgets('Renders shelf props and spacer gaps seamlessly on shelf', (WidgetTester tester) async {
+    testWidgets('Renders shelf props and spacer gaps seamlessly on shelf',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -110,15 +112,19 @@ void main() {
               shelfName: 'Aesthetic Shelf',
               woodThemeId: 'walnut',
               items: [
-                ShelfPropWidget(key: ValueKey('prop-bookend'), propAssetId: 'bookend_brass'),
+                ShelfPropWidget(
+                    key: ValueKey('prop-bookend'),
+                    propAssetId: 'bookend_brass'),
                 BookSpine25DWidget(
                   key: ValueKey('prop-book'),
                   id: 'b1',
                   title: 'Quiet Book',
                   pageCount: 300,
                 ),
-                ShelfPropWidget(key: ValueKey('prop-plant'), propAssetId: 'plant_monstera'),
-                ShelfPropWidget(key: ValueKey('prop-candle'), propAssetId: 'candle_amber'),
+                ShelfPropWidget(
+                    key: ValueKey('prop-plant'), propAssetId: 'plant_monstera'),
+                ShelfPropWidget(
+                    key: ValueKey('prop-candle'), propAssetId: 'candle_amber'),
                 ShelfPropWidget(key: ValueKey('prop-gap'), propAssetId: 'gap'),
               ],
             ),
@@ -135,8 +141,10 @@ void main() {
       expect(find.byKey(const ValueKey('prop-gap')), findsOneWidget);
     });
 
-    testWidgets('Supports horizontal reordering mode on WoodenShelfRow', (WidgetTester tester) async {
-      bool reordered = false;
+    testWidgets('Supports horizontal reordering mode on WoodenShelfRow',
+        (WidgetTester tester) async {
+      int? reorderedOld;
+      int? reorderedNew;
 
       await tester.pumpWidget(
         MaterialApp(
@@ -146,11 +154,20 @@ void main() {
               shelfName: 'Reorderable Shelf',
               isReorderable: true,
               onReorder: (oldIdx, newIdx) {
-                reordered = true;
+                reorderedOld = oldIdx;
+                reorderedNew = newIdx;
               },
               items: const [
-                BookSpine25DWidget(key: ValueKey('b1'), id: 'b1', title: 'First', pageCount: 200),
-                BookSpine25DWidget(key: ValueKey('b2'), id: 'b2', title: 'Second', pageCount: 300),
+                BookSpine25DWidget(
+                    key: ValueKey('b1'),
+                    id: 'b1',
+                    title: 'First',
+                    pageCount: 200),
+                BookSpine25DWidget(
+                    key: ValueKey('b2'),
+                    id: 'b2',
+                    title: 'Second',
+                    pageCount: 300),
               ],
             ),
           ),
@@ -159,7 +176,86 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(ReorderableListView), findsOneWidget);
-      expect(reordered, isFalse);
+
+      // Long press on first item to start dragging
+      final firstFinder = find.byKey(const ValueKey('b1'));
+      final gesture = await tester.startGesture(tester.getCenter(firstFinder));
+      await tester.pump(const Duration(milliseconds: 600)); // trigger long press
+      // Drag far into the empty shelf area
+      await gesture.moveBy(const Offset(350, 0));
+      await tester.pump();
+      await gesture.up();
+      await tester.pumpAndSettle();
+
+      expect(reorderedOld, 0);
+      expect(reorderedNew, 2);
+    });
+
+    testWidgets(
+        'Selecting and reordering decorators renders transparent proxy without white column',
+        (WidgetTester tester) async {
+      int? reorderedOld;
+      int? reorderedNew;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(
+            cardColor: Colors.white, // default cardColor that caused white column
+          ),
+          home: Scaffold(
+            body: WoodenShelfRow(
+              shelfId: 'prop-drag-shelf',
+              shelfName: 'Decorator Shelf',
+              isReorderable: true,
+              onReorder: (oldIdx, newIdx) {
+                reorderedOld = oldIdx;
+                reorderedNew = newIdx;
+              },
+              items: const [
+                BookSpine25DWidget(
+                  key: ValueKey('book-1'),
+                  id: 'book-1',
+                  title: 'Book 1',
+                  pageCount: 300,
+                ),
+                ShelfPropWidget(
+                  key: ValueKey('prop-plant'),
+                  propAssetId: 'plant_monstera',
+                ),
+                BookSpine25DWidget(
+                  key: ValueKey('book-2'),
+                  id: 'book-2',
+                  title: 'Book 2',
+                  pageCount: 400,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Long press on the decorator (plant) to select and drag it
+      final propFinder = find.byKey(const ValueKey('prop-plant'));
+      expect(propFinder, findsOneWidget);
+
+      final gesture = await tester.startGesture(tester.getCenter(propFinder));
+      await tester.pump(const Duration(milliseconds: 600)); // enter drag
+
+      // During active drag of decorator: verify proxy Material has transparent color (no white column)
+      final transparentProxyMaterialFinder = find.byWidgetPredicate(
+        (widget) => widget is Material && widget.color == Colors.transparent,
+      );
+      expect(transparentProxyMaterialFinder, findsWidgets);
+
+      // Drag decorator to the front (before book 1)
+      await gesture.moveBy(const Offset(-150, 0));
+      await tester.pump();
+      await gesture.up();
+      await tester.pumpAndSettle();
+
+      expect(reorderedOld, 1);
+      expect(reorderedNew, 0);
     });
   });
 }

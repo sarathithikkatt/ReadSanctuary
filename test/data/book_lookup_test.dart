@@ -51,7 +51,9 @@ void main() {
             'subtitle': 'The Stormlight Archive #1',
             'number_of_pages': 1007,
             'covers': [823456],
-            'authors': [{'name': 'Brandon Sanderson'}],
+            'authors': [
+              {'name': 'Brandon Sanderson'}
+            ],
             'publishers': ['Tor Books'],
             'publish_date': 'August 31, 2010',
             'physical_format': 'Hardcover',
@@ -67,13 +69,16 @@ void main() {
       expect(metadata!.title, 'The Way of Kings');
       expect(metadata.subtitle, 'The Stormlight Archive #1');
       expect(metadata.pageCount, 1007);
-      expect(metadata.coverUrl, 'https://covers.openlibrary.org/b/id/823456-L.jpg');
+      expect(metadata.coverUrl,
+          'https://covers.openlibrary.org/b/id/823456-L.jpg');
       expect(metadata.authors, ['Brandon Sanderson']);
       expect(metadata.format, 'hardcover');
       expect(metadata.publisher, 'Tor Books');
     });
 
-    test('GoogleBooksApi parses volume item correctly and upgrades image to HTTPS', () async {
+    test(
+        'GoogleBooksApi parses volume item correctly and upgrades image to HTTPS',
+        () async {
       final dio = Dio();
       dio.httpClientAdapter = MockDioAdapter((options) {
         return jsonResponse({
@@ -84,7 +89,8 @@ void main() {
                 'authors': ['Andy Weir'],
                 'pageCount': 496,
                 'imageLinks': {
-                  'thumbnail': 'http://books.google.com/books/content?id=xyz&printsec=frontcover',
+                  'thumbnail':
+                      'http://books.google.com/books/content?id=xyz&printsec=frontcover',
                 },
                 'industryIdentifiers': [
                   {'type': 'ISBN_13', 'identifier': testIsbn},
@@ -104,23 +110,16 @@ void main() {
       expect(metadata!.title, 'Project Hail Mary');
       expect(metadata.authors, ['Andy Weir']);
       expect(metadata.pageCount, 496);
-      expect(metadata.coverUrl, 'https://books.google.com/books/content?id=xyz&printsec=frontcover');
+      expect(metadata.coverUrl,
+          'https://books.google.com/books/content?id=xyz&printsec=frontcover');
     });
   });
 
   group('BookLookupService - Dual API Fallback & Enrichment Tests', () {
-    test('Enriches missing pageCount and coverUrl from Google Books when OpenLibrary is incomplete', () async {
-      // OpenLibrary mock: returns title and authors, but null pageCount and no covers
-      final olDio = Dio();
-      olDio.httpClientAdapter = MockDioAdapter((options) {
-        return jsonResponse({
-          'title': 'The Name of the Wind',
-          'authors': [{'name': 'Patrick Rothfuss'}],
-          // Missing number_of_pages and covers
-        });
-      });
-
-      // Google Books mock: contains pageCount and thumbnail
+    test(
+        'Enriches missing pageCount and coverUrl from OpenLibrary when Google Books is incomplete',
+        () async {
+      // Google Books mock: contains title and authors, but null pageCount and no covers
       final gbDio = Dio();
       gbDio.httpClientAdapter = MockDioAdapter((options) {
         return jsonResponse({
@@ -129,19 +128,26 @@ void main() {
               'volumeInfo': {
                 'title': 'The Name of the Wind',
                 'authors': ['Patrick Rothfuss'],
-                'pageCount': 662,
-                'imageLinks': {
-                  'thumbnail': 'https://books.google.com/notw_cover.jpg',
-                },
+                // Missing pageCount and imageLinks
               }
             }
           ]
         });
       });
 
+      // OpenLibrary mock: returns pageCount and cover
+      final olDio = Dio();
+      olDio.httpClientAdapter = MockDioAdapter((options) {
+        return jsonResponse({
+          'title': 'The Name of the Wind',
+          'number_of_pages': 662,
+          'covers': [12345],
+        });
+      });
+
       final lookupService = BookLookupService(
-        openLibraryApi: OpenLibraryApi(dio: olDio),
         googleBooksApi: GoogleBooksApi(dio: gbDio),
+        openLibraryApi: OpenLibraryApi(dio: olDio),
       );
 
       final result = await lookupService.lookupByIsbn(testIsbn);
@@ -149,47 +155,43 @@ void main() {
       expect(result, isNotNull);
       expect(result!.title, 'The Name of the Wind');
       expect(result.authors, ['Patrick Rothfuss']);
-      // Enriched from Google Books
+      // Enriched from OpenLibrary
       expect(result.pageCount, 662);
-      expect(result.coverUrl, 'https://books.google.com/notw_cover.jpg');
+      expect(result.coverUrl,
+          'https://covers.openlibrary.org/b/id/12345-L.jpg');
     });
 
-    test('Falls back to Google Books entirely if OpenLibrary returns 404', () async {
-      final olDio = Dio();
-      olDio.httpClientAdapter = MockDioAdapter((options) {
-        return ResponseBody.fromString('Not Found', 404);
-      });
-
+    test('Falls back to OpenLibrary entirely if Google Books returns empty/null',
+        () async {
       final gbDio = Dio();
       gbDio.httpClientAdapter = MockDioAdapter((options) {
+        return jsonResponse({'items': []});
+      });
+
+      final olDio = Dio();
+      olDio.httpClientAdapter = MockDioAdapter((options) {
         return jsonResponse({
-          'items': [
-            {
-              'volumeInfo': {
-                'title': 'Fallback Google Title',
-                'authors': ['Fallback Author'],
-                'pageCount': 350,
-                'imageLinks': {
-                  'thumbnail': 'https://books.google.com/fallback.jpg',
-                },
-              }
-            }
-          ]
+          'title': 'Fallback OpenLibrary Title',
+          'authors': [
+            {'name': 'Fallback Author'}
+          ],
+          'number_of_pages': 350,
+          'covers': [999],
         });
       });
 
       final lookupService = BookLookupService(
-        openLibraryApi: OpenLibraryApi(dio: olDio),
         googleBooksApi: GoogleBooksApi(dio: gbDio),
+        openLibraryApi: OpenLibraryApi(dio: olDio),
       );
 
       final result = await lookupService.lookupByIsbn(testIsbn);
 
       expect(result, isNotNull);
-      expect(result!.title, 'Fallback Google Title');
+      expect(result!.title, 'Fallback OpenLibrary Title');
       expect(result.authors, ['Fallback Author']);
       expect(result.pageCount, 350);
-      expect(result.coverUrl, 'https://books.google.com/fallback.jpg');
+      expect(result.coverUrl, 'https://covers.openlibrary.org/b/id/999-L.jpg');
     });
 
     test('Returns null gracefully if both APIs fail', () async {
@@ -214,7 +216,9 @@ void main() {
   });
 
   group('ColorExtractor Contrast Tests', () {
-    test('Calculates white text for dark spine color and black87 text for light spine color', () {
+    test(
+        'Calculates white text for dark spine color and black87 text for light spine color',
+        () {
       // Dark navy: luminance < 0.5 -> white text
       const darkColor = Color(0xFF1E3A8A);
       final darkSpine = ColorExtractor.fromColor(darkColor);

@@ -29,10 +29,22 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? e]) : super(e ?? _openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
+        onUpgrade: (m, from, to) async {
+          if (from < 2) {
+            await m.addColumn(books, books.pdfPath);
+            await m.addColumn(books, books.lastReadPage);
+          }
+          if (from < 3) {
+            await m.addColumn(books, books.ratingPlot);
+            await m.addColumn(books, books.ratingCharacters);
+            await m.addColumn(books, books.ratingWriting);
+            await m.addColumn(books, books.ratingPacing);
+          }
+        },
         beforeOpen: (details) async {
           await customStatement('PRAGMA foreign_keys = ON;');
           final count = await customSelect('SELECT COUNT(*) AS c FROM shelves;')

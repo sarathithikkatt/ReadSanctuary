@@ -59,13 +59,15 @@ void main() {
 
   group('Visual & Layout Rendering Tests Across Multiple Screen Sizes', () {
     const screenSizes = [
-      Size(360, 640),  // Compact Mobile (small Android)
-      Size(390, 844),  // Standard Modern Mobile (iPhone 14/15/16)
+      Size(360, 640), // Compact Mobile (small Android)
+      Size(390, 844), // Standard Modern Mobile (iPhone 14/15/16)
       Size(800, 1200), // Tablet / Desktop
     ];
 
     for (final size in screenSizes) {
-      testWidgets('BookshelfScreen renders without overflow at ${size.width}x${size.height}', (tester) async {
+      testWidgets(
+          'BookshelfScreen renders without overflow at ${size.width}x${size.height}',
+          (tester) async {
         await tester.binding.setSurfaceSize(size);
 
         // Seed books and shelf items
@@ -132,7 +134,9 @@ void main() {
         await tester.pump(const Duration(milliseconds: 100));
       });
 
-      testWidgets('BookDetailScreen renders without overflow at ${size.width}x${size.height}', (tester) async {
+      testWidgets(
+          'BookDetailScreen renders without overflow at ${size.width}x${size.height}',
+          (tester) async {
         await tester.binding.setSurfaceSize(size);
 
         final now = DateTime.now().millisecondsSinceEpoch;
@@ -163,7 +167,8 @@ void main() {
             id: 'note-1',
             bookId: bookId,
             noteType: 'quote',
-            content: 'Life before death. Strength before weakness. Journey before destination.',
+            content:
+                'Life before death. Strength before weakness. Journey before destination.',
             pageNumber: const drift.Value(160),
             createdAt: now,
           ),
@@ -180,7 +185,8 @@ void main() {
           ),
         );
 
-        await tester.pumpWidget(wrapWithMaterial(const BookDetailScreen(bookId: bookId)));
+        await tester.pumpWidget(
+            wrapWithMaterial(const BookDetailScreen(bookId: bookId)));
         await tester.pumpAndSettle();
 
         expect(find.byType(BookDetailScreen), findsOneWidget);
@@ -192,7 +198,9 @@ void main() {
         await tester.pump(const Duration(milliseconds: 100));
       });
 
-      testWidgets('ReadingTimerScreen renders without overflow at ${size.width}x${size.height}', (tester) async {
+      testWidgets(
+          'ReadingTimerScreen renders without overflow at ${size.width}x${size.height}',
+          (tester) async {
         await tester.binding.setSurfaceSize(size);
 
         const spineColors = SpineColors.fallback;
@@ -205,11 +213,13 @@ void main() {
           status: 'reading',
           spineColorHex: spineColors.spineColorHex,
           spineTextHex: spineColors.spineTextHex,
+          lastReadPage: 0,
           createdAt: DateTime.now().millisecondsSinceEpoch,
           updatedAt: DateTime.now().millisecondsSinceEpoch,
         );
 
-        await tester.pumpWidget(wrapWithMaterial(ReadingTimerScreen(book: dummyBook)));
+        await tester
+            .pumpWidget(wrapWithMaterial(ReadingTimerScreen(book: dummyBook)));
         await tester.pumpAndSettle();
 
         expect(find.byType(ReadingTimerScreen), findsOneWidget);
@@ -221,7 +231,9 @@ void main() {
         await tester.pump(const Duration(milliseconds: 100));
       });
 
-      testWidgets('StatsScreen renders (empty & populated) at ${size.width}x${size.height}', (tester) async {
+      testWidgets(
+          'StatsScreen renders (empty & populated) at ${size.width}x${size.height}',
+          (tester) async {
         await tester.binding.setSurfaceSize(size);
 
         // 1. Render empty stats
@@ -286,11 +298,14 @@ void main() {
         await tester.pump(const Duration(milliseconds: 100));
       });
 
-      testWidgets('SettingsBackupScreen renders (free & pro) at ${size.width}x${size.height}', (tester) async {
+      testWidgets(
+          'SettingsBackupScreen renders (free & pro) at ${size.width}x${size.height}',
+          (tester) async {
         await tester.binding.setSurfaceSize(size);
 
         // Free tier
-        await tester.pumpWidget(wrapWithMaterial(const SettingsBackupScreen(), isPro: false));
+        await tester.pumpWidget(
+            wrapWithMaterial(const SettingsBackupScreen(), isPro: false));
         await tester.pumpAndSettle();
 
         expect(find.text('Settings & Data Backup'), findsOneWidget);
@@ -298,7 +313,8 @@ void main() {
         expect(tester.takeException(), isNull);
 
         // Pro tier
-        await tester.pumpWidget(wrapWithMaterial(const SettingsBackupScreen(), isPro: true));
+        await tester.pumpWidget(
+            wrapWithMaterial(const SettingsBackupScreen(), isPro: true));
         await tester.pumpAndSettle();
 
         expect(find.text('ShelfCraft Pro Active'), findsOneWidget);
@@ -308,29 +324,94 @@ void main() {
         await tester.pump(const Duration(milliseconds: 100));
       });
 
-      testWidgets('SpineCropperScreen renders at ${size.width}x${size.height}', (tester) async {
+      testWidgets('SpineCropperScreen renders at ${size.width}x${size.height}',
+          (tester) async {
         await tester.binding.setSurfaceSize(size);
 
         // Initial picker prompt view
-        await tester.pumpWidget(wrapWithMaterial(const SpineCropperScreen(bookId: 'crop-book')));
+        await tester.pumpWidget(
+            wrapWithMaterial(const SpineCropperScreen(bookId: 'crop-book')));
         await tester.pumpAndSettle();
 
         expect(find.byType(SpineCropperScreen), findsOneWidget);
-        expect(find.text('Take or choose a photo of the book spine'), findsOneWidget);
+        expect(find.text('Take or choose a photo of the book spine'),
+            findsOneWidget);
         expect(tester.takeException(), isNull);
 
         // Crop view with raw image bytes (100x200 1-pixel transparent PNG mock bytes)
         final dummyBytes = Uint8List.fromList([
-          0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D,
-          0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
-          0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0x15, 0xC4, 0x89, 0x00, 0x00, 0x00,
-          0x0A, 0x49, 0x44, 0x41, 0x54, 0x78, 0x9C, 0x63, 0x00, 0x01, 0x00, 0x00,
-          0x05, 0x00, 0x01, 0x0D, 0x0A, 0x2D, 0xB4, 0x00, 0x00, 0x00, 0x00, 0x49,
-          0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82
+          0x89,
+          0x50,
+          0x4E,
+          0x47,
+          0x0D,
+          0x0A,
+          0x1A,
+          0x0A,
+          0x00,
+          0x00,
+          0x00,
+          0x0D,
+          0x49,
+          0x48,
+          0x44,
+          0x52,
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x00,
+          0x01,
+          0x08,
+          0x06,
+          0x00,
+          0x00,
+          0x00,
+          0x1F,
+          0x15,
+          0xC4,
+          0x89,
+          0x00,
+          0x00,
+          0x00,
+          0x0A,
+          0x49,
+          0x44,
+          0x41,
+          0x54,
+          0x78,
+          0x9C,
+          0x63,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x05,
+          0x00,
+          0x01,
+          0x0D,
+          0x0A,
+          0x2D,
+          0xB4,
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+          0x49,
+          0x45,
+          0x4E,
+          0x44,
+          0xAE,
+          0x42,
+          0x60,
+          0x82
         ]);
 
         await tester.pumpWidget(wrapWithMaterial(
-          SpineCropperScreen(bookId: 'crop-book', initialImageBytes: dummyBytes),
+          SpineCropperScreen(
+              bookId: 'crop-book', initialImageBytes: dummyBytes),
         ));
         await tester.pumpAndSettle();
 
@@ -341,7 +422,8 @@ void main() {
         await tester.pump(const Duration(milliseconds: 100));
       });
 
-      testWidgets('OcrQuoteScanner renders at ${size.width}x${size.height}', (tester) async {
+      testWidgets('OcrQuoteScanner renders at ${size.width}x${size.height}',
+          (tester) async {
         await tester.binding.setSurfaceSize(size);
 
         await tester.pumpWidget(wrapWithMaterial(

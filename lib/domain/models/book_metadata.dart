@@ -10,6 +10,8 @@ class BookMetadata {
   final String? publishYear;
   final String? description;
   final String format; // paperback, hardcover, ebook, audiobook
+  final String? freePdfUrl; // Direct link to downloadable free PDF/eBook
+  final String? source; // OpenLibrary, Gutenberg, GoogleBooks, etc.
 
   const BookMetadata({
     this.isbn13,
@@ -22,6 +24,8 @@ class BookMetadata {
     this.publishYear,
     this.description,
     this.format = 'paperback',
+    this.freePdfUrl,
+    this.source,
   });
 
   BookMetadata copyWith({
@@ -35,6 +39,8 @@ class BookMetadata {
     String? publishYear,
     String? description,
     String? format,
+    String? freePdfUrl,
+    String? source,
   }) {
     return BookMetadata(
       isbn13: isbn13 ?? this.isbn13,
@@ -47,6 +53,8 @@ class BookMetadata {
       publishYear: publishYear ?? this.publishYear,
       description: description ?? this.description,
       format: format ?? this.format,
+      freePdfUrl: freePdfUrl ?? this.freePdfUrl,
+      source: source ?? this.source,
     );
   }
 

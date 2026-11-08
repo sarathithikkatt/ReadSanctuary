@@ -5,15 +5,17 @@ import '../../domain/models/book_metadata.dart';
 class OpenLibraryApi {
   final Dio _dio;
 
-  OpenLibraryApi({Dio? dio}) : _dio = dio ?? Dio(
-    BaseOptions(
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 10),
-      headers: {
-        'User-Agent': 'ShelfCraft/1.0 (bookshelf-app)',
-      },
-    ),
-  );
+  OpenLibraryApi({Dio? dio})
+      : _dio = dio ??
+            Dio(
+              BaseOptions(
+                connectTimeout: const Duration(seconds: 10),
+                receiveTimeout: const Duration(seconds: 10),
+                headers: {
+                  'User-Agent': 'ShelfCraft/1.0 (bookshelf-app)',
+                },
+              ),
+            );
 
   /// Cleans ISBN string by removing hyphens and spaces.
   static String cleanIsbn(String raw) {
@@ -31,7 +33,8 @@ class OpenLibraryApi {
     if (isbn.isEmpty) return null;
 
     try {
-      final response = await _dio.get('https://openlibrary.org/isbn/$isbn.json');
+      final response =
+          await _dio.get('https://openlibrary.org/isbn/$isbn.json');
       if (response.statusCode == 200 && response.data is Map<String, dynamic>) {
         final data = response.data as Map<String, dynamic>;
         return _parseIsbnResponse(data, isbn);
@@ -67,7 +70,8 @@ class OpenLibraryApi {
     return [];
   }
 
-  BookMetadata _parseIsbnResponse(Map<String, dynamic> data, String fallbackIsbn) {
+  BookMetadata _parseIsbnResponse(
+      Map<String, dynamic> data, String fallbackIsbn) {
     final title = data['title']?.toString() ?? 'Unknown Title';
     final subtitle = data['subtitle']?.toString();
 
@@ -117,10 +121,12 @@ class OpenLibraryApi {
 
     // Physical format
     String format = 'paperback';
-    final physicalFormat = data['physical_format']?.toString().toLowerCase() ?? '';
+    final physicalFormat =
+        data['physical_format']?.toString().toLowerCase() ?? '';
     if (physicalFormat.contains('hardcover')) {
       format = 'hardcover';
-    } else if (physicalFormat.contains('ebook') || physicalFormat.contains('electronic')) {
+    } else if (physicalFormat.contains('ebook') ||
+        physicalFormat.contains('electronic')) {
       format = 'ebook';
     } else if (physicalFormat.contains('audio')) {
       format = 'audiobook';

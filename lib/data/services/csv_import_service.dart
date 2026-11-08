@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../core/utils/formatters.dart';
 import '../local/database.dart';
 import '../../core/utils/color_extractor.dart';
 
@@ -58,8 +59,7 @@ class CsvImportService {
     // Convert CSV content into rows, normalizing line breaks
     final normalizedContent =
         csvContent.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
-    const converter =
-        CsvToListConverter(shouldParseNumbers: false, eol: '\n');
+    const converter = CsvToListConverter(shouldParseNumbers: false, eol: '\n');
     final allRows = converter.convert(normalizedContent.trim());
     final rows = allRows
         .where((r) =>
@@ -94,7 +94,8 @@ class CsvImportService {
 
     for (int rowIndex = 1; rowIndex < rows.length; rowIndex++) {
       final row = rows[rowIndex];
-      if (row.isEmpty || (row.length == 1 && row.first.toString().trim().isEmpty)) {
+      if (row.isEmpty ||
+          (row.length == 1 && row.first.toString().trim().isEmpty)) {
         continue;
       }
 
@@ -109,7 +110,8 @@ class CsvImportService {
           books.add(book);
         } else {
           errorCount++;
-          warnings.add('Row $rowIndex skipped: missing required title or author');
+          warnings
+              .add('Row $rowIndex skipped: missing required title or author');
         }
       } catch (e) {
         errorCount++;
@@ -150,17 +152,21 @@ class CsvImportService {
     final seriesIndex = parsedSeries.seriesIndex;
 
     // Authors JSON
-    final authorsList = <String>[if (author != null && author.isNotEmpty) author];
+    final authorsList = <String>[
+      if (author != null && author.isNotEmpty) author
+    ];
     final addlAuthors = getCol('additional authors');
     if (addlAuthors != null && addlAuthors.isNotEmpty) {
       authorsList.addAll(
         addlAuthors.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty),
       );
     }
-    final authorsJson = jsonEncode(authorsList.isEmpty ? ['Unknown Author'] : authorsList);
+    final authorsJson =
+        jsonEncode(authorsList.isEmpty ? ['Unknown Author'] : authorsList);
 
     // ISBN-13
-    final isbn13 = sanitizeIsbn(getCol('isbn13')) ?? sanitizeIsbn(getCol('isbn'));
+    final isbn13 =
+        sanitizeIsbn(getCol('isbn13')) ?? sanitizeIsbn(getCol('isbn'));
 
     // Pages
     int pageCount = 250;
@@ -173,7 +179,8 @@ class CsvImportService {
     }
 
     // Status
-    final exclusiveShelf = getCol('exclusive shelf')?.toLowerCase() ?? 'to-read';
+    final exclusiveShelf =
+        getCol('exclusive shelf')?.toLowerCase() ?? 'to-read';
     final status = _mapStatus(exclusiveShelf);
 
     // Rating
@@ -238,9 +245,11 @@ class CsvImportService {
         authorsRaw.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty),
       );
     }
-    final authorsJson = jsonEncode(authorsList.isEmpty ? ['Unknown Author'] : authorsList);
+    final authorsJson =
+        jsonEncode(authorsList.isEmpty ? ['Unknown Author'] : authorsList);
 
-    final isbn = sanitizeIsbn(getCol('isbn/uid')) ?? sanitizeIsbn(getCol('isbn'));
+    final isbn =
+        sanitizeIsbn(getCol('isbn/uid')) ?? sanitizeIsbn(getCol('isbn'));
 
     int pageCount = 250;
     final pagesRaw = getCol('number of pages');
@@ -319,7 +328,8 @@ class CsvImportService {
       }
     }
 
-    final statusRaw = getCol(['status', 'shelf', 'read status'])?.toLowerCase() ?? 'tbr';
+    final statusRaw =
+        getCol(['status', 'shelf', 'read status'])?.toLowerCase() ?? 'tbr';
     final status = _mapStatus(statusRaw);
 
     double? rating;
@@ -331,7 +341,51 @@ class CsvImportService {
       }
     }
 
+    double? ratingPlot;
+    final ratingPlotRaw = getCol(['rating plot', 'plot rating', 'plot']);
+    if (ratingPlotRaw != null) {
+      final parsed = double.tryParse(ratingPlotRaw);
+      if (parsed != null && parsed > 0.0) ratingPlot = parsed;
+    }
+
+    double? ratingCharacters;
+    final ratingCharactersRaw =
+        getCol(['rating characters', 'characters rating', 'characters']);
+    if (ratingCharactersRaw != null) {
+      final parsed = double.tryParse(ratingCharactersRaw);
+      if (parsed != null && parsed > 0.0) ratingCharacters = parsed;
+    }
+
+    double? ratingWriting;
+    final ratingWritingRaw =
+        getCol(['rating writing', 'writing rating', 'writing']);
+    if (ratingWritingRaw != null) {
+      final parsed = double.tryParse(ratingWritingRaw);
+      if (parsed != null && parsed > 0.0) ratingWriting = parsed;
+    }
+
+    double? ratingPacing;
+    final ratingPacingRaw = getCol(['rating pacing', 'pacing rating', 'pacing']);
+    if (ratingPacingRaw != null) {
+      final parsed = double.tryParse(ratingPacingRaw);
+      if (parsed != null && parsed > 0.0) ratingPacing = parsed;
+    }
+
     final spineColors = _generateSpineColors(parsedSeries.cleanTitle);
+
+    final explicitSeriesName = getCol(['series name', 'series']);
+    final explicitSeriesIdxRaw =
+        getCol(['series index', 'series vol', 'series number', 'volume']);
+    final explicitSeriesIdx = explicitSeriesIdxRaw != null
+        ? double.tryParse(explicitSeriesIdxRaw)
+        : null;
+
+    final finalSeriesName = explicitSeriesName ?? parsedSeries.seriesName;
+    final finalSeriesIndex = explicitSeriesIdx ?? parsedSeries.seriesIndex;
+
+    final formatRaw =
+        getCol(['format', 'binding', 'edition'])?.toLowerCase() ?? 'paperback';
+    final format = _mapFormat(formatRaw);
 
     return BooksCompanion.insert(
       id: _uuid.v4(),
@@ -339,13 +393,17 @@ class CsvImportService {
       title: parsedSeries.cleanTitle,
       authors: authorsJson,
       pageCount: Value(pageCount),
-      format: const Value('paperback'),
+      format: Value(format),
       status: status,
-      seriesName: Value(parsedSeries.seriesName),
-      seriesIndex: Value(parsedSeries.seriesIndex),
+      seriesName: Value(finalSeriesName),
+      seriesIndex: Value(finalSeriesIndex),
       spineColorHex: spineColors.spineColorHex,
       spineTextHex: spineColors.spineTextHex,
       rating: Value(rating),
+      ratingPlot: Value(ratingPlot),
+      ratingCharacters: Value(ratingCharacters),
+      ratingWriting: Value(ratingWriting),
+      ratingPacing: Value(ratingPacing),
       createdAt: now,
       updatedAt: now,
     );
@@ -358,7 +416,9 @@ class CsvImportService {
     if (raw.contains('read') && !raw.contains('to-read')) {
       return 'finished';
     }
-    if (raw.contains('dnf') || raw.contains('did not finish') || raw.contains('abandoned')) {
+    if (raw.contains('dnf') ||
+        raw.contains('did not finish') ||
+        raw.contains('abandoned')) {
       return 'dnf';
     }
     if (raw.contains('lent')) {
@@ -369,14 +429,17 @@ class CsvImportService {
 
   String _mapFormat(String raw) {
     if (raw.contains('hardcover')) return 'hardcover';
-    if (raw.contains('ebook') || raw.contains('kindle') || raw.contains('digital')) return 'ebook';
+    if (raw.contains('ebook') ||
+        raw.contains('kindle') ||
+        raw.contains('digital')) return 'ebook';
     if (raw.contains('audio')) return 'audiobook';
     return 'paperback';
   }
 
   _SeriesParseResult _extractSeriesFromTitle(String rawTitle) {
     // E.g. "The Way of Kings (The Stormlight Archive, #1)" or "(Mistborn, #0.5)"
-    final regex = RegExp(r'^(.*?)\s*\((.*?),\s*(?:#|book\s*)?([0-9]+(?:\.[0-9]+)?)\)\s*$');
+    final regex = RegExp(
+        r'^(.*?)\s*\((.*?),\s*(?:#|book\s*)?([0-9]+(?:\.[0-9]+)?)\)\s*$');
     final match = regex.firstMatch(rawTitle);
     if (match != null) {
       final cleanTitle = match.group(1)?.trim() ?? rawTitle;
@@ -412,6 +475,57 @@ class CsvImportService {
     }
     final color = palette[hash.abs() % palette.length];
     return ColorExtractor.fromColor(color);
+  }
+
+  /// Exports a list of [Book] entities to standard RFC-4180 CSV format.
+  String exportToCsv(List<Book> books) {
+    final headers = [
+      'Title',
+      'Authors',
+      'ISBN13',
+      'Page Count',
+      'Format',
+      'Status',
+      'Rating',
+      'Rating Plot',
+      'Rating Characters',
+      'Rating Writing',
+      'Rating Pacing',
+      'Series Name',
+      'Series Index',
+      'Date Added',
+      'Last Read Page',
+    ];
+
+    final rows = <List<dynamic>>[headers];
+
+    for (final book in books) {
+      final dateAddedStr = DateTime.fromMillisecondsSinceEpoch(book.createdAt)
+          .toIso8601String()
+          .split('T')
+          .first;
+
+      rows.add([
+        book.title,
+        Formatters.formatAuthors(book.authors),
+        book.isbn13 ?? '',
+        book.pageCount,
+        book.format,
+        book.status,
+        book.rating ?? '',
+        book.ratingPlot ?? '',
+        book.ratingCharacters ?? '',
+        book.ratingWriting ?? '',
+        book.ratingPacing ?? '',
+        book.seriesName ?? '',
+        book.seriesIndex ?? '',
+        dateAddedStr,
+        book.lastReadPage,
+      ]);
+    }
+
+    const converter = ListToCsvConverter(eol: '\n');
+    return converter.convert(rows);
   }
 }
 

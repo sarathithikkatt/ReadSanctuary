@@ -79,6 +79,20 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
   late final GeneratedColumn<String> customSpinePath = GeneratedColumn<String>(
       'custom_spine_path', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _pdfPathMeta =
+      const VerificationMeta('pdfPath');
+  @override
+  late final GeneratedColumn<String> pdfPath = GeneratedColumn<String>(
+      'pdf_path', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _lastReadPageMeta =
+      const VerificationMeta('lastReadPage');
+  @override
+  late final GeneratedColumn<int> lastReadPage = GeneratedColumn<int>(
+      'last_read_page', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(1));
   static const VerificationMeta _spineColorHexMeta =
       const VerificationMeta('spineColorHex');
   @override
@@ -95,6 +109,30 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
   @override
   late final GeneratedColumn<double> rating = GeneratedColumn<double>(
       'rating', aliasedName, true,
+      type: DriftSqlType.double, requiredDuringInsert: false);
+  static const VerificationMeta _ratingPlotMeta =
+      const VerificationMeta('ratingPlot');
+  @override
+  late final GeneratedColumn<double> ratingPlot = GeneratedColumn<double>(
+      'rating_plot', aliasedName, true,
+      type: DriftSqlType.double, requiredDuringInsert: false);
+  static const VerificationMeta _ratingCharactersMeta =
+      const VerificationMeta('ratingCharacters');
+  @override
+  late final GeneratedColumn<double> ratingCharacters = GeneratedColumn<double>(
+      'rating_characters', aliasedName, true,
+      type: DriftSqlType.double, requiredDuringInsert: false);
+  static const VerificationMeta _ratingWritingMeta =
+      const VerificationMeta('ratingWriting');
+  @override
+  late final GeneratedColumn<double> ratingWriting = GeneratedColumn<double>(
+      'rating_writing', aliasedName, true,
+      type: DriftSqlType.double, requiredDuringInsert: false);
+  static const VerificationMeta _ratingPacingMeta =
+      const VerificationMeta('ratingPacing');
+  @override
+  late final GeneratedColumn<double> ratingPacing = GeneratedColumn<double>(
+      'rating_pacing', aliasedName, true,
       type: DriftSqlType.double, requiredDuringInsert: false);
   static const VerificationMeta _createdAtMeta =
       const VerificationMeta('createdAt');
@@ -122,9 +160,15 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
         seriesIndex,
         coverPath,
         customSpinePath,
+        pdfPath,
+        lastReadPage,
         spineColorHex,
         spineTextHex,
         rating,
+        ratingPlot,
+        ratingCharacters,
+        ratingWriting,
+        ratingPacing,
         createdAt,
         updatedAt
       ];
@@ -199,6 +243,16 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
           customSpinePath.isAcceptableOrUnknown(
               data['custom_spine_path']!, _customSpinePathMeta));
     }
+    if (data.containsKey('pdf_path')) {
+      context.handle(_pdfPathMeta,
+          pdfPath.isAcceptableOrUnknown(data['pdf_path']!, _pdfPathMeta));
+    }
+    if (data.containsKey('last_read_page')) {
+      context.handle(
+          _lastReadPageMeta,
+          lastReadPage.isAcceptableOrUnknown(
+              data['last_read_page']!, _lastReadPageMeta));
+    }
     if (data.containsKey('spine_color_hex')) {
       context.handle(
           _spineColorHexMeta,
@@ -218,6 +272,30 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
     if (data.containsKey('rating')) {
       context.handle(_ratingMeta,
           rating.isAcceptableOrUnknown(data['rating']!, _ratingMeta));
+    }
+    if (data.containsKey('rating_plot')) {
+      context.handle(
+          _ratingPlotMeta,
+          ratingPlot.isAcceptableOrUnknown(
+              data['rating_plot']!, _ratingPlotMeta));
+    }
+    if (data.containsKey('rating_characters')) {
+      context.handle(
+          _ratingCharactersMeta,
+          ratingCharacters.isAcceptableOrUnknown(
+              data['rating_characters']!, _ratingCharactersMeta));
+    }
+    if (data.containsKey('rating_writing')) {
+      context.handle(
+          _ratingWritingMeta,
+          ratingWriting.isAcceptableOrUnknown(
+              data['rating_writing']!, _ratingWritingMeta));
+    }
+    if (data.containsKey('rating_pacing')) {
+      context.handle(
+          _ratingPacingMeta,
+          ratingPacing.isAcceptableOrUnknown(
+              data['rating_pacing']!, _ratingPacingMeta));
     }
     if (data.containsKey('created_at')) {
       context.handle(_createdAtMeta,
@@ -264,12 +342,24 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
           .read(DriftSqlType.string, data['${effectivePrefix}cover_path']),
       customSpinePath: attachedDatabase.typeMapping.read(
           DriftSqlType.string, data['${effectivePrefix}custom_spine_path']),
+      pdfPath: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}pdf_path']),
+      lastReadPage: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}last_read_page'])!,
       spineColorHex: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}spine_color_hex'])!,
       spineTextHex: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}spine_text_hex'])!,
       rating: attachedDatabase.typeMapping
           .read(DriftSqlType.double, data['${effectivePrefix}rating']),
+      ratingPlot: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}rating_plot']),
+      ratingCharacters: attachedDatabase.typeMapping.read(
+          DriftSqlType.double, data['${effectivePrefix}rating_characters']),
+      ratingWriting: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}rating_writing']),
+      ratingPacing: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}rating_pacing']),
       createdAt: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}created_at'])!,
       updatedAt: attachedDatabase.typeMapping
@@ -296,9 +386,15 @@ class Book extends DataClass implements Insertable<Book> {
   final double? seriesIndex;
   final String? coverPath;
   final String? customSpinePath;
+  final String? pdfPath;
+  final int lastReadPage;
   final int spineColorHex;
   final int spineTextHex;
   final double? rating;
+  final double? ratingPlot;
+  final double? ratingCharacters;
+  final double? ratingWriting;
+  final double? ratingPacing;
   final int createdAt;
   final int updatedAt;
   const Book(
@@ -314,9 +410,15 @@ class Book extends DataClass implements Insertable<Book> {
       this.seriesIndex,
       this.coverPath,
       this.customSpinePath,
+      this.pdfPath,
+      required this.lastReadPage,
       required this.spineColorHex,
       required this.spineTextHex,
       this.rating,
+      this.ratingPlot,
+      this.ratingCharacters,
+      this.ratingWriting,
+      this.ratingPacing,
       required this.createdAt,
       required this.updatedAt});
   @override
@@ -346,10 +448,26 @@ class Book extends DataClass implements Insertable<Book> {
     if (!nullToAbsent || customSpinePath != null) {
       map['custom_spine_path'] = Variable<String>(customSpinePath);
     }
+    if (!nullToAbsent || pdfPath != null) {
+      map['pdf_path'] = Variable<String>(pdfPath);
+    }
+    map['last_read_page'] = Variable<int>(lastReadPage);
     map['spine_color_hex'] = Variable<int>(spineColorHex);
     map['spine_text_hex'] = Variable<int>(spineTextHex);
     if (!nullToAbsent || rating != null) {
       map['rating'] = Variable<double>(rating);
+    }
+    if (!nullToAbsent || ratingPlot != null) {
+      map['rating_plot'] = Variable<double>(ratingPlot);
+    }
+    if (!nullToAbsent || ratingCharacters != null) {
+      map['rating_characters'] = Variable<double>(ratingCharacters);
+    }
+    if (!nullToAbsent || ratingWriting != null) {
+      map['rating_writing'] = Variable<double>(ratingWriting);
+    }
+    if (!nullToAbsent || ratingPacing != null) {
+      map['rating_pacing'] = Variable<double>(ratingPacing);
     }
     map['created_at'] = Variable<int>(createdAt);
     map['updated_at'] = Variable<int>(updatedAt);
@@ -381,10 +499,26 @@ class Book extends DataClass implements Insertable<Book> {
       customSpinePath: customSpinePath == null && nullToAbsent
           ? const Value.absent()
           : Value(customSpinePath),
+      pdfPath: pdfPath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(pdfPath),
+      lastReadPage: Value(lastReadPage),
       spineColorHex: Value(spineColorHex),
       spineTextHex: Value(spineTextHex),
       rating:
           rating == null && nullToAbsent ? const Value.absent() : Value(rating),
+      ratingPlot: ratingPlot == null && nullToAbsent
+          ? const Value.absent()
+          : Value(ratingPlot),
+      ratingCharacters: ratingCharacters == null && nullToAbsent
+          ? const Value.absent()
+          : Value(ratingCharacters),
+      ratingWriting: ratingWriting == null && nullToAbsent
+          ? const Value.absent()
+          : Value(ratingWriting),
+      ratingPacing: ratingPacing == null && nullToAbsent
+          ? const Value.absent()
+          : Value(ratingPacing),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
@@ -406,9 +540,15 @@ class Book extends DataClass implements Insertable<Book> {
       seriesIndex: serializer.fromJson<double?>(json['seriesIndex']),
       coverPath: serializer.fromJson<String?>(json['coverPath']),
       customSpinePath: serializer.fromJson<String?>(json['customSpinePath']),
+      pdfPath: serializer.fromJson<String?>(json['pdfPath']),
+      lastReadPage: serializer.fromJson<int>(json['lastReadPage']),
       spineColorHex: serializer.fromJson<int>(json['spineColorHex']),
       spineTextHex: serializer.fromJson<int>(json['spineTextHex']),
       rating: serializer.fromJson<double?>(json['rating']),
+      ratingPlot: serializer.fromJson<double?>(json['ratingPlot']),
+      ratingCharacters: serializer.fromJson<double?>(json['ratingCharacters']),
+      ratingWriting: serializer.fromJson<double?>(json['ratingWriting']),
+      ratingPacing: serializer.fromJson<double?>(json['ratingPacing']),
       createdAt: serializer.fromJson<int>(json['createdAt']),
       updatedAt: serializer.fromJson<int>(json['updatedAt']),
     );
@@ -429,9 +569,15 @@ class Book extends DataClass implements Insertable<Book> {
       'seriesIndex': serializer.toJson<double?>(seriesIndex),
       'coverPath': serializer.toJson<String?>(coverPath),
       'customSpinePath': serializer.toJson<String?>(customSpinePath),
+      'pdfPath': serializer.toJson<String?>(pdfPath),
+      'lastReadPage': serializer.toJson<int>(lastReadPage),
       'spineColorHex': serializer.toJson<int>(spineColorHex),
       'spineTextHex': serializer.toJson<int>(spineTextHex),
       'rating': serializer.toJson<double?>(rating),
+      'ratingPlot': serializer.toJson<double?>(ratingPlot),
+      'ratingCharacters': serializer.toJson<double?>(ratingCharacters),
+      'ratingWriting': serializer.toJson<double?>(ratingWriting),
+      'ratingPacing': serializer.toJson<double?>(ratingPacing),
       'createdAt': serializer.toJson<int>(createdAt),
       'updatedAt': serializer.toJson<int>(updatedAt),
     };
@@ -450,9 +596,15 @@ class Book extends DataClass implements Insertable<Book> {
           Value<double?> seriesIndex = const Value.absent(),
           Value<String?> coverPath = const Value.absent(),
           Value<String?> customSpinePath = const Value.absent(),
+          Value<String?> pdfPath = const Value.absent(),
+          int? lastReadPage,
           int? spineColorHex,
           int? spineTextHex,
           Value<double?> rating = const Value.absent(),
+          Value<double?> ratingPlot = const Value.absent(),
+          Value<double?> ratingCharacters = const Value.absent(),
+          Value<double?> ratingWriting = const Value.absent(),
+          Value<double?> ratingPacing = const Value.absent(),
           int? createdAt,
           int? updatedAt}) =>
       Book(
@@ -470,9 +622,19 @@ class Book extends DataClass implements Insertable<Book> {
         customSpinePath: customSpinePath.present
             ? customSpinePath.value
             : this.customSpinePath,
+        pdfPath: pdfPath.present ? pdfPath.value : this.pdfPath,
+        lastReadPage: lastReadPage ?? this.lastReadPage,
         spineColorHex: spineColorHex ?? this.spineColorHex,
         spineTextHex: spineTextHex ?? this.spineTextHex,
         rating: rating.present ? rating.value : this.rating,
+        ratingPlot: ratingPlot.present ? ratingPlot.value : this.ratingPlot,
+        ratingCharacters: ratingCharacters.present
+            ? ratingCharacters.value
+            : this.ratingCharacters,
+        ratingWriting:
+            ratingWriting.present ? ratingWriting.value : this.ratingWriting,
+        ratingPacing:
+            ratingPacing.present ? ratingPacing.value : this.ratingPacing,
         createdAt: createdAt ?? this.createdAt,
         updatedAt: updatedAt ?? this.updatedAt,
       );
@@ -494,6 +656,10 @@ class Book extends DataClass implements Insertable<Book> {
       customSpinePath: data.customSpinePath.present
           ? data.customSpinePath.value
           : this.customSpinePath,
+      pdfPath: data.pdfPath.present ? data.pdfPath.value : this.pdfPath,
+      lastReadPage: data.lastReadPage.present
+          ? data.lastReadPage.value
+          : this.lastReadPage,
       spineColorHex: data.spineColorHex.present
           ? data.spineColorHex.value
           : this.spineColorHex,
@@ -501,6 +667,17 @@ class Book extends DataClass implements Insertable<Book> {
           ? data.spineTextHex.value
           : this.spineTextHex,
       rating: data.rating.present ? data.rating.value : this.rating,
+      ratingPlot:
+          data.ratingPlot.present ? data.ratingPlot.value : this.ratingPlot,
+      ratingCharacters: data.ratingCharacters.present
+          ? data.ratingCharacters.value
+          : this.ratingCharacters,
+      ratingWriting: data.ratingWriting.present
+          ? data.ratingWriting.value
+          : this.ratingWriting,
+      ratingPacing: data.ratingPacing.present
+          ? data.ratingPacing.value
+          : this.ratingPacing,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -521,9 +698,15 @@ class Book extends DataClass implements Insertable<Book> {
           ..write('seriesIndex: $seriesIndex, ')
           ..write('coverPath: $coverPath, ')
           ..write('customSpinePath: $customSpinePath, ')
+          ..write('pdfPath: $pdfPath, ')
+          ..write('lastReadPage: $lastReadPage, ')
           ..write('spineColorHex: $spineColorHex, ')
           ..write('spineTextHex: $spineTextHex, ')
           ..write('rating: $rating, ')
+          ..write('ratingPlot: $ratingPlot, ')
+          ..write('ratingCharacters: $ratingCharacters, ')
+          ..write('ratingWriting: $ratingWriting, ')
+          ..write('ratingPacing: $ratingPacing, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -531,24 +714,31 @@ class Book extends DataClass implements Insertable<Book> {
   }
 
   @override
-  int get hashCode => Object.hash(
-      id,
-      isbn13,
-      title,
-      subtitle,
-      authors,
-      pageCount,
-      format,
-      status,
-      seriesName,
-      seriesIndex,
-      coverPath,
-      customSpinePath,
-      spineColorHex,
-      spineTextHex,
-      rating,
-      createdAt,
-      updatedAt);
+  int get hashCode => Object.hashAll([
+        id,
+        isbn13,
+        title,
+        subtitle,
+        authors,
+        pageCount,
+        format,
+        status,
+        seriesName,
+        seriesIndex,
+        coverPath,
+        customSpinePath,
+        pdfPath,
+        lastReadPage,
+        spineColorHex,
+        spineTextHex,
+        rating,
+        ratingPlot,
+        ratingCharacters,
+        ratingWriting,
+        ratingPacing,
+        createdAt,
+        updatedAt
+      ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -565,9 +755,15 @@ class Book extends DataClass implements Insertable<Book> {
           other.seriesIndex == this.seriesIndex &&
           other.coverPath == this.coverPath &&
           other.customSpinePath == this.customSpinePath &&
+          other.pdfPath == this.pdfPath &&
+          other.lastReadPage == this.lastReadPage &&
           other.spineColorHex == this.spineColorHex &&
           other.spineTextHex == this.spineTextHex &&
           other.rating == this.rating &&
+          other.ratingPlot == this.ratingPlot &&
+          other.ratingCharacters == this.ratingCharacters &&
+          other.ratingWriting == this.ratingWriting &&
+          other.ratingPacing == this.ratingPacing &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -585,9 +781,15 @@ class BooksCompanion extends UpdateCompanion<Book> {
   final Value<double?> seriesIndex;
   final Value<String?> coverPath;
   final Value<String?> customSpinePath;
+  final Value<String?> pdfPath;
+  final Value<int> lastReadPage;
   final Value<int> spineColorHex;
   final Value<int> spineTextHex;
   final Value<double?> rating;
+  final Value<double?> ratingPlot;
+  final Value<double?> ratingCharacters;
+  final Value<double?> ratingWriting;
+  final Value<double?> ratingPacing;
   final Value<int> createdAt;
   final Value<int> updatedAt;
   final Value<int> rowid;
@@ -604,9 +806,15 @@ class BooksCompanion extends UpdateCompanion<Book> {
     this.seriesIndex = const Value.absent(),
     this.coverPath = const Value.absent(),
     this.customSpinePath = const Value.absent(),
+    this.pdfPath = const Value.absent(),
+    this.lastReadPage = const Value.absent(),
     this.spineColorHex = const Value.absent(),
     this.spineTextHex = const Value.absent(),
     this.rating = const Value.absent(),
+    this.ratingPlot = const Value.absent(),
+    this.ratingCharacters = const Value.absent(),
+    this.ratingWriting = const Value.absent(),
+    this.ratingPacing = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -624,9 +832,15 @@ class BooksCompanion extends UpdateCompanion<Book> {
     this.seriesIndex = const Value.absent(),
     this.coverPath = const Value.absent(),
     this.customSpinePath = const Value.absent(),
+    this.pdfPath = const Value.absent(),
+    this.lastReadPage = const Value.absent(),
     required int spineColorHex,
     required int spineTextHex,
     this.rating = const Value.absent(),
+    this.ratingPlot = const Value.absent(),
+    this.ratingCharacters = const Value.absent(),
+    this.ratingWriting = const Value.absent(),
+    this.ratingPacing = const Value.absent(),
     required int createdAt,
     required int updatedAt,
     this.rowid = const Value.absent(),
@@ -651,9 +865,15 @@ class BooksCompanion extends UpdateCompanion<Book> {
     Expression<double>? seriesIndex,
     Expression<String>? coverPath,
     Expression<String>? customSpinePath,
+    Expression<String>? pdfPath,
+    Expression<int>? lastReadPage,
     Expression<int>? spineColorHex,
     Expression<int>? spineTextHex,
     Expression<double>? rating,
+    Expression<double>? ratingPlot,
+    Expression<double>? ratingCharacters,
+    Expression<double>? ratingWriting,
+    Expression<double>? ratingPacing,
     Expression<int>? createdAt,
     Expression<int>? updatedAt,
     Expression<int>? rowid,
@@ -671,9 +891,15 @@ class BooksCompanion extends UpdateCompanion<Book> {
       if (seriesIndex != null) 'series_index': seriesIndex,
       if (coverPath != null) 'cover_path': coverPath,
       if (customSpinePath != null) 'custom_spine_path': customSpinePath,
+      if (pdfPath != null) 'pdf_path': pdfPath,
+      if (lastReadPage != null) 'last_read_page': lastReadPage,
       if (spineColorHex != null) 'spine_color_hex': spineColorHex,
       if (spineTextHex != null) 'spine_text_hex': spineTextHex,
       if (rating != null) 'rating': rating,
+      if (ratingPlot != null) 'rating_plot': ratingPlot,
+      if (ratingCharacters != null) 'rating_characters': ratingCharacters,
+      if (ratingWriting != null) 'rating_writing': ratingWriting,
+      if (ratingPacing != null) 'rating_pacing': ratingPacing,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
@@ -693,9 +919,15 @@ class BooksCompanion extends UpdateCompanion<Book> {
       Value<double?>? seriesIndex,
       Value<String?>? coverPath,
       Value<String?>? customSpinePath,
+      Value<String?>? pdfPath,
+      Value<int>? lastReadPage,
       Value<int>? spineColorHex,
       Value<int>? spineTextHex,
       Value<double?>? rating,
+      Value<double?>? ratingPlot,
+      Value<double?>? ratingCharacters,
+      Value<double?>? ratingWriting,
+      Value<double?>? ratingPacing,
       Value<int>? createdAt,
       Value<int>? updatedAt,
       Value<int>? rowid}) {
@@ -712,9 +944,15 @@ class BooksCompanion extends UpdateCompanion<Book> {
       seriesIndex: seriesIndex ?? this.seriesIndex,
       coverPath: coverPath ?? this.coverPath,
       customSpinePath: customSpinePath ?? this.customSpinePath,
+      pdfPath: pdfPath ?? this.pdfPath,
+      lastReadPage: lastReadPage ?? this.lastReadPage,
       spineColorHex: spineColorHex ?? this.spineColorHex,
       spineTextHex: spineTextHex ?? this.spineTextHex,
       rating: rating ?? this.rating,
+      ratingPlot: ratingPlot ?? this.ratingPlot,
+      ratingCharacters: ratingCharacters ?? this.ratingCharacters,
+      ratingWriting: ratingWriting ?? this.ratingWriting,
+      ratingPacing: ratingPacing ?? this.ratingPacing,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
@@ -760,6 +998,12 @@ class BooksCompanion extends UpdateCompanion<Book> {
     if (customSpinePath.present) {
       map['custom_spine_path'] = Variable<String>(customSpinePath.value);
     }
+    if (pdfPath.present) {
+      map['pdf_path'] = Variable<String>(pdfPath.value);
+    }
+    if (lastReadPage.present) {
+      map['last_read_page'] = Variable<int>(lastReadPage.value);
+    }
     if (spineColorHex.present) {
       map['spine_color_hex'] = Variable<int>(spineColorHex.value);
     }
@@ -768,6 +1012,18 @@ class BooksCompanion extends UpdateCompanion<Book> {
     }
     if (rating.present) {
       map['rating'] = Variable<double>(rating.value);
+    }
+    if (ratingPlot.present) {
+      map['rating_plot'] = Variable<double>(ratingPlot.value);
+    }
+    if (ratingCharacters.present) {
+      map['rating_characters'] = Variable<double>(ratingCharacters.value);
+    }
+    if (ratingWriting.present) {
+      map['rating_writing'] = Variable<double>(ratingWriting.value);
+    }
+    if (ratingPacing.present) {
+      map['rating_pacing'] = Variable<double>(ratingPacing.value);
     }
     if (createdAt.present) {
       map['created_at'] = Variable<int>(createdAt.value);
@@ -796,9 +1052,15 @@ class BooksCompanion extends UpdateCompanion<Book> {
           ..write('seriesIndex: $seriesIndex, ')
           ..write('coverPath: $coverPath, ')
           ..write('customSpinePath: $customSpinePath, ')
+          ..write('pdfPath: $pdfPath, ')
+          ..write('lastReadPage: $lastReadPage, ')
           ..write('spineColorHex: $spineColorHex, ')
           ..write('spineTextHex: $spineTextHex, ')
           ..write('rating: $rating, ')
+          ..write('ratingPlot: $ratingPlot, ')
+          ..write('ratingCharacters: $ratingCharacters, ')
+          ..write('ratingWriting: $ratingWriting, ')
+          ..write('ratingPacing: $ratingPacing, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
@@ -2292,9 +2554,15 @@ typedef $$BooksTableCreateCompanionBuilder = BooksCompanion Function({
   Value<double?> seriesIndex,
   Value<String?> coverPath,
   Value<String?> customSpinePath,
+  Value<String?> pdfPath,
+  Value<int> lastReadPage,
   required int spineColorHex,
   required int spineTextHex,
   Value<double?> rating,
+  Value<double?> ratingPlot,
+  Value<double?> ratingCharacters,
+  Value<double?> ratingWriting,
+  Value<double?> ratingPacing,
   required int createdAt,
   required int updatedAt,
   Value<int> rowid,
@@ -2312,9 +2580,15 @@ typedef $$BooksTableUpdateCompanionBuilder = BooksCompanion Function({
   Value<double?> seriesIndex,
   Value<String?> coverPath,
   Value<String?> customSpinePath,
+  Value<String?> pdfPath,
+  Value<int> lastReadPage,
   Value<int> spineColorHex,
   Value<int> spineTextHex,
   Value<double?> rating,
+  Value<double?> ratingPlot,
+  Value<double?> ratingCharacters,
+  Value<double?> ratingWriting,
+  Value<double?> ratingPacing,
   Value<int> createdAt,
   Value<int> updatedAt,
   Value<int> rowid,
@@ -2415,6 +2689,12 @@ class $$BooksTableFilterComposer extends Composer<_$AppDatabase, $BooksTable> {
       column: $table.customSpinePath,
       builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<String> get pdfPath => $composableBuilder(
+      column: $table.pdfPath, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get lastReadPage => $composableBuilder(
+      column: $table.lastReadPage, builder: (column) => ColumnFilters(column));
+
   ColumnFilters<int> get spineColorHex => $composableBuilder(
       column: $table.spineColorHex, builder: (column) => ColumnFilters(column));
 
@@ -2423,6 +2703,19 @@ class $$BooksTableFilterComposer extends Composer<_$AppDatabase, $BooksTable> {
 
   ColumnFilters<double> get rating => $composableBuilder(
       column: $table.rating, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get ratingPlot => $composableBuilder(
+      column: $table.ratingPlot, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get ratingCharacters => $composableBuilder(
+      column: $table.ratingCharacters,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get ratingWriting => $composableBuilder(
+      column: $table.ratingWriting, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get ratingPacing => $composableBuilder(
+      column: $table.ratingPacing, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<int> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnFilters(column));
@@ -2540,6 +2833,13 @@ class $$BooksTableOrderingComposer
       column: $table.customSpinePath,
       builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get pdfPath => $composableBuilder(
+      column: $table.pdfPath, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get lastReadPage => $composableBuilder(
+      column: $table.lastReadPage,
+      builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<int> get spineColorHex => $composableBuilder(
       column: $table.spineColorHex,
       builder: (column) => ColumnOrderings(column));
@@ -2550,6 +2850,21 @@ class $$BooksTableOrderingComposer
 
   ColumnOrderings<double> get rating => $composableBuilder(
       column: $table.rating, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get ratingPlot => $composableBuilder(
+      column: $table.ratingPlot, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get ratingCharacters => $composableBuilder(
+      column: $table.ratingCharacters,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get ratingWriting => $composableBuilder(
+      column: $table.ratingWriting,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get ratingPacing => $composableBuilder(
+      column: $table.ratingPacing,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<int> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnOrderings(column));
@@ -2603,6 +2918,12 @@ class $$BooksTableAnnotationComposer
   GeneratedColumn<String> get customSpinePath => $composableBuilder(
       column: $table.customSpinePath, builder: (column) => column);
 
+  GeneratedColumn<String> get pdfPath =>
+      $composableBuilder(column: $table.pdfPath, builder: (column) => column);
+
+  GeneratedColumn<int> get lastReadPage => $composableBuilder(
+      column: $table.lastReadPage, builder: (column) => column);
+
   GeneratedColumn<int> get spineColorHex => $composableBuilder(
       column: $table.spineColorHex, builder: (column) => column);
 
@@ -2611,6 +2932,18 @@ class $$BooksTableAnnotationComposer
 
   GeneratedColumn<double> get rating =>
       $composableBuilder(column: $table.rating, builder: (column) => column);
+
+  GeneratedColumn<double> get ratingPlot => $composableBuilder(
+      column: $table.ratingPlot, builder: (column) => column);
+
+  GeneratedColumn<double> get ratingCharacters => $composableBuilder(
+      column: $table.ratingCharacters, builder: (column) => column);
+
+  GeneratedColumn<double> get ratingWriting => $composableBuilder(
+      column: $table.ratingWriting, builder: (column) => column);
+
+  GeneratedColumn<double> get ratingPacing => $composableBuilder(
+      column: $table.ratingPacing, builder: (column) => column);
 
   GeneratedColumn<int> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -2718,9 +3051,15 @@ class $$BooksTableTableManager extends RootTableManager<
             Value<double?> seriesIndex = const Value.absent(),
             Value<String?> coverPath = const Value.absent(),
             Value<String?> customSpinePath = const Value.absent(),
+            Value<String?> pdfPath = const Value.absent(),
+            Value<int> lastReadPage = const Value.absent(),
             Value<int> spineColorHex = const Value.absent(),
             Value<int> spineTextHex = const Value.absent(),
             Value<double?> rating = const Value.absent(),
+            Value<double?> ratingPlot = const Value.absent(),
+            Value<double?> ratingCharacters = const Value.absent(),
+            Value<double?> ratingWriting = const Value.absent(),
+            Value<double?> ratingPacing = const Value.absent(),
             Value<int> createdAt = const Value.absent(),
             Value<int> updatedAt = const Value.absent(),
             Value<int> rowid = const Value.absent(),
@@ -2738,9 +3077,15 @@ class $$BooksTableTableManager extends RootTableManager<
             seriesIndex: seriesIndex,
             coverPath: coverPath,
             customSpinePath: customSpinePath,
+            pdfPath: pdfPath,
+            lastReadPage: lastReadPage,
             spineColorHex: spineColorHex,
             spineTextHex: spineTextHex,
             rating: rating,
+            ratingPlot: ratingPlot,
+            ratingCharacters: ratingCharacters,
+            ratingWriting: ratingWriting,
+            ratingPacing: ratingPacing,
             createdAt: createdAt,
             updatedAt: updatedAt,
             rowid: rowid,
@@ -2758,9 +3103,15 @@ class $$BooksTableTableManager extends RootTableManager<
             Value<double?> seriesIndex = const Value.absent(),
             Value<String?> coverPath = const Value.absent(),
             Value<String?> customSpinePath = const Value.absent(),
+            Value<String?> pdfPath = const Value.absent(),
+            Value<int> lastReadPage = const Value.absent(),
             required int spineColorHex,
             required int spineTextHex,
             Value<double?> rating = const Value.absent(),
+            Value<double?> ratingPlot = const Value.absent(),
+            Value<double?> ratingCharacters = const Value.absent(),
+            Value<double?> ratingWriting = const Value.absent(),
+            Value<double?> ratingPacing = const Value.absent(),
             required int createdAt,
             required int updatedAt,
             Value<int> rowid = const Value.absent(),
@@ -2778,9 +3129,15 @@ class $$BooksTableTableManager extends RootTableManager<
             seriesIndex: seriesIndex,
             coverPath: coverPath,
             customSpinePath: customSpinePath,
+            pdfPath: pdfPath,
+            lastReadPage: lastReadPage,
             spineColorHex: spineColorHex,
             spineTextHex: spineTextHex,
             rating: rating,
+            ratingPlot: ratingPlot,
+            ratingCharacters: ratingCharacters,
+            ratingWriting: ratingWriting,
+            ratingPacing: ratingPacing,
             createdAt: createdAt,
             updatedAt: updatedAt,
             rowid: rowid,

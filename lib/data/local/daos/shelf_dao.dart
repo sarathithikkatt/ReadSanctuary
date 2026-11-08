@@ -5,16 +5,35 @@ import '../tables/shelf_items.dart';
 
 part 'shelf_dao.g.dart';
 
+/// Combined data model representing a shelf item along with its populated book details.
+class ShelfItemWithBook {
+  final ShelfItem item;
+  final Book? book;
+
+  const ShelfItemWithBook({
+    required this.item,
+    this.book,
+  });
+}
+
 @DriftAccessor(tables: [Shelves, ShelfItems])
 class ShelfDao extends DatabaseAccessor<AppDatabase> with _$ShelfDaoMixin {
   ShelfDao(super.db);
 
   Stream<List<Shelf>> watchAllShelves() {
-    return (select(shelves)..orderBy([(t) => OrderingTerm(expression: t.sortOrder, mode: OrderingMode.asc)])).watch();
+    return (select(shelves)
+          ..orderBy([
+            (t) => OrderingTerm(expression: t.sortOrder, mode: OrderingMode.asc)
+          ]))
+        .watch();
   }
 
   Future<List<Shelf>> getAllShelves() {
-    return (select(shelves)..orderBy([(t) => OrderingTerm(expression: t.sortOrder, mode: OrderingMode.asc)])).get();
+    return (select(shelves)
+          ..orderBy([
+            (t) => OrderingTerm(expression: t.sortOrder, mode: OrderingMode.asc)
+          ]))
+        .get();
   }
 
   Stream<Shelf?> watchShelfById(String id) {
@@ -40,15 +59,65 @@ class ShelfDao extends DatabaseAccessor<AppDatabase> with _$ShelfDaoMixin {
   Stream<List<ShelfItem>> watchItemsForShelf(String shelfId) {
     return (select(shelfItems)
           ..where((t) => t.shelfId.equals(shelfId))
-          ..orderBy([(t) => OrderingTerm(expression: t.positionIndex, mode: OrderingMode.asc)]))
+          ..orderBy([
+            (t) => OrderingTerm(
+                expression: t.positionIndex, mode: OrderingMode.asc)
+          ]))
         .watch();
   }
 
   Future<List<ShelfItem>> getItemsForShelf(String shelfId) {
     return (select(shelfItems)
           ..where((t) => t.shelfId.equals(shelfId))
-          ..orderBy([(t) => OrderingTerm(expression: t.positionIndex, mode: OrderingMode.asc)]))
+          ..orderBy([
+            (t) => OrderingTerm(
+                expression: t.positionIndex, mode: OrderingMode.asc)
+          ]))
         .get();
+  }
+
+  /// High-performance reactive joined stream fetching items and populated books in a single SQL query.
+  Stream<List<ShelfItemWithBook>> watchItemsWithBooksForShelf(String shelfId) {
+    final query = (select(shelfItems)
+          ..where((t) => t.shelfId.equals(shelfId))
+          ..orderBy([
+            (t) => OrderingTerm(
+                expression: t.positionIndex, mode: OrderingMode.asc)
+          ]))
+        .join([
+      leftOuterJoin(db.books, db.books.id.equalsExp(shelfItems.bookId)),
+    ]);
+
+    return query.watch().map((rows) {
+      return rows.map((row) {
+        return ShelfItemWithBook(
+          item: row.readTable(shelfItems),
+          book: row.readTableOrNull(db.books),
+        );
+      }).toList();
+    });
+  }
+
+  /// High-performance joined query fetching items and populated books in a single SQL query.
+  Future<List<ShelfItemWithBook>> getItemsWithBooksForShelf(
+      String shelfId) async {
+    final query = (select(shelfItems)
+          ..where((t) => t.shelfId.equals(shelfId))
+          ..orderBy([
+            (t) => OrderingTerm(
+                expression: t.positionIndex, mode: OrderingMode.asc)
+          ]))
+        .join([
+      leftOuterJoin(db.books, db.books.id.equalsExp(shelfItems.bookId)),
+    ]);
+
+    final rows = await query.get();
+    return rows.map((row) {
+      return ShelfItemWithBook(
+        item: row.readTable(shelfItems),
+        book: row.readTableOrNull(db.books),
+      );
+    }).toList();
   }
 
   Future<int> insertShelfItem(Insertable<ShelfItem> item) {
@@ -64,7 +133,8 @@ class ShelfDao extends DatabaseAccessor<AppDatabase> with _$ShelfDaoMixin {
   }
 
   Future<ShelfItem?> getItemByBookId(String bookId) {
-    return (select(shelfItems)..where((t) => t.bookId.equals(bookId))).getSingleOrNull();
+    return (select(shelfItems)..where((t) => t.bookId.equals(bookId)))
+        .getSingleOrNull();
   }
 
   Future<bool> updateShelfItem(Insertable<ShelfItem> item) {
@@ -82,7 +152,9 @@ class ShelfDao extends DatabaseAccessor<AppDatabase> with _$ShelfDaoMixin {
   Future<void> reorderShelfItems(String shelfId, List<String> itemIdsInOrder) {
     return transaction(() async {
       for (int i = 0; i < itemIdsInOrder.length; i++) {
-        await (update(shelfItems)..where((t) => t.id.equals(itemIdsInOrder[i]) & t.shelfId.equals(shelfId)))
+        await (update(shelfItems)
+              ..where((t) =>
+                  t.id.equals(itemIdsInOrder[i]) & t.shelfId.equals(shelfId)))
             .write(ShelfItemsCompanion(positionIndex: Value(i)));
       }
     });

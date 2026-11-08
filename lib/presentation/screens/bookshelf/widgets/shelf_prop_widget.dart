@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-/// Renders decorative props (plants, candles, bookends) and gap spacers on shelves.
+/// Renders decorative props (plants, candles, bookends, coffee mug, cat, clock)
+/// and gap spacers on 2.5D wooden shelves.
 class ShelfPropWidget extends StatelessWidget {
   final String propAssetId;
   final double? customWidth;
@@ -13,196 +14,140 @@ class ShelfPropWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    switch (propAssetId) {
-      case 'gap':
-        return SizedBox(width: customWidth ?? 28.0);
-      case 'plant_monstera':
-        return _buildMonstera();
-      case 'plant_succulent':
-        return _buildSucculent();
-      case 'candle_amber':
-        return _buildCandle();
-      case 'bookend_brass':
-        return _buildBookend();
-      case 'cup_coffee':
-        return _buildMug();
-      default:
-        return SizedBox(width: customWidth ?? 20.0);
+    if (propAssetId == 'gap') {
+      return SizedBox(width: customWidth ?? 28.0);
     }
+
+    final propConfig = _propMetadata[propAssetId];
+    if (propConfig != null) {
+      return _buildImageProp(
+        assetPath: propConfig.assetPath,
+        height: propConfig.height,
+        semanticLabel: propConfig.label,
+        fallbackWidget: propConfig.fallbackBuilder(context),
+      );
+    }
+
+    return SizedBox(width: customWidth ?? 20.0);
   }
 
-  Widget _buildMonstera() {
+  Widget _buildImageProp({
+    required String assetPath,
+    required double height,
+    required String semanticLabel,
+    required Widget fallbackWidget,
+  }) {
     return Container(
-      width: 58.0,
-      height: 125.0,
-      margin: const EdgeInsets.symmetric(horizontal: 4.0),
+      height: height,
+      margin: const EdgeInsets.symmetric(horizontal: 6.0),
       child: Stack(
         alignment: Alignment.bottomCenter,
+        clipBehavior: Clip.none,
         children: [
-          // Foliage
+          // Ambient shelf contact shadow
           Positioned(
-            top: 0,
-            child: Icon(
-              Icons.eco,
-              size: 78.0,
-              color: Colors.green.shade800,
-            ),
-          ),
-          // Pot
-          Container(
-            width: 38.0,
-            height: 38.0,
-            decoration: BoxDecoration(
-              color: const Color(0xFFD4A373),
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(8.0),
-                bottomRight: Radius.circular(8.0),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.25),
-                  blurRadius: 3.0,
-                  offset: const Offset(1, 2),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSucculent() {
-    return Container(
-      width: 42.0,
-      height: 70.0,
-      margin: const EdgeInsets.symmetric(horizontal: 4.0),
-      child: Stack(
-        alignment: Alignment.bottomCenter,
-        children: [
-          Positioned(
-            top: 4,
-            child: Icon(
-              Icons.spa,
-              size: 42.0,
-              color: Colors.teal.shade700,
-            ),
-          ),
-          Container(
-            width: 32.0,
-            height: 26.0,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade300,
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(6.0),
-                bottomRight: Radius.circular(6.0),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 2.0,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCandle() {
-    return Container(
-      width: 34.0,
-      height: 65.0,
-      margin: const EdgeInsets.symmetric(horizontal: 4.0),
-      child: Stack(
-        alignment: Alignment.bottomCenter,
-        children: [
-          // Flame glow
-          Positioned(
-            top: 0,
+            bottom: 0,
             child: Container(
-              width: 10.0,
-              height: 14.0,
+              width: height * 0.55,
+              height: 4.0,
               decoration: BoxDecoration(
-                color: Colors.amber.shade400,
-                borderRadius: BorderRadius.circular(5.0),
+                borderRadius: BorderRadius.circular(3.0),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.amber.withOpacity(0.6),
-                    blurRadius: 6.0,
-                    spreadRadius: 2.0,
+                    color: Colors.black.withOpacity(0.28),
+                    blurRadius: 5.0,
+                    spreadRadius: 1.0,
+                    offset: const Offset(0, 2),
                   ),
                 ],
               ),
             ),
           ),
-          // Candle Jar
-          Container(
-            width: 30.0,
-            height: 48.0,
-            decoration: BoxDecoration(
-              color: const Color(0xFFB45309), // Amber glass
-              borderRadius: BorderRadius.circular(4.0),
-              border: Border.all(color: Colors.amber.shade900, width: 1.5),
-            ),
+          // High-resolution prop asset with smooth scaling
+          Image.asset(
+            assetPath,
+            height: height,
+            fit: BoxFit.contain,
+            semanticLabel: semanticLabel,
+            filterQuality: FilterQuality.medium,
+            errorBuilder: (context, error, stackTrace) => fallbackWidget,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildBookend() {
-    return Container(
-      width: 24.0,
+  static final Map<String, _PropDef> _propMetadata = {
+    'plant_monstera': _PropDef(
+      assetPath: 'assets/images/props/plant_monstera.png',
+      height: 125.0,
+      label: 'Potted Monstera Deliciosa',
+      fallbackBuilder: (_) => _fallbackIcon(Icons.eco, Colors.green.shade800),
+    ),
+    'plant_succulent': _PropDef(
+      assetPath: 'assets/images/props/plant_succulent.png',
+      height: 75.0,
+      label: 'Potted Succulent',
+      fallbackBuilder: (_) => _fallbackIcon(Icons.spa, Colors.teal.shade700),
+    ),
+    'candle_amber': _PropDef(
+      assetPath: 'assets/images/props/candle_amber.png',
+      height: 70.0,
+      label: 'Amber Scented Candle',
+      fallbackBuilder: (_) =>
+          _fallbackIcon(Icons.local_fire_department, Colors.amber.shade800),
+    ),
+    'cup_coffee': _PropDef(
+      assetPath: 'assets/images/props/cup_coffee.png',
+      height: 55.0,
+      label: 'Ceramic Coffee Mug',
+      fallbackBuilder: (_) =>
+          _fallbackIcon(Icons.coffee, Colors.brown.shade700),
+    ),
+    'bookend_brass': _PropDef(
+      assetPath: 'assets/images/props/bookend_brass.png',
       height: 95.0,
-      margin: const EdgeInsets.symmetric(horizontal: 2.0),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color(0xFFE5C07B), // Brass
-            Color(0xFFB8860B),
-            Color(0xFF8B6508),
-          ],
-        ),
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(6.0),
-          bottomLeft: Radius.circular(2.0),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.3),
-            blurRadius: 3.0,
-            offset: const Offset(1, 1),
-          ),
-        ],
-      ),
-    );
-  }
+      label: 'Vintage Brass Bookend',
+      fallbackBuilder: (_) =>
+          _fallbackIcon(Icons.crop_portrait, const Color(0xFFB8860B)),
+    ),
+    'cat_sleeping': _PropDef(
+      assetPath: 'assets/images/props/cat_sleeping.png',
+      height: 52.0,
+      label: 'Curled Sleeping Cat',
+      fallbackBuilder: (_) => _fallbackIcon(Icons.pets, Colors.orange.shade800),
+    ),
+    'clock_vintage': _PropDef(
+      assetPath: 'assets/images/props/clock_vintage.png',
+      height: 78.0,
+      label: 'Vintage Desk Clock',
+      fallbackBuilder: (_) =>
+          _fallbackIcon(Icons.access_time, Colors.amber.shade900),
+    ),
+  };
 
-  Widget _buildMug() {
+  static Widget _fallbackIcon(IconData icon, Color color) {
     return Container(
-      width: 36.0,
-      height: 40.0,
-      margin: const EdgeInsets.symmetric(horizontal: 4.0),
+      padding: const EdgeInsets.all(4.0),
       decoration: BoxDecoration(
-        color: const Color(0xFFE0E0E0),
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(8.0),
-          bottomRight: Radius.circular(8.0),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 2.0,
-          ),
-        ],
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(8.0),
       ),
-      child: const Center(
-        child: Icon(Icons.coffee, size: 20.0, color: Color(0xFF5D4037)),
-      ),
+      child: Icon(icon, size: 36.0, color: color),
     );
   }
+}
+
+class _PropDef {
+  final String assetPath;
+  final double height;
+  final String label;
+  final Widget Function(BuildContext) fallbackBuilder;
+
+  const _PropDef({
+    required this.assetPath,
+    required this.height,
+    required this.label,
+    required this.fallbackBuilder,
+  });
 }

@@ -5,7 +5,8 @@ class Shelves extends Table {
   TextColumn get id => text()();
   TextColumn get name => text()();
   TextColumn get woodThemeId => text().withDefault(const Constant('oak'))();
-  TextColumn get wallThemeId => text().withDefault(const Constant('warm_cream'))();
+  TextColumn get wallThemeId =>
+      text().withDefault(const Constant('warm_cream'))();
   IntColumn get sortOrder => integer()();
 
   @override

@@ -9,11 +9,19 @@ class BookDao extends DatabaseAccessor<AppDatabase> with _$BookDaoMixin {
   BookDao(super.db);
 
   Stream<List<Book>> watchAllBooks() {
-    return (select(books)..orderBy([(t) => OrderingTerm(expression: t.title, mode: OrderingMode.asc)])).watch();
+    return (select(books)
+          ..orderBy([
+            (t) => OrderingTerm(expression: t.title, mode: OrderingMode.asc)
+          ]))
+        .watch();
   }
 
   Future<List<Book>> getAllBooks() {
-    return (select(books)..orderBy([(t) => OrderingTerm(expression: t.title, mode: OrderingMode.asc)])).get();
+    return (select(books)
+          ..orderBy([
+            (t) => OrderingTerm(expression: t.title, mode: OrderingMode.asc)
+          ]))
+        .get();
   }
 
   Stream<Book?> watchBookById(String id) {
@@ -80,5 +88,23 @@ class BookDao extends DatabaseAccessor<AppDatabase> with _$BookDaoMixin {
 
   Future<int> deleteBook(String id) {
     return (delete(books)..where((t) => t.id.equals(id))).go();
+  }
+
+  Future<int> updateBookPdf(String id, String? pdfPath) {
+    return (update(books)..where((t) => t.id.equals(id))).write(
+      BooksCompanion(
+        pdfPath: Value(pdfPath),
+        updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+      ),
+    );
+  }
+
+  Future<int> updateBookLastReadPage(String id, int page) {
+    return (update(books)..where((t) => t.id.equals(id))).write(
+      BooksCompanion(
+        lastReadPage: Value(page),
+        updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+      ),
+    );
   }
 }
