@@ -1,4 +1,5 @@
 import 'package:drift/native.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:readsanctuary/app.dart';
@@ -21,7 +22,7 @@ void main() {
 
     expect(find.text('ReadSanctuary'), findsWidgets);
     expect(find.text('Bookshelf'), findsOneWidget);
-    expect(find.text('Scan ISBN'), findsOneWidget);
+    expect(find.byIcon(Icons.qr_code_scanner), findsOneWidget);
     expect(find.text('Stats'), findsOneWidget);
     expect(find.text('Backup & Pro'), findsOneWidget);
 

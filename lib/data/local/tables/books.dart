@@ -2,17 +2,23 @@ import 'package:drift/drift.dart';
 
 @DataClassName('Book')
 @TableIndex(name: 'books_isbn13_idx', columns: {#isbn13})
+@TableIndex(name: 'books_status_idx', columns: {#status})
 class Books extends Table {
   TextColumn get id => text()();
   TextColumn get isbn13 => text().nullable()();
   TextColumn get title => text()();
   TextColumn get subtitle => text().nullable()();
+  TextColumn get description => text().nullable()();
+  TextColumn get publisher => text().nullable()();
+  TextColumn get publishYear => text().nullable()();
   TextColumn get authors =>
       text()(); // JSON array of author names e.g. ["Author"]
   IntColumn get pageCount => integer().withDefault(const Constant(250))();
   TextColumn get format => text().withDefault(
       const Constant('paperback'))(); // paperback, hardcover, ebook, audiobook
   TextColumn get status => text()(); // tbr, reading, finished, dnf, lent
+  IntColumn get finishedAt =>
+      integer().nullable()(); // Unix epoch ms when finished reading
   TextColumn get seriesName => text().nullable()();
   RealColumn get seriesIndex =>
       real().nullable()(); // Fractional float e.g. 0.5, 1.0, 1.5, 2.0

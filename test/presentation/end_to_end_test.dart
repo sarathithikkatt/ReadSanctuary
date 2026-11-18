@@ -40,7 +40,7 @@ void main() {
 
       expect(find.text('ReadSanctuary'), findsWidgets);
       expect(find.text('Bookshelf'), findsOneWidget);
-      expect(find.text('Scan ISBN'), findsOneWidget);
+      expect(find.byIcon(Icons.qr_code_scanner), findsOneWidget);
       expect(find.text('Stats'), findsOneWidget);
       expect(find.text('Backup & Pro'), findsOneWidget);
 

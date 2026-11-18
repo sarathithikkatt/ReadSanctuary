@@ -71,11 +71,7 @@ class BookDao extends DatabaseAccessor<AppDatabase> with _$BookDaoMixin {
   }
 
   Future<void> insertBooks(List<Insertable<Book>> bookList) {
-    return transaction(() async {
-      for (final book in bookList) {
-        await into(books).insert(book, mode: InsertMode.insertOrReplace);
-      }
-    });
+    return batch((b) => b.insertAll(books, bookList, mode: InsertMode.insertOrReplace));
   }
 
   Future<bool> updateBook(Insertable<Book> book) {

@@ -29,7 +29,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? e]) : super(e ?? _openConnection());
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -44,31 +44,53 @@ class AppDatabase extends _$AppDatabase {
             await m.addColumn(books, books.ratingWriting);
             await m.addColumn(books, books.ratingPacing);
           }
+          if (from < 4) {
+            await m.addColumn(books, books.finishedAt);
+            await m.addColumn(books, books.description);
+            await m.addColumn(books, books.publisher);
+            await m.addColumn(books, books.publishYear);
+            await customStatement(
+                'CREATE INDEX IF NOT EXISTS books_status_idx ON books (status);');
+            await customStatement(
+                'CREATE INDEX IF NOT EXISTS shelves_sort_order_idx ON shelves (sort_order);');
+            await customStatement(
+                'CREATE INDEX IF NOT EXISTS shelf_items_shelf_idx ON shelf_items (shelf_id, position_index);');
+            await customStatement(
+                'CREATE INDEX IF NOT EXISTS shelf_items_book_idx ON shelf_items (book_id);');
+            await customStatement(
+                'CREATE INDEX IF NOT EXISTS reading_sessions_book_idx ON reading_sessions (book_id);');
+            await customStatement(
+                'CREATE INDEX IF NOT EXISTS reading_sessions_time_idx ON reading_sessions (start_time);');
+            await customStatement(
+                'CREATE INDEX IF NOT EXISTS book_notes_book_idx ON book_notes (book_id);');
+          }
         },
         beforeOpen: (details) async {
           await customStatement('PRAGMA foreign_keys = ON;');
-          final count = await customSelect('SELECT COUNT(*) AS c FROM shelves;')
-              .map((row) => row.read<int>('c'))
-              .getSingle();
-          if (count == 0) {
-            await into(shelves).insert(
-              ShelvesCompanion.insert(
-                id: 'default-shelf-reading',
-                name: 'Currently Reading',
-                woodThemeId: const Value('oak'),
-                wallThemeId: const Value('warm_cream'),
-                sortOrder: 0,
-              ),
-            );
-            await into(shelves).insert(
-              ShelvesCompanion.insert(
-                id: 'default-shelf-favorites',
-                name: 'Favorites & TBR',
-                woodThemeId: const Value('oak'),
-                wallThemeId: const Value('warm_cream'),
-                sortOrder: 1,
-              ),
-            );
+          if (details.wasCreated) {
+            final count = await customSelect('SELECT COUNT(*) AS c FROM shelves;')
+                .map((row) => row.read<int>('c'))
+                .getSingle();
+            if (count == 0) {
+              await into(shelves).insert(
+                ShelvesCompanion.insert(
+                  id: 'default-shelf-reading',
+                  name: 'Currently Reading',
+                  woodThemeId: const Value('oak'),
+                  wallThemeId: const Value('warm_cream'),
+                  sortOrder: 0,
+                ),
+              );
+              await into(shelves).insert(
+                ShelvesCompanion.insert(
+                  id: 'default-shelf-favorites',
+                  name: 'Favorites & TBR',
+                  woodThemeId: const Value('oak'),
+                  wallThemeId: const Value('warm_cream'),
+                  sortOrder: 1,
+                ),
+              );
+            }
           }
         },
       );

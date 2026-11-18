@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -151,7 +152,10 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
           id: bookId,
           isbn13: drift.Value(isbn),
           title: title,
-          authors: '["${authors.join('", "')}"]',
+          description: drift.Value(metadata?.description),
+          publisher: drift.Value(metadata?.publisher),
+          publishYear: drift.Value(metadata?.publishYear),
+          authors: jsonEncode(authors.isNotEmpty ? authors : ['Unknown']),
           pageCount: drift.Value(metadata?.pageCount ?? 250),
           format: drift.Value(metadata?.format ?? 'paperback'),
           status: 'tbr',

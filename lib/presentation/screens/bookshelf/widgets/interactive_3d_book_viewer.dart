@@ -63,12 +63,12 @@ class _Interactive3dBookViewerState extends State<Interactive3dBookViewer>
   Animation<double>? _inertiaAnimX;
   Animation<double>? _inertiaAnimY;
 
-  double _rotationY = 0.45; // Start with attractive 3D angle
-  double _rotationX = -0.12;
+  double _rotationY = 0.52; // Start with attractive 3D angle (~30°)
+  double _rotationX = -0.18; // Downward pitch (~10°) cleanly revealing top paper block
   double _scale = 1.0;
   double _baseScale = 1.0;
   bool _isAutoOrbiting = false;
-  double _lastHapticAngle = 0.45;
+  double _lastHapticAngle = 0.52;
   DateTime? _lastTapTime;
 
   String? _resolvedCoverAbsPath;
@@ -193,7 +193,7 @@ class _Interactive3dBookViewerState extends State<Interactive3dBookViewer>
   }
 
   String _getActivePresetLabel() {
-    if ((_rotationX - (-0.12)).abs() < 0.18 && (_rotationY - 0.45).abs() < 0.28) {
+    if ((_rotationX - (-0.18)).abs() < 0.18 && (_rotationY - 0.52).abs() < 0.28) {
       return '3D View';
     }
     final normY = ((_rotationY % (2 * math.pi)) + 2 * math.pi) % (2 * math.pi);
@@ -284,7 +284,7 @@ class _Interactive3dBookViewerState extends State<Interactive3dBookViewer>
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Row(
                   children: [
-                    _buildAngleChip('3D View', -0.12, 0.45),
+                    _buildAngleChip('3D View', -0.18, 0.52),
                     const SizedBox(width: 8),
                     _buildAngleChip('Front Cover', 0.0, 0.0),
                     const SizedBox(width: 8),
@@ -310,7 +310,7 @@ class _Interactive3dBookViewerState extends State<Interactive3dBookViewer>
                             const Duration(milliseconds: 300)) {
                       _lastTapTime = null;
                       HapticFeedback.mediumImpact();
-                      _animateTo(-0.12, 0.45, targetScale: 1.0);
+                      _animateTo(-0.18, 0.52, targetScale: 1.0);
                     } else {
                       _lastTapTime = now;
                     }
@@ -386,8 +386,8 @@ class _Interactive3dBookViewerState extends State<Interactive3dBookViewer>
                               },
                             ),
                             if (_scale != 1.0 ||
-                                (_rotationX - (-0.12)).abs() > 0.05 ||
-                                (_rotationY - 0.45).abs() > 0.05) ...[
+                                (_rotationX - (-0.18)).abs() > 0.05 ||
+                                (_rotationY - 0.52).abs() > 0.05) ...[
                               const SizedBox(height: 8),
                               _buildFloatingGlassPill(
                                 icon: Icons.restart_alt,
@@ -395,7 +395,7 @@ class _Interactive3dBookViewerState extends State<Interactive3dBookViewer>
                                 isActive: false,
                                 onTap: () {
                                   HapticFeedback.mediumImpact();
-                                  _animateTo(-0.12, 0.45, targetScale: 1.0);
+                                  _animateTo(-0.18, 0.52, targetScale: 1.0);
                                 },
                               ),
                             ],
@@ -689,23 +689,17 @@ class _Interactive3dBookViewerState extends State<Interactive3dBookViewer>
     final cosY = math.cos(ry);
     final sinY = math.sin(ry);
 
-    // Directional light vector (top-left-front) in view space
-    const lx = -0.351;
+    // Directional light vector (top-right-front) in view space for natural studio key light
+    const lx = 0.351;
     const ly = -0.652;
     const lz = 0.672;
-
-    // Perspective eye distance (1 / 0.0013)
-    const eyeDist = 769.23;
 
     // 1. Front Face (+Z)
     final frontCz = hz * cosY * cosX;
     final frontNx = sinY;
     final frontNy = -cosY * sinX;
     final frontNz = cosY * cosX;
-    final frontDotEye = frontNx * (-hz * sinY) +
-        frontNy * (hz * cosY * sinX) +
-        frontNz * (eyeDist - frontCz);
-    final isFrontVis = frontDotEye > 0;
+    final isFrontVis = frontNz > -0.05;
     final frontLight = (frontNx * lx + frontNy * ly + frontNz * lz).clamp(0.0, 1.0);
     final frontBrightness = (0.55 + 0.45 * frontLight).clamp(0.4, 1.0);
 
@@ -714,10 +708,7 @@ class _Interactive3dBookViewerState extends State<Interactive3dBookViewer>
     final backNx = -frontNx;
     final backNy = -frontNy;
     final backNz = -frontNz;
-    final backDotEye = -frontNx * (hz * sinY) +
-        -frontNy * (-hz * cosY * sinX) +
-        backNz * (eyeDist - backCz);
-    final isBackVis = backDotEye > 0;
+    final isBackVis = backNz > -0.05;
     final backLight = (backNx * lx + backNy * ly + backNz * lz).clamp(0.0, 1.0);
     final backBrightness = (0.55 + 0.45 * backLight).clamp(0.4, 1.0);
 
@@ -726,10 +717,7 @@ class _Interactive3dBookViewerState extends State<Interactive3dBookViewer>
     final spineNx = -cosY;
     final spineNy = -sinY * sinX;
     final spineNz = sinY * cosX;
-    final spineDotEye = spineNx * (hx * cosY) +
-        spineNy * (hx * sinY * sinX) +
-        spineNz * (eyeDist - spineCz);
-    final isSpineVis = spineDotEye > 0;
+    final isSpineVis = spineNz > -0.05;
     final spineLight = (spineNx * lx + spineNy * ly + spineNz * lz).clamp(0.0, 1.0);
     final spineBrightness = (0.55 + 0.45 * spineLight).clamp(0.4, 1.0);
 
@@ -738,30 +726,23 @@ class _Interactive3dBookViewerState extends State<Interactive3dBookViewer>
     final foreNx = -spineNx;
     final foreNy = -spineNy;
     final foreNz = -spineNz;
-    final foreDotEye = -spineNx * (-hx * cosY) +
-        -spineNy * (-hx * sinY * sinX) +
-        foreNz * (eyeDist - foreCz);
-    final isForeVis = foreDotEye > 0;
+    final isForeVis = foreNz > -0.05;
     final foreLight = (foreNx * lx + foreNy * ly + foreNz * lz).clamp(0.0, 1.0);
     final foreBrightness = (0.55 + 0.45 * foreLight).clamp(0.4, 1.0);
 
     // 5. Top Edge Face (-Y)
     final topCz = -hy * sinX;
-    final topNx = 0.0;
     final topNy = -cosX;
     final topNz = -sinX;
-    final topDotEye = topNy * (hy * cosX) + topNz * (eyeDist - topCz);
-    final isTopVis = topDotEye > 0;
+    final isTopVis = topNz > -0.02 || rx < 0.05;
     final topLight = (topNy * ly + topNz * lz).clamp(0.0, 1.0);
     final topBrightness = (0.55 + 0.45 * topLight).clamp(0.4, 1.0);
 
     // 6. Bottom Edge Face (+Y)
     final bottomCz = -topCz;
-    final bottomNx = 0.0;
     final bottomNy = -topNy;
     final bottomNz = -topNz;
-    final bottomDotEye = -topNy * (-hy * cosX) + bottomNz * (eyeDist - bottomCz);
-    final isBottomVis = bottomDotEye > 0;
+    final isBottomVis = bottomNz > -0.02 || rx > -0.05;
     final bottomLight = (bottomNy * ly + bottomNz * lz).clamp(0.0, 1.0);
     final bottomBrightness = (0.55 + 0.45 * bottomLight).clamp(0.4, 1.0);
 
@@ -924,7 +905,7 @@ class _Interactive3dBookViewerState extends State<Interactive3dBookViewer>
       child: Transform(
         alignment: Alignment.center,
         transform: Matrix4.identity()
-          ..setEntry(3, 2, 0.0013) // Perspective
+          ..setEntry(3, 2, -0.0013) // Perspective (negative for true camera-space depth)
           ..rotateX(_rotationX)
           ..rotateY(_rotationY),
         child: Stack(
@@ -1112,18 +1093,21 @@ class _Interactive3dBookViewerState extends State<Interactive3dBookViewer>
   }
 
   Widget _buildSpineFace(double thickness, double h, Color baseColor, Color textColor) {
-    return Container(
+    return SizedBox(
       width: thickness,
       height: h,
-      decoration: BoxDecoration(
-        color: baseColor,
-        boxShadow: const [
-          BoxShadow(color: Colors.black26, blurRadius: 4.0),
-        ],
-      ),
       child: Stack(
         fit: StackFit.expand,
         children: [
+          // Embossed leather texture matching front & back cover
+          Image.asset(
+            'assets/images/placeholders/default_book_cover.png',
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => Container(color: baseColor),
+          ),
+          Container(
+            color: baseColor.withOpacity(0.65),
+          ),
           if (_resolvedSpineAbsPath != null &&
               File(_resolvedSpineAbsPath!).existsSync())
             Image.file(File(_resolvedSpineAbsPath!), fit: BoxFit.cover)
@@ -1136,7 +1120,7 @@ class _Interactive3dBookViewerState extends State<Interactive3dBookViewer>
                   Container(
                     height: 2.0,
                     width: thickness * 0.7,
-                    color: textColor.withOpacity(0.5),
+                    color: textColor.withOpacity(0.65),
                   ),
                   Expanded(
                     child: RotatedBox(
@@ -1149,12 +1133,12 @@ class _Interactive3dBookViewerState extends State<Interactive3dBookViewer>
                           color: textColor,
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
-                          letterSpacing: 0.5,
+                          letterSpacing: 0.8,
                           shadows: [
                             Shadow(
-                              color: Colors.black.withOpacity(0.35),
+                              color: Colors.black.withOpacity(0.55),
                               offset: const Offset(1, 1),
-                              blurRadius: 2,
+                              blurRadius: 3,
                             ),
                           ],
                         ),
@@ -1164,7 +1148,7 @@ class _Interactive3dBookViewerState extends State<Interactive3dBookViewer>
                   Container(
                     height: 2.0,
                     width: thickness * 0.7,
-                    color: textColor.withOpacity(0.5),
+                    color: textColor.withOpacity(0.65),
                   ),
                 ],
               ),
@@ -1188,13 +1172,21 @@ class _Interactive3dBookViewerState extends State<Interactive3dBookViewer>
     final hasRating = widget.book.rating != null && widget.book.rating! > 0;
     final hasSeries = widget.book.seriesName != null && widget.book.seriesName!.isNotEmpty;
 
-    return Container(
+    return SizedBox(
       width: w,
       height: h,
-      color: baseColor,
       child: Stack(
         fit: StackFit.expand,
         children: [
+          // Embossed leather texture matching front cover
+          Image.asset(
+            'assets/images/placeholders/default_book_cover.png',
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => Container(color: baseColor),
+          ),
+          Container(
+            color: baseColor.withOpacity(0.65),
+          ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 22.0),
             child: Column(

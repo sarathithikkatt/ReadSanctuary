@@ -95,10 +95,13 @@ class BookSpine25DWidget extends StatelessWidget {
               children: [
                 // Layer 1: Background (Custom Photo or Procedural Color)
                 if (customSpineAbsolutePath != null &&
-                    File(customSpineAbsolutePath!).existsSync())
+                    customSpineAbsolutePath!.trim().isNotEmpty)
                   Image.file(
                     File(customSpineAbsolutePath!),
                     fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) =>
+                        _buildProceduralSpine(
+                            spineColor, textColor, authorText, width),
                   )
                 else
                   _buildProceduralSpine(

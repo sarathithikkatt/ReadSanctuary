@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:drift/drift.dart' as drift;
 import 'package:drift/native.dart';
@@ -7,11 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:readsanctuary/core/constants/shelf_props.dart';
-import 'package:readsanctuary/core/theme/shelf_themes.dart';
-import 'package:readsanctuary/core/utils/image_storage_helper.dart';
 import 'package:readsanctuary/data/local/database.dart';
-import 'package:readsanctuary/data/services/custom_props_service.dart';
 import 'package:readsanctuary/presentation/screens/bookshelf/dialogs/prop_selection_sheet.dart';
 import 'package:readsanctuary/presentation/screens/bookshelf/widgets/shelf_prop_widget.dart';
 import 'package:readsanctuary/presentation/screens/bookshelf/widgets/shelf_section.dart';
@@ -21,14 +16,10 @@ void main() {
 
   late AppDatabase db;
   late Directory tempDir;
-  late ImageStorageHelper storageHelper;
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     tempDir = await Directory.systemTemp.createTemp('fe_test_');
-    storageHelper = ImageStorageHelper(
-      baseDirProvider: () async => tempDir,
-    );
     db = AppDatabase(NativeDatabase.memory());
   });
 

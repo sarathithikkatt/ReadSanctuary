@@ -11,9 +11,6 @@ void main() {
   testWidgets(
       'Capture screenshots of decorator selection, active drag, and anywhere placement',
       (WidgetTester tester) async {
-    const artifactDir =
-        r'C:\Users\sarat\.gemini\antigravity\brain\dc33b318-095d-45be-8742-6d171faad2af';
-
     tester.view.physicalSize = const Size(900, 500);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(() => tester.view.resetPhysicalSize());
@@ -100,17 +97,22 @@ void main() {
     await tester.pumpAndSettle();
 
     Future<void> saveScreenshot(String filename) async {
-      await tester.runAsync(() async {
-        final boundary =
-            repaintKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
-        final image = await boundary.toImage(pixelRatio: 1.5);
-        final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-        final bytes = byteData!.buffer.asUint8List();
-        final file = File('$artifactDir\\$filename');
-        await file.writeAsBytes(bytes);
-        await File('D:\\Dev\\ShelfCraft\\$filename').writeAsBytes(bytes);
-      });
+      if (const bool.fromEnvironment('CAPTURE_SCREENSHOTS', defaultValue: false)) {
+        await tester.runAsync(() async {
+          final boundary =
+              repaintKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+          final image = await boundary.toImage(pixelRatio: 1.5);
+          final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+          final bytes = byteData!.buffer.asUint8List();
+          await File(filename).writeAsBytes(bytes);
+        });
+      }
     }
+
+    expect(find.byKey(const ValueKey('prop_cat')), findsOneWidget);
+    expect(find.byKey(const ValueKey('b1')), findsOneWidget);
+    expect(find.byKey(const ValueKey('b2')), findsOneWidget);
+    expect(find.byKey(const ValueKey('prop_plant')), findsOneWidget);
 
     // 1. Initial State: Cat is between Dune (b2) and Neuromancer (b3)
     await saveScreenshot('screenshot_1_shelf_initial.png');

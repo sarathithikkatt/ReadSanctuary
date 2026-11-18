@@ -155,12 +155,14 @@ class ShelfDao extends DatabaseAccessor<AppDatabase> with _$ShelfDaoMixin {
   }
 
   Future<void> reorderShelfItems(String shelfId, List<String> itemIdsInOrder) {
-    return transaction(() async {
+    return batch((b) {
       for (int i = 0; i < itemIdsInOrder.length; i++) {
-        await (update(shelfItems)
-              ..where((t) =>
-                  t.id.equals(itemIdsInOrder[i]) & t.shelfId.equals(shelfId)))
-            .write(ShelfItemsCompanion(positionIndex: Value(i)));
+        b.update(
+          shelfItems,
+          ShelfItemsCompanion(positionIndex: Value(i)),
+          where: (t) =>
+              t.id.equals(itemIdsInOrder[i]) & t.shelfId.equals(shelfId),
+        );
       }
     });
   }

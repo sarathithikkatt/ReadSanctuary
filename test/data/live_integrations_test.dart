@@ -1,3 +1,7 @@
+// ignore_for_file: avoid_print
+@Tags(['integration'])
+library live_integrations_test;
+
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:readsanctuary/domain/models/book_metadata.dart';

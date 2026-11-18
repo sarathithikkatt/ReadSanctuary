@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'books.dart';
 
 @DataClassName('BookNote')
+@TableIndex(name: 'book_notes_book_idx', columns: {#bookId})
 class BookNotes extends Table {
   TextColumn get id => text()();
   TextColumn get bookId =>

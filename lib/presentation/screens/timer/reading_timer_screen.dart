@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -52,7 +53,8 @@ class _ReadingTimerScreenState extends ConsumerState<ReadingTimerScreen> {
 
     if (savedBookId == widget.book.id) {
       final isRunning = prefs.getBool('${_spPrefix}is_running') ?? false;
-      final startMs = prefs.getInt('${_spPrefix}start_ms');
+      final lastTickMs = prefs.getInt('${_spPrefix}last_tick_ms') ??
+          prefs.getInt('${_spPrefix}start_ms');
       final accumulated = prefs.getInt('${_spPrefix}accumulated_seconds') ?? 0;
       final savedStartPage = prefs.getInt('${_spPrefix}start_page');
 
@@ -60,18 +62,21 @@ class _ReadingTimerScreenState extends ConsumerState<ReadingTimerScreen> {
         _startPage = savedStartPage;
       }
 
-      if (isRunning && startMs != null) {
+      if (isRunning && lastTickMs != null) {
         final now = DateTime.now().millisecondsSinceEpoch;
-        final elapsedSinceStart = ((now - startMs) / 1000).round();
+        final elapsedSinceLastTick =
+            ((now - lastTickMs) / 1000).round().clamp(0, 86400 * 7);
         setState(() {
           _isRunning = true;
-          _elapsedSeconds = accumulated + elapsedSinceStart;
-          _sessionStartTimeMs = startMs;
+          _elapsedSeconds = accumulated + elapsedSinceLastTick;
+          _sessionStartTimeMs =
+              prefs.getInt('${_spPrefix}start_ms') ?? lastTickMs;
         });
         _startPeriodicTicker();
       } else {
         setState(() {
           _elapsedSeconds = accumulated;
+          _sessionStartTimeMs = prefs.getInt('${_spPrefix}start_ms');
         });
       }
     }
@@ -79,10 +84,12 @@ class _ReadingTimerScreenState extends ConsumerState<ReadingTimerScreen> {
 
   Future<void> _persistState() async {
     final prefs = await SharedPreferences.getInstance();
+    final now = DateTime.now().millisecondsSinceEpoch;
     await prefs.setString('${_spPrefix}book_id', widget.book.id);
     await prefs.setBool('${_spPrefix}is_running', _isRunning);
     await prefs.setInt('${_spPrefix}accumulated_seconds', _elapsedSeconds);
     await prefs.setInt('${_spPrefix}start_page', _startPage);
+    await prefs.setInt('${_spPrefix}last_tick_ms', now);
     if (_sessionStartTimeMs != null) {
       await prefs.setInt('${_spPrefix}start_ms', _sessionStartTimeMs!);
     }
@@ -93,6 +100,7 @@ class _ReadingTimerScreenState extends ConsumerState<ReadingTimerScreen> {
     await prefs.remove('${_spPrefix}book_id');
     await prefs.remove('${_spPrefix}is_running');
     await prefs.remove('${_spPrefix}accumulated_seconds');
+    await prefs.remove('${_spPrefix}last_tick_ms');
     await prefs.remove('${_spPrefix}start_ms');
     await prefs.remove('${_spPrefix}start_page');
   }
@@ -196,6 +204,7 @@ class _ReadingTimerScreenState extends ConsumerState<ReadingTimerScreen> {
         await db.bookDao.updateBook(
           widget.book.copyWith(
             status: 'finished',
+            finishedAt: drift.Value(widget.book.finishedAt ?? now),
             updatedAt: now,
           ),
         );

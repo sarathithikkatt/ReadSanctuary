@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/local/database.dart';
 import '../../../data/services/shelf_widget_service.dart';
 import '../book_search/book_search_screen.dart';
+import '../scanner/barcode_scanner_screen.dart';
 import 'dialogs/add_book_dialog.dart';
 import 'dialogs/add_shelf_dialog.dart';
 import 'shelf_share_exporter.dart';
@@ -43,6 +44,13 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
         title: const Text('ReadSanctuary',
             style: TextStyle(fontWeight: FontWeight.bold)),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.qr_code_scanner),
+            tooltip: 'Scan ISBN Barcode',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const BarcodeScannerScreen()),
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.search),
             tooltip: 'Search & Free Books',

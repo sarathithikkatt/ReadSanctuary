@@ -98,6 +98,9 @@ class _EditBookDialogState extends State<EditBookDialog> {
         pageCount: pages,
         format: _format,
         status: _status,
+        finishedAt: _status == 'finished'
+            ? drift.Value(widget.book.finishedAt ?? now)
+            : const drift.Value(null),
         rating: drift.Value(_rating > 0 ? _rating : null),
         ratingPlot: drift.Value(_ratingPlot > 0 ? _ratingPlot : null),
         ratingCharacters:

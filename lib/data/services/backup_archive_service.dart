@@ -137,11 +137,15 @@ class BackupArchiveService {
     final manifest = inspectAndVerifyArchive(zipBytes);
 
     final archive = ZipDecoder().decodeBytes(zipBytes);
+    final targetCanonical = p.canonicalize(targetDirectory.path);
 
     for (final file in archive) {
       if (file.isFile) {
-        // Skip manifest during filesystem extraction or keep it
-        final outPath = p.join(targetDirectory.path, file.name);
+        final outPath = p.canonicalize(p.join(targetDirectory.path, file.name));
+        if (!p.isWithin(targetCanonical, outPath) && outPath != targetCanonical) {
+          throw FormatException(
+              'Zip-Slip security error: Path traversal detected for entry "${file.name}"');
+        }
         final outFile = File(outPath);
         await outFile.parent.create(recursive: true);
         await outFile.writeAsBytes(file.content as List<int>);

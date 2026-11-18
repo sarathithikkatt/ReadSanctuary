@@ -229,12 +229,16 @@ class _EpubReaderScreenState extends ConsumerState<EpubReaderScreen> {
         final bookDao = ref.read(bookDaoProvider);
         final totalChapters = _epubBook?.chapters.length ?? 1;
         final isFinished = endCh1 >= totalChapters;
+        final now = DateTime.now().millisecondsSinceEpoch;
 
         await bookDao.updateBook(
           widget.book.copyWith(
             lastReadPage: endCh1,
             status: isFinished ? ReadingStatus.finished.id : widget.book.status,
-            updatedAt: DateTime.now().millisecondsSinceEpoch,
+            finishedAt: isFinished
+                ? drift.Value(widget.book.finishedAt ?? now)
+                : const drift.Value(null),
+            updatedAt: now,
           ),
         );
       } catch (_) {}
@@ -827,13 +831,15 @@ class _EpubReaderScreenState extends ConsumerState<EpubReaderScreen> {
         itemBuilder: (context, chapterIdx) {
           final chapter = _epubBook!.chapters[chapterIdx];
 
-          return SingleChildScrollView(
+          final paragraphs = chapter.paragraphs;
+
+          return ListView.builder(
             padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+            itemCount: paragraphs.length + 2,
+            itemBuilder: (context, index) {
+              if (index == 0) {
                 // Chapter Heading
-                Center(
+                return Center(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 24.0),
                     child: Text(
@@ -847,33 +853,39 @@ class _EpubReaderScreenState extends ConsumerState<EpubReaderScreen> {
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 8),
-
-                // Paragraphs
-                for (final p in chapter.paragraphs) ...[
-                  Text(
-                    p,
-                    textAlign: TextAlign.justify,
-                    style: _getTextStyle(),
-                  ),
-                  SizedBox(height: _fontSize * 0.75),
-                ],
-
-                const SizedBox(height: 36),
-                Center(
-                  child: Text(
-                    '— End of Chapter ${chapterIdx + 1} —',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontStyle: FontStyle.italic,
-                      color: _themeMode.textColor.withOpacity(0.5),
+                );
+              }
+              if (index == paragraphs.length + 1) {
+                // Chapter Footer
+                return Column(
+                  children: [
+                    const SizedBox(height: 36),
+                    Center(
+                      child: Text(
+                        '— End of Chapter ${chapterIdx + 1} —',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontStyle: FontStyle.italic,
+                          color: _themeMode.textColor.withOpacity(0.5),
+                        ),
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 48),
+                  ],
+                );
+              }
+
+              // Individual Paragraph
+              final p = paragraphs[index - 1];
+              return Padding(
+                padding: EdgeInsets.only(bottom: _fontSize * 0.75),
+                child: Text(
+                  p,
+                  textAlign: TextAlign.justify,
+                  style: _getTextStyle(),
                 ),
-                const SizedBox(height: 48),
-              ],
-            ),
+              );
+            },
           );
         },
       ),

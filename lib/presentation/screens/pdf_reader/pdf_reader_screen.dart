@@ -184,11 +184,13 @@ class _PdfReaderScreenState extends ConsumerState<PdfReaderScreen> {
 
     // If reached last page, update status to finished
     if (_totalPages > 0 && humanPage >= _totalPages) {
+      final now = DateTime.now().millisecondsSinceEpoch;
       await bookDao.updateBook(
         widget.book.copyWith(
           status: ReadingStatus.finished.id,
           lastReadPage: humanPage,
-          updatedAt: DateTime.now().millisecondsSinceEpoch,
+          finishedAt: drift.Value(widget.book.finishedAt ?? now),
+          updatedAt: now,
         ),
       );
     }

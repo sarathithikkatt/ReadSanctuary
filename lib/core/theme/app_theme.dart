@@ -11,6 +11,7 @@ abstract final class AppTheme {
 
     return ThemeData(
       useMaterial3: true,
+      fontFamily: 'Roboto',
       colorScheme: colorScheme,
       scaffoldBackgroundColor: AppColors.scaffoldBackground,
       appBarTheme: const AppBarTheme(

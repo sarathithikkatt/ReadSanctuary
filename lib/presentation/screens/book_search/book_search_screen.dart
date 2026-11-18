@@ -174,6 +174,9 @@ class _BookSearchScreenState extends ConsumerState<BookSearchScreen> {
       isbn13: drift.Value(metadata.isbn13),
       title: metadata.title,
       subtitle: drift.Value(metadata.subtitle),
+      description: drift.Value(metadata.description),
+      publisher: drift.Value(metadata.publisher),
+      publishYear: drift.Value(metadata.publishYear),
       authors: jsonEncode(
           metadata.authors.isNotEmpty ? metadata.authors : ['Unknown Author']),
       pageCount: drift.Value(pages),

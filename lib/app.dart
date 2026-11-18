@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'core/theme/app_theme.dart';
 import 'presentation/screens/bookshelf/bookshelf_screen.dart';
-import 'presentation/screens/scanner/barcode_scanner_screen.dart';
 import 'presentation/screens/settings_backup/settings_backup_screen.dart';
 import 'presentation/screens/stats/stats_screen.dart';
 
@@ -19,7 +18,6 @@ class _ReadSanctuaryAppState extends State<ReadSanctuaryApp> {
 
   static const _screens = [
     BookshelfScreen(),
-    BarcodeScannerScreen(),
     StatsScreen(),
     SettingsBackupScreen(),
   ];
@@ -43,10 +41,6 @@ class _ReadSanctuaryAppState extends State<ReadSanctuaryApp> {
             NavigationDestination(
               icon: Icon(Icons.shelves),
               label: 'Bookshelf',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.qr_code_scanner),
-              label: 'Scan ISBN',
             ),
             NavigationDestination(
               icon: Icon(Icons.bar_chart),

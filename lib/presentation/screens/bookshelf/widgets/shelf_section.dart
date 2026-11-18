@@ -298,10 +298,10 @@ class _ShelfSectionState extends ConsumerState<ShelfSection> {
       ),
     );
 
-    if (remove == true && mounted) {
+    if (remove == true && context.mounted) {
       await widget.shelfDao.deleteShelfItem(item.id);
       ShelfWidgetService(shelfDao: widget.shelfDao).updateWidget();
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Removed "$title" from "${widget.shelf.name}"'),

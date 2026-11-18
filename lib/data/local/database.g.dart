@@ -29,6 +29,24 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
   late final GeneratedColumn<String> subtitle = GeneratedColumn<String>(
       'subtitle', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _descriptionMeta =
+      const VerificationMeta('description');
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+      'description', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _publisherMeta =
+      const VerificationMeta('publisher');
+  @override
+  late final GeneratedColumn<String> publisher = GeneratedColumn<String>(
+      'publisher', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _publishYearMeta =
+      const VerificationMeta('publishYear');
+  @override
+  late final GeneratedColumn<String> publishYear = GeneratedColumn<String>(
+      'publish_year', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _authorsMeta =
       const VerificationMeta('authors');
   @override
@@ -55,6 +73,12 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
   late final GeneratedColumn<String> status = GeneratedColumn<String>(
       'status', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _finishedAtMeta =
+      const VerificationMeta('finishedAt');
+  @override
+  late final GeneratedColumn<int> finishedAt = GeneratedColumn<int>(
+      'finished_at', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
   static const VerificationMeta _seriesNameMeta =
       const VerificationMeta('seriesName');
   @override
@@ -152,10 +176,14 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
         isbn13,
         title,
         subtitle,
+        description,
+        publisher,
+        publishYear,
         authors,
         pageCount,
         format,
         status,
+        finishedAt,
         seriesName,
         seriesIndex,
         coverPath,
@@ -201,6 +229,22 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
       context.handle(_subtitleMeta,
           subtitle.isAcceptableOrUnknown(data['subtitle']!, _subtitleMeta));
     }
+    if (data.containsKey('description')) {
+      context.handle(
+          _descriptionMeta,
+          description.isAcceptableOrUnknown(
+              data['description']!, _descriptionMeta));
+    }
+    if (data.containsKey('publisher')) {
+      context.handle(_publisherMeta,
+          publisher.isAcceptableOrUnknown(data['publisher']!, _publisherMeta));
+    }
+    if (data.containsKey('publish_year')) {
+      context.handle(
+          _publishYearMeta,
+          publishYear.isAcceptableOrUnknown(
+              data['publish_year']!, _publishYearMeta));
+    }
     if (data.containsKey('authors')) {
       context.handle(_authorsMeta,
           authors.isAcceptableOrUnknown(data['authors']!, _authorsMeta));
@@ -220,6 +264,12 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
           status.isAcceptableOrUnknown(data['status']!, _statusMeta));
     } else if (isInserting) {
       context.missing(_statusMeta);
+    }
+    if (data.containsKey('finished_at')) {
+      context.handle(
+          _finishedAtMeta,
+          finishedAt.isAcceptableOrUnknown(
+              data['finished_at']!, _finishedAtMeta));
     }
     if (data.containsKey('series_name')) {
       context.handle(
@@ -326,6 +376,12 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
           .read(DriftSqlType.string, data['${effectivePrefix}title'])!,
       subtitle: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}subtitle']),
+      description: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}description']),
+      publisher: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}publisher']),
+      publishYear: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}publish_year']),
       authors: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}authors'])!,
       pageCount: attachedDatabase.typeMapping
@@ -334,6 +390,8 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
           .read(DriftSqlType.string, data['${effectivePrefix}format'])!,
       status: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}status'])!,
+      finishedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}finished_at']),
       seriesName: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}series_name']),
       seriesIndex: attachedDatabase.typeMapping
@@ -378,10 +436,14 @@ class Book extends DataClass implements Insertable<Book> {
   final String? isbn13;
   final String title;
   final String? subtitle;
+  final String? description;
+  final String? publisher;
+  final String? publishYear;
   final String authors;
   final int pageCount;
   final String format;
   final String status;
+  final int? finishedAt;
   final String? seriesName;
   final double? seriesIndex;
   final String? coverPath;
@@ -402,10 +464,14 @@ class Book extends DataClass implements Insertable<Book> {
       this.isbn13,
       required this.title,
       this.subtitle,
+      this.description,
+      this.publisher,
+      this.publishYear,
       required this.authors,
       required this.pageCount,
       required this.format,
       required this.status,
+      this.finishedAt,
       this.seriesName,
       this.seriesIndex,
       this.coverPath,
@@ -432,10 +498,22 @@ class Book extends DataClass implements Insertable<Book> {
     if (!nullToAbsent || subtitle != null) {
       map['subtitle'] = Variable<String>(subtitle);
     }
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
+    if (!nullToAbsent || publisher != null) {
+      map['publisher'] = Variable<String>(publisher);
+    }
+    if (!nullToAbsent || publishYear != null) {
+      map['publish_year'] = Variable<String>(publishYear);
+    }
     map['authors'] = Variable<String>(authors);
     map['page_count'] = Variable<int>(pageCount);
     map['format'] = Variable<String>(format);
     map['status'] = Variable<String>(status);
+    if (!nullToAbsent || finishedAt != null) {
+      map['finished_at'] = Variable<int>(finishedAt);
+    }
     if (!nullToAbsent || seriesName != null) {
       map['series_name'] = Variable<String>(seriesName);
     }
@@ -483,10 +561,22 @@ class Book extends DataClass implements Insertable<Book> {
       subtitle: subtitle == null && nullToAbsent
           ? const Value.absent()
           : Value(subtitle),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
+      publisher: publisher == null && nullToAbsent
+          ? const Value.absent()
+          : Value(publisher),
+      publishYear: publishYear == null && nullToAbsent
+          ? const Value.absent()
+          : Value(publishYear),
       authors: Value(authors),
       pageCount: Value(pageCount),
       format: Value(format),
       status: Value(status),
+      finishedAt: finishedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(finishedAt),
       seriesName: seriesName == null && nullToAbsent
           ? const Value.absent()
           : Value(seriesName),
@@ -532,10 +622,14 @@ class Book extends DataClass implements Insertable<Book> {
       isbn13: serializer.fromJson<String?>(json['isbn13']),
       title: serializer.fromJson<String>(json['title']),
       subtitle: serializer.fromJson<String?>(json['subtitle']),
+      description: serializer.fromJson<String?>(json['description']),
+      publisher: serializer.fromJson<String?>(json['publisher']),
+      publishYear: serializer.fromJson<String?>(json['publishYear']),
       authors: serializer.fromJson<String>(json['authors']),
       pageCount: serializer.fromJson<int>(json['pageCount']),
       format: serializer.fromJson<String>(json['format']),
       status: serializer.fromJson<String>(json['status']),
+      finishedAt: serializer.fromJson<int?>(json['finishedAt']),
       seriesName: serializer.fromJson<String?>(json['seriesName']),
       seriesIndex: serializer.fromJson<double?>(json['seriesIndex']),
       coverPath: serializer.fromJson<String?>(json['coverPath']),
@@ -561,10 +655,14 @@ class Book extends DataClass implements Insertable<Book> {
       'isbn13': serializer.toJson<String?>(isbn13),
       'title': serializer.toJson<String>(title),
       'subtitle': serializer.toJson<String?>(subtitle),
+      'description': serializer.toJson<String?>(description),
+      'publisher': serializer.toJson<String?>(publisher),
+      'publishYear': serializer.toJson<String?>(publishYear),
       'authors': serializer.toJson<String>(authors),
       'pageCount': serializer.toJson<int>(pageCount),
       'format': serializer.toJson<String>(format),
       'status': serializer.toJson<String>(status),
+      'finishedAt': serializer.toJson<int?>(finishedAt),
       'seriesName': serializer.toJson<String?>(seriesName),
       'seriesIndex': serializer.toJson<double?>(seriesIndex),
       'coverPath': serializer.toJson<String?>(coverPath),
@@ -588,10 +686,14 @@ class Book extends DataClass implements Insertable<Book> {
           Value<String?> isbn13 = const Value.absent(),
           String? title,
           Value<String?> subtitle = const Value.absent(),
+          Value<String?> description = const Value.absent(),
+          Value<String?> publisher = const Value.absent(),
+          Value<String?> publishYear = const Value.absent(),
           String? authors,
           int? pageCount,
           String? format,
           String? status,
+          Value<int?> finishedAt = const Value.absent(),
           Value<String?> seriesName = const Value.absent(),
           Value<double?> seriesIndex = const Value.absent(),
           Value<String?> coverPath = const Value.absent(),
@@ -612,10 +714,14 @@ class Book extends DataClass implements Insertable<Book> {
         isbn13: isbn13.present ? isbn13.value : this.isbn13,
         title: title ?? this.title,
         subtitle: subtitle.present ? subtitle.value : this.subtitle,
+        description: description.present ? description.value : this.description,
+        publisher: publisher.present ? publisher.value : this.publisher,
+        publishYear: publishYear.present ? publishYear.value : this.publishYear,
         authors: authors ?? this.authors,
         pageCount: pageCount ?? this.pageCount,
         format: format ?? this.format,
         status: status ?? this.status,
+        finishedAt: finishedAt.present ? finishedAt.value : this.finishedAt,
         seriesName: seriesName.present ? seriesName.value : this.seriesName,
         seriesIndex: seriesIndex.present ? seriesIndex.value : this.seriesIndex,
         coverPath: coverPath.present ? coverPath.value : this.coverPath,
@@ -644,10 +750,17 @@ class Book extends DataClass implements Insertable<Book> {
       isbn13: data.isbn13.present ? data.isbn13.value : this.isbn13,
       title: data.title.present ? data.title.value : this.title,
       subtitle: data.subtitle.present ? data.subtitle.value : this.subtitle,
+      description:
+          data.description.present ? data.description.value : this.description,
+      publisher: data.publisher.present ? data.publisher.value : this.publisher,
+      publishYear:
+          data.publishYear.present ? data.publishYear.value : this.publishYear,
       authors: data.authors.present ? data.authors.value : this.authors,
       pageCount: data.pageCount.present ? data.pageCount.value : this.pageCount,
       format: data.format.present ? data.format.value : this.format,
       status: data.status.present ? data.status.value : this.status,
+      finishedAt:
+          data.finishedAt.present ? data.finishedAt.value : this.finishedAt,
       seriesName:
           data.seriesName.present ? data.seriesName.value : this.seriesName,
       seriesIndex:
@@ -690,10 +803,14 @@ class Book extends DataClass implements Insertable<Book> {
           ..write('isbn13: $isbn13, ')
           ..write('title: $title, ')
           ..write('subtitle: $subtitle, ')
+          ..write('description: $description, ')
+          ..write('publisher: $publisher, ')
+          ..write('publishYear: $publishYear, ')
           ..write('authors: $authors, ')
           ..write('pageCount: $pageCount, ')
           ..write('format: $format, ')
           ..write('status: $status, ')
+          ..write('finishedAt: $finishedAt, ')
           ..write('seriesName: $seriesName, ')
           ..write('seriesIndex: $seriesIndex, ')
           ..write('coverPath: $coverPath, ')
@@ -719,10 +836,14 @@ class Book extends DataClass implements Insertable<Book> {
         isbn13,
         title,
         subtitle,
+        description,
+        publisher,
+        publishYear,
         authors,
         pageCount,
         format,
         status,
+        finishedAt,
         seriesName,
         seriesIndex,
         coverPath,
@@ -747,10 +868,14 @@ class Book extends DataClass implements Insertable<Book> {
           other.isbn13 == this.isbn13 &&
           other.title == this.title &&
           other.subtitle == this.subtitle &&
+          other.description == this.description &&
+          other.publisher == this.publisher &&
+          other.publishYear == this.publishYear &&
           other.authors == this.authors &&
           other.pageCount == this.pageCount &&
           other.format == this.format &&
           other.status == this.status &&
+          other.finishedAt == this.finishedAt &&
           other.seriesName == this.seriesName &&
           other.seriesIndex == this.seriesIndex &&
           other.coverPath == this.coverPath &&
@@ -773,10 +898,14 @@ class BooksCompanion extends UpdateCompanion<Book> {
   final Value<String?> isbn13;
   final Value<String> title;
   final Value<String?> subtitle;
+  final Value<String?> description;
+  final Value<String?> publisher;
+  final Value<String?> publishYear;
   final Value<String> authors;
   final Value<int> pageCount;
   final Value<String> format;
   final Value<String> status;
+  final Value<int?> finishedAt;
   final Value<String?> seriesName;
   final Value<double?> seriesIndex;
   final Value<String?> coverPath;
@@ -798,10 +927,14 @@ class BooksCompanion extends UpdateCompanion<Book> {
     this.isbn13 = const Value.absent(),
     this.title = const Value.absent(),
     this.subtitle = const Value.absent(),
+    this.description = const Value.absent(),
+    this.publisher = const Value.absent(),
+    this.publishYear = const Value.absent(),
     this.authors = const Value.absent(),
     this.pageCount = const Value.absent(),
     this.format = const Value.absent(),
     this.status = const Value.absent(),
+    this.finishedAt = const Value.absent(),
     this.seriesName = const Value.absent(),
     this.seriesIndex = const Value.absent(),
     this.coverPath = const Value.absent(),
@@ -824,10 +957,14 @@ class BooksCompanion extends UpdateCompanion<Book> {
     this.isbn13 = const Value.absent(),
     required String title,
     this.subtitle = const Value.absent(),
+    this.description = const Value.absent(),
+    this.publisher = const Value.absent(),
+    this.publishYear = const Value.absent(),
     required String authors,
     this.pageCount = const Value.absent(),
     this.format = const Value.absent(),
     required String status,
+    this.finishedAt = const Value.absent(),
     this.seriesName = const Value.absent(),
     this.seriesIndex = const Value.absent(),
     this.coverPath = const Value.absent(),
@@ -857,10 +994,14 @@ class BooksCompanion extends UpdateCompanion<Book> {
     Expression<String>? isbn13,
     Expression<String>? title,
     Expression<String>? subtitle,
+    Expression<String>? description,
+    Expression<String>? publisher,
+    Expression<String>? publishYear,
     Expression<String>? authors,
     Expression<int>? pageCount,
     Expression<String>? format,
     Expression<String>? status,
+    Expression<int>? finishedAt,
     Expression<String>? seriesName,
     Expression<double>? seriesIndex,
     Expression<String>? coverPath,
@@ -883,10 +1024,14 @@ class BooksCompanion extends UpdateCompanion<Book> {
       if (isbn13 != null) 'isbn13': isbn13,
       if (title != null) 'title': title,
       if (subtitle != null) 'subtitle': subtitle,
+      if (description != null) 'description': description,
+      if (publisher != null) 'publisher': publisher,
+      if (publishYear != null) 'publish_year': publishYear,
       if (authors != null) 'authors': authors,
       if (pageCount != null) 'page_count': pageCount,
       if (format != null) 'format': format,
       if (status != null) 'status': status,
+      if (finishedAt != null) 'finished_at': finishedAt,
       if (seriesName != null) 'series_name': seriesName,
       if (seriesIndex != null) 'series_index': seriesIndex,
       if (coverPath != null) 'cover_path': coverPath,
@@ -911,10 +1056,14 @@ class BooksCompanion extends UpdateCompanion<Book> {
       Value<String?>? isbn13,
       Value<String>? title,
       Value<String?>? subtitle,
+      Value<String?>? description,
+      Value<String?>? publisher,
+      Value<String?>? publishYear,
       Value<String>? authors,
       Value<int>? pageCount,
       Value<String>? format,
       Value<String>? status,
+      Value<int?>? finishedAt,
       Value<String?>? seriesName,
       Value<double?>? seriesIndex,
       Value<String?>? coverPath,
@@ -936,10 +1085,14 @@ class BooksCompanion extends UpdateCompanion<Book> {
       isbn13: isbn13 ?? this.isbn13,
       title: title ?? this.title,
       subtitle: subtitle ?? this.subtitle,
+      description: description ?? this.description,
+      publisher: publisher ?? this.publisher,
+      publishYear: publishYear ?? this.publishYear,
       authors: authors ?? this.authors,
       pageCount: pageCount ?? this.pageCount,
       format: format ?? this.format,
       status: status ?? this.status,
+      finishedAt: finishedAt ?? this.finishedAt,
       seriesName: seriesName ?? this.seriesName,
       seriesIndex: seriesIndex ?? this.seriesIndex,
       coverPath: coverPath ?? this.coverPath,
@@ -974,6 +1127,15 @@ class BooksCompanion extends UpdateCompanion<Book> {
     if (subtitle.present) {
       map['subtitle'] = Variable<String>(subtitle.value);
     }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (publisher.present) {
+      map['publisher'] = Variable<String>(publisher.value);
+    }
+    if (publishYear.present) {
+      map['publish_year'] = Variable<String>(publishYear.value);
+    }
     if (authors.present) {
       map['authors'] = Variable<String>(authors.value);
     }
@@ -985,6 +1147,9 @@ class BooksCompanion extends UpdateCompanion<Book> {
     }
     if (status.present) {
       map['status'] = Variable<String>(status.value);
+    }
+    if (finishedAt.present) {
+      map['finished_at'] = Variable<int>(finishedAt.value);
     }
     if (seriesName.present) {
       map['series_name'] = Variable<String>(seriesName.value);
@@ -1044,10 +1209,14 @@ class BooksCompanion extends UpdateCompanion<Book> {
           ..write('isbn13: $isbn13, ')
           ..write('title: $title, ')
           ..write('subtitle: $subtitle, ')
+          ..write('description: $description, ')
+          ..write('publisher: $publisher, ')
+          ..write('publishYear: $publishYear, ')
           ..write('authors: $authors, ')
           ..write('pageCount: $pageCount, ')
           ..write('format: $format, ')
           ..write('status: $status, ')
+          ..write('finishedAt: $finishedAt, ')
           ..write('seriesName: $seriesName, ')
           ..write('seriesIndex: $seriesIndex, ')
           ..write('coverPath: $coverPath, ')
@@ -2497,6 +2666,20 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $BookNotesTable bookNotes = $BookNotesTable(this);
   late final Index booksIsbn13Idx = Index(
       'books_isbn13_idx', 'CREATE INDEX books_isbn13_idx ON books (isbn13)');
+  late final Index booksStatusIdx = Index(
+      'books_status_idx', 'CREATE INDEX books_status_idx ON books (status)');
+  late final Index shelvesSortOrderIdx = Index('shelves_sort_order_idx',
+      'CREATE INDEX shelves_sort_order_idx ON shelves (sort_order)');
+  late final Index shelfItemsShelfIdx = Index('shelf_items_shelf_idx',
+      'CREATE INDEX shelf_items_shelf_idx ON shelf_items (shelf_id, position_index)');
+  late final Index shelfItemsBookIdx = Index('shelf_items_book_idx',
+      'CREATE INDEX shelf_items_book_idx ON shelf_items (book_id)');
+  late final Index readingSessionsBookIdx = Index('reading_sessions_book_idx',
+      'CREATE INDEX reading_sessions_book_idx ON reading_sessions (book_id)');
+  late final Index readingSessionsTimeIdx = Index('reading_sessions_time_idx',
+      'CREATE INDEX reading_sessions_time_idx ON reading_sessions (start_time)');
+  late final Index bookNotesBookIdx = Index('book_notes_book_idx',
+      'CREATE INDEX book_notes_book_idx ON book_notes (book_id)');
   late final BookDao bookDao = BookDao(this as AppDatabase);
   late final ShelfDao shelfDao = ShelfDao(this as AppDatabase);
   late final SessionDao sessionDao = SessionDao(this as AppDatabase);
@@ -2504,8 +2687,21 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [books, shelves, shelfItems, readingSessions, bookNotes, booksIsbn13Idx];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [
+        books,
+        shelves,
+        shelfItems,
+        readingSessions,
+        bookNotes,
+        booksIsbn13Idx,
+        booksStatusIdx,
+        shelvesSortOrderIdx,
+        shelfItemsShelfIdx,
+        shelfItemsBookIdx,
+        readingSessionsBookIdx,
+        readingSessionsTimeIdx,
+        bookNotesBookIdx
+      ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules(
         [
@@ -2546,10 +2742,14 @@ typedef $$BooksTableCreateCompanionBuilder = BooksCompanion Function({
   Value<String?> isbn13,
   required String title,
   Value<String?> subtitle,
+  Value<String?> description,
+  Value<String?> publisher,
+  Value<String?> publishYear,
   required String authors,
   Value<int> pageCount,
   Value<String> format,
   required String status,
+  Value<int?> finishedAt,
   Value<String?> seriesName,
   Value<double?> seriesIndex,
   Value<String?> coverPath,
@@ -2572,10 +2772,14 @@ typedef $$BooksTableUpdateCompanionBuilder = BooksCompanion Function({
   Value<String?> isbn13,
   Value<String> title,
   Value<String?> subtitle,
+  Value<String?> description,
+  Value<String?> publisher,
+  Value<String?> publishYear,
   Value<String> authors,
   Value<int> pageCount,
   Value<String> format,
   Value<String> status,
+  Value<int?> finishedAt,
   Value<String?> seriesName,
   Value<double?> seriesIndex,
   Value<String?> coverPath,
@@ -2664,6 +2868,15 @@ class $$BooksTableFilterComposer extends Composer<_$AppDatabase, $BooksTable> {
   ColumnFilters<String> get subtitle => $composableBuilder(
       column: $table.subtitle, builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<String> get description => $composableBuilder(
+      column: $table.description, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get publisher => $composableBuilder(
+      column: $table.publisher, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get publishYear => $composableBuilder(
+      column: $table.publishYear, builder: (column) => ColumnFilters(column));
+
   ColumnFilters<String> get authors => $composableBuilder(
       column: $table.authors, builder: (column) => ColumnFilters(column));
 
@@ -2675,6 +2888,9 @@ class $$BooksTableFilterComposer extends Composer<_$AppDatabase, $BooksTable> {
 
   ColumnFilters<String> get status => $composableBuilder(
       column: $table.status, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get finishedAt => $composableBuilder(
+      column: $table.finishedAt, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get seriesName => $composableBuilder(
       column: $table.seriesName, builder: (column) => ColumnFilters(column));
@@ -2808,6 +3024,15 @@ class $$BooksTableOrderingComposer
   ColumnOrderings<String> get subtitle => $composableBuilder(
       column: $table.subtitle, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get description => $composableBuilder(
+      column: $table.description, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get publisher => $composableBuilder(
+      column: $table.publisher, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get publishYear => $composableBuilder(
+      column: $table.publishYear, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get authors => $composableBuilder(
       column: $table.authors, builder: (column) => ColumnOrderings(column));
 
@@ -2819,6 +3044,9 @@ class $$BooksTableOrderingComposer
 
   ColumnOrderings<String> get status => $composableBuilder(
       column: $table.status, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get finishedAt => $composableBuilder(
+      column: $table.finishedAt, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get seriesName => $composableBuilder(
       column: $table.seriesName, builder: (column) => ColumnOrderings(column));
@@ -2894,6 +3122,15 @@ class $$BooksTableAnnotationComposer
   GeneratedColumn<String> get subtitle =>
       $composableBuilder(column: $table.subtitle, builder: (column) => column);
 
+  GeneratedColumn<String> get description => $composableBuilder(
+      column: $table.description, builder: (column) => column);
+
+  GeneratedColumn<String> get publisher =>
+      $composableBuilder(column: $table.publisher, builder: (column) => column);
+
+  GeneratedColumn<String> get publishYear => $composableBuilder(
+      column: $table.publishYear, builder: (column) => column);
+
   GeneratedColumn<String> get authors =>
       $composableBuilder(column: $table.authors, builder: (column) => column);
 
@@ -2905,6 +3142,9 @@ class $$BooksTableAnnotationComposer
 
   GeneratedColumn<String> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<int> get finishedAt => $composableBuilder(
+      column: $table.finishedAt, builder: (column) => column);
 
   GeneratedColumn<String> get seriesName => $composableBuilder(
       column: $table.seriesName, builder: (column) => column);
@@ -3043,10 +3283,14 @@ class $$BooksTableTableManager extends RootTableManager<
             Value<String?> isbn13 = const Value.absent(),
             Value<String> title = const Value.absent(),
             Value<String?> subtitle = const Value.absent(),
+            Value<String?> description = const Value.absent(),
+            Value<String?> publisher = const Value.absent(),
+            Value<String?> publishYear = const Value.absent(),
             Value<String> authors = const Value.absent(),
             Value<int> pageCount = const Value.absent(),
             Value<String> format = const Value.absent(),
             Value<String> status = const Value.absent(),
+            Value<int?> finishedAt = const Value.absent(),
             Value<String?> seriesName = const Value.absent(),
             Value<double?> seriesIndex = const Value.absent(),
             Value<String?> coverPath = const Value.absent(),
@@ -3069,10 +3313,14 @@ class $$BooksTableTableManager extends RootTableManager<
             isbn13: isbn13,
             title: title,
             subtitle: subtitle,
+            description: description,
+            publisher: publisher,
+            publishYear: publishYear,
             authors: authors,
             pageCount: pageCount,
             format: format,
             status: status,
+            finishedAt: finishedAt,
             seriesName: seriesName,
             seriesIndex: seriesIndex,
             coverPath: coverPath,
@@ -3095,10 +3343,14 @@ class $$BooksTableTableManager extends RootTableManager<
             Value<String?> isbn13 = const Value.absent(),
             required String title,
             Value<String?> subtitle = const Value.absent(),
+            Value<String?> description = const Value.absent(),
+            Value<String?> publisher = const Value.absent(),
+            Value<String?> publishYear = const Value.absent(),
             required String authors,
             Value<int> pageCount = const Value.absent(),
             Value<String> format = const Value.absent(),
             required String status,
+            Value<int?> finishedAt = const Value.absent(),
             Value<String?> seriesName = const Value.absent(),
             Value<double?> seriesIndex = const Value.absent(),
             Value<String?> coverPath = const Value.absent(),
@@ -3121,10 +3373,14 @@ class $$BooksTableTableManager extends RootTableManager<
             isbn13: isbn13,
             title: title,
             subtitle: subtitle,
+            description: description,
+            publisher: publisher,
+            publishYear: publishYear,
             authors: authors,
             pageCount: pageCount,
             format: format,
             status: status,
+            finishedAt: finishedAt,
             seriesName: seriesName,
             seriesIndex: seriesIndex,
             coverPath: coverPath,

@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 
 @DataClassName('Shelf')
+@TableIndex(name: 'shelves_sort_order_idx', columns: {#sortOrder})
 class Shelves extends Table {
   TextColumn get id => text()();
   TextColumn get name => text()();

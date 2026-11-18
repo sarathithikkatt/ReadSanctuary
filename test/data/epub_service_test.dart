@@ -103,7 +103,7 @@ void main() {
         utf8.encode(ch2Xhtml),
       ));
 
-      return ZipEncoder().encode(archive)!;
+      return ZipEncoder().encode(archive);
     }
 
     test('Parses valid EPUB metadata, chapters, paragraphs, and cover', () async {
@@ -149,7 +149,7 @@ void main() {
         5,
         utf8.encode('hello'),
       ));
-      final bytes = ZipEncoder().encode(archive)!;
+      final bytes = ZipEncoder().encode(archive);
 
       expect(
         () => epubService.parseEpubBytes(bytes),

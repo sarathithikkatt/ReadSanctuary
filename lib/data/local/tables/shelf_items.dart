@@ -3,6 +3,8 @@ import 'books.dart';
 import 'shelves.dart';
 
 @DataClassName('ShelfItem')
+@TableIndex(name: 'shelf_items_shelf_idx', columns: {#shelfId, #positionIndex})
+@TableIndex(name: 'shelf_items_book_idx', columns: {#bookId})
 class ShelfItems extends Table {
   TextColumn get id => text()();
   TextColumn get shelfId =>

@@ -20,7 +20,8 @@ class YearlyGoalCard extends StatelessWidget {
     final currentYear = DateTime.now().year;
     final finishedThisYear = books.where((b) {
       if (b.status != 'finished') return false;
-      final year = DateTime.fromMillisecondsSinceEpoch(b.updatedAt).year;
+      final timestamp = b.finishedAt ?? b.updatedAt;
+      final year = DateTime.fromMillisecondsSinceEpoch(timestamp).year;
       return year == currentYear;
     }).length;
 

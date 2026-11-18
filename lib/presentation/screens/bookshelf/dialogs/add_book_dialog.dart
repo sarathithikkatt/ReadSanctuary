@@ -114,6 +114,7 @@ class _AddBookDialogState extends State<AddBookDialog> {
         pageCount: drift.Value(pages),
         format: drift.Value(_format),
         status: _status,
+        finishedAt: _status == 'finished' ? drift.Value(now) : const drift.Value(null),
         seriesName: drift.Value(
           _seriesNameCtrl.text.trim().isNotEmpty
               ? _seriesNameCtrl.text.trim()
@@ -223,6 +224,7 @@ class _AddBookDialogState extends State<AddBookDialog> {
             ),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
+              isExpanded: true,
               value: _format,
               decoration: const InputDecoration(labelText: 'Format'),
               items: BookFormat.values
@@ -235,6 +237,7 @@ class _AddBookDialogState extends State<AddBookDialog> {
             ),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
+              isExpanded: true,
               value: _status,
               decoration: const InputDecoration(labelText: 'Status'),
               items: ReadingStatus.values
@@ -276,6 +279,7 @@ class _AddBookDialogState extends State<AddBookDialog> {
             ),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
+              isExpanded: true,
               value: _selectedShelfId,
               decoration: const InputDecoration(labelText: 'Target Shelf'),
               items: _shelves
