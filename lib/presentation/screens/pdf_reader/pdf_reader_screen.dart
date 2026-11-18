@@ -1,3 +1,8 @@
+import 'dart:async';
+
+import 'package:drift/drift.dart' as drift;
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,8 +11,10 @@ import 'package:uuid/uuid.dart';
 import '../../../core/constants/reading_statuses.dart';
 import '../../../core/utils/image_storage_helper.dart';
 import '../../../data/local/database.dart';
+import '../epub_reader/epub_reader_screen.dart';
 
 /// Full-featured in-app PDF reader supporting page navigation, zoom,
+/// horizontal page flipping vs vertical scrolling, bookmarks, jump to page,
 /// automatic reading progress syncing, reading session logging, and night mode.
 class PdfReaderScreen extends ConsumerStatefulWidget {
   final Book book;
@@ -31,7 +38,10 @@ class _PdfReaderScreenState extends ConsumerState<PdfReaderScreen> {
   int _sessionStartTime = 0;
   int _initialStartPage = 0;
   bool _isNightMode = false;
+  bool _swipeHorizontal = false;
   static const _uuid = Uuid();
+
+  List<BookNote> _bookmarks = [];
 
   @override
   void initState() {
@@ -41,6 +51,19 @@ class _PdfReaderScreenState extends ConsumerState<PdfReaderScreen> {
     _currentPage = (widget.book.lastReadPage > 0 ? widget.book.lastReadPage - 1 : 0);
     _initialStartPage = _currentPage;
     _resolvePdfPath();
+    _loadBookmarks();
+  }
+
+  Future<void> _loadBookmarks() async {
+    try {
+      final sessionDao = ref.read(sessionDaoProvider);
+      final bms = await sessionDao.getBookmarksForBook(widget.book.id);
+      if (mounted) {
+        setState(() {
+          _bookmarks = bms;
+        });
+      }
+    } catch (_) {}
   }
 
   Future<void> _resolvePdfPath() async {
@@ -59,8 +82,9 @@ class _PdfReaderScreenState extends ConsumerState<PdfReaderScreen> {
       final storage = ref.read(imageStorageHelperProvider);
       final file = await storage.getFile(pdfRelativePath);
       final exists = await file.exists();
+      final length = exists ? await file.length() : 0;
 
-      if (!exists) {
+      if (!exists || length == 0) {
         if (mounted) {
           setState(() {
             _errorMessage = 'The PDF file could not be found on local storage.';
@@ -68,6 +92,26 @@ class _PdfReaderScreenState extends ConsumerState<PdfReaderScreen> {
           });
         }
         return;
+      }
+
+      // Check if file is actually an EPUB (ZIP archive header PK\x03\x04)
+      if (length > 4) {
+        try {
+          final header = await file.openRead(0, 4).first;
+          final isZip = header.length >= 4 &&
+              header[0] == 0x50 &&
+              header[1] == 0x4B &&
+              header[2] == 0x03 &&
+              header[3] == 0x04;
+          if (isZip) {
+            if (mounted) {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => EpubReaderScreen(book: widget.book)),
+              );
+            }
+            return;
+          }
+        } catch (_) {}
       }
 
       if (mounted) {
@@ -150,6 +194,208 @@ class _PdfReaderScreenState extends ConsumerState<PdfReaderScreen> {
     }
   }
 
+  bool get _isCurrentPageBookmarked =>
+      _bookmarks.any((b) => b.pageNumber == (_currentPage + 1));
+
+  Future<void> _toggleBookmark() async {
+    final humanPage = _currentPage + 1;
+    final sessionDao = ref.read(sessionDaoProvider);
+    final messenger = ScaffoldMessenger.of(context);
+
+    if (_isCurrentPageBookmarked) {
+      await sessionDao.deleteBookmarkForPage(widget.book.id, humanPage);
+      await _loadBookmarks();
+      if (mounted) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text('Bookmark removed from page $humanPage'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } else {
+      final noteCtrl = TextEditingController(text: 'Page $humanPage');
+      final title = await showDialog<String>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text('Bookmark Page $humanPage 🔖'),
+          content: TextField(
+            controller: noteCtrl,
+            autofocus: true,
+            decoration: const InputDecoration(
+              labelText: 'Bookmark Label / Note (optional)',
+              hintText: 'e.g. Chapter Start, Key Quote...',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(null),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(ctx).pop(noteCtrl.text.trim()),
+              child: const Text('Save Bookmark'),
+            ),
+          ],
+        ),
+      );
+
+      if (title != null && mounted) {
+        final label = title.isNotEmpty ? title : 'Page $humanPage';
+        await sessionDao.insertNote(
+          BookNotesCompanion.insert(
+            id: _uuid.v4(),
+            bookId: widget.book.id,
+            noteType: 'bookmark',
+            content: label,
+            pageNumber: drift.Value(humanPage),
+            createdAt: DateTime.now().millisecondsSinceEpoch,
+          ),
+        );
+        await _loadBookmarks();
+        if (mounted) {
+          messenger.showSnackBar(
+            SnackBar(
+              content: Text('Page $humanPage bookmarked! 🔖'),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _showBookmarksSheet() async {
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheetState) {
+          return Container(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.7,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.bookmarks, color: Colors.amber),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Bookmarks (${_bookmarks.length})',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.of(ctx).pop(),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(),
+                if (_bookmarks.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.all(32.0),
+                    child: Column(
+                      children: [
+                        Icon(Icons.bookmark_border,
+                            size: 48, color: Colors.grey.shade400),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'No bookmarks yet.',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Tap the bookmark icon in the top bar to bookmark page ${_currentPage + 1}.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Colors.grey.shade600),
+                        ),
+                      ],
+                    ),
+                  )
+                else
+                  Expanded(
+                    child: ListView.separated(
+                      itemCount: _bookmarks.length,
+                      separatorBuilder: (_, __) => const Divider(height: 1),
+                      itemBuilder: (ctx, i) {
+                        final bm = _bookmarks[i];
+                        final pageNum = bm.pageNumber ?? 1;
+                        final isCurrent = pageNum == (_currentPage + 1);
+
+                        return ListTile(
+                          leading: CircleAvatar(
+                            backgroundColor: isCurrent
+                                ? Colors.amber.shade700
+                                : Colors.amber.shade100,
+                            foregroundColor: isCurrent
+                                ? Colors.white
+                                : Colors.amber.shade900,
+                            child: Text(
+                              '$pageNum',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                          title: Text(
+                            bm.content.isNotEmpty ? bm.content : 'Page $pageNum',
+                            style: TextStyle(
+                              fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
+                            ),
+                          ),
+                          subtitle: Text('Page $pageNum'),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                                tooltip: 'Delete bookmark',
+                                onPressed: () async {
+                                  final sessionDao = ref.read(sessionDaoProvider);
+                                  await sessionDao.deleteNote(bm.id);
+                                  await _loadBookmarks();
+                                  setSheetState(() {});
+                                },
+                              ),
+                              const Icon(Icons.chevron_right),
+                            ],
+                          ),
+                          onTap: () {
+                            Navigator.of(ctx).pop();
+                            final targetIndex = pageNum - 1;
+                            _pdfViewController?.setPage(targetIndex);
+                            setState(() => _currentPage = targetIndex);
+                          },
+                        );
+                      },
+                    ),
+                  ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   Future<void> _showJumpToPageDialog() async {
     final textCtrl = TextEditingController(text: '${_currentPage + 1}');
     final target = await showDialog<int>(
@@ -216,6 +462,32 @@ class _PdfReaderScreenState extends ConsumerState<PdfReaderScreen> {
         ),
         actions: [
           IconButton(
+            icon: Icon(
+              _isCurrentPageBookmarked ? Icons.bookmark : Icons.bookmark_border,
+              color: _isCurrentPageBookmarked ? Colors.amber : null,
+            ),
+            tooltip: _isCurrentPageBookmarked
+                ? 'Remove Bookmark (Page $displayPage)'
+                : 'Bookmark Page $displayPage',
+            onPressed: _totalPages > 0 ? _toggleBookmark : null,
+          ),
+          IconButton(
+            icon: Badge(
+              isLabelVisible: _bookmarks.isNotEmpty,
+              label: Text('${_bookmarks.length}'),
+              child: const Icon(Icons.bookmarks_outlined),
+            ),
+            tooltip: 'View Bookmarks (${_bookmarks.length})',
+            onPressed: _showBookmarksSheet,
+          ),
+          IconButton(
+            icon: Icon(_swipeHorizontal ? Icons.view_day : Icons.view_carousel),
+            tooltip: _swipeHorizontal
+                ? 'Switch to Vertical Scroll'
+                : 'Switch to Horizontal Flip',
+            onPressed: () => setState(() => _swipeHorizontal = !_swipeHorizontal),
+          ),
+          IconButton(
             icon: Icon(_isNightMode ? Icons.light_mode : Icons.dark_mode),
             tooltip: _isNightMode ? 'Light Mode' : 'Night Mode',
             onPressed: () => setState(() => _isNightMode = !_isNightMode),
@@ -229,7 +501,9 @@ class _PdfReaderScreenState extends ConsumerState<PdfReaderScreen> {
         ],
       ),
       body: _buildBody(),
-      bottomNavigationBar: _totalPages > 0 ? _buildBottomBar() : null,
+      // Keep bottomNavigationBar permanently mounted to prevent Scaffold viewport height jumps
+      // which detach/break Android platform view surfaces.
+      bottomNavigationBar: _buildBottomBar(),
     );
   }
 
@@ -288,56 +562,95 @@ class _PdfReaderScreenState extends ConsumerState<PdfReaderScreen> {
 
     return Stack(
       children: [
-        PDFView(
-          filePath: _pdfAbsolutePath!,
-          enableSwipe: true,
-          swipeHorizontal: false,
-          autoSpacing: true,
-          pageFling: true,
-          pageSnap: true,
-          defaultPage: _currentPage,
-          fitPolicy: FitPolicy.BOTH,
-          nightMode: _isNightMode,
-          onRender: (pages) {
-            setState(() {
-              _totalPages = pages ?? 0;
-              _isLoading = false;
-            });
-          },
-          onViewCreated: (PDFViewController controller) {
-            _pdfViewController = controller;
-          },
-          onPageChanged: (int? page, int? total) {
-            if (page != null) {
-              _onPageChanged(page);
-            }
-          },
-          onError: (error) {
-            if (mounted) {
-              setState(() {
-                _errorMessage = error.toString();
-                _isLoading = false;
-              });
-            }
-          },
-          onPageError: (page, error) {
-            if (mounted) {
-              setState(() {
-                _errorMessage = 'Page $page error: $error';
-              });
-            }
-          },
+        Positioned.fill(
+          child: PDFView(
+            key: ValueKey('pdf_${widget.book.id}_${_swipeHorizontal ? "h" : "v"}'),
+            filePath: _pdfAbsolutePath!,
+            enableSwipe: true,
+            swipeHorizontal: _swipeHorizontal,
+            autoSpacing: true,
+            pageFling: false,
+            pageSnap: true,
+            defaultPage: _initialStartPage,
+            fitPolicy: _swipeHorizontal ? FitPolicy.BOTH : FitPolicy.WIDTH,
+            nightMode: _isNightMode,
+            backgroundColor: _isNightMode ? const Color(0xFF1E1E1E) : Colors.white,
+            gestureRecognizers: {
+              Factory<OneSequenceGestureRecognizer>(
+                () => EagerGestureRecognizer(),
+              ),
+            },
+            onRender: (pages) {
+              if (mounted) {
+                setState(() {
+                  _totalPages = pages ?? 0;
+                  _isLoading = false;
+                });
+                // Ensure initial last-read page is commanded on the controller
+                if (_initialStartPage > 0 && _pdfViewController != null) {
+                  _pdfViewController!.setPage(_initialStartPage);
+                }
+              }
+            },
+            onViewCreated: (PDFViewController controller) {
+              _pdfViewController = controller;
+              if (_initialStartPage > 0) {
+                controller.setPage(_initialStartPage);
+              }
+            },
+            onPageChanged: (int? page, int? total) {
+              if (page != null) {
+                _onPageChanged(page);
+              }
+            },
+            onError: (error) {
+              if (mounted) {
+                setState(() {
+                  _errorMessage = error.toString();
+                  _isLoading = false;
+                });
+              }
+            },
+            onPageError: (page, error) {
+              if (mounted) {
+                setState(() {
+                  _errorMessage = 'Page $page error: $error';
+                });
+              }
+            },
+          ),
         ),
         if (_isLoading)
-          const Center(
-            child: CircularProgressIndicator(),
+          Center(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor.withOpacity(0.9),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 10,
+                  ),
+                ],
+              ),
+              child: const Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 12),
+                  Text('Rendering document...'),
+                ],
+              ),
+            ),
           ),
       ],
     );
   }
 
   Widget _buildBottomBar() {
-    final displayPage = _currentPage + 1;
+    final isReady = _totalPages > 0;
+    final displayPage = isReady ? (_currentPage + 1) : 0;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -349,7 +662,7 @@ class _PdfReaderScreenState extends ConsumerState<PdfReaderScreen> {
             IconButton(
               icon: const Icon(Icons.chevron_left),
               tooltip: 'Previous Page',
-              onPressed: _currentPage > 0
+              onPressed: (isReady && _currentPage > 0)
                   ? () async {
                       final prev = _currentPage - 1;
                       await _pdfViewController?.setPage(prev);
@@ -359,25 +672,29 @@ class _PdfReaderScreenState extends ConsumerState<PdfReaderScreen> {
             ),
             Expanded(
               child: Slider(
-                value: displayPage.toDouble().clamp(1.0, _totalPages.toDouble()),
+                value: isReady
+                    ? displayPage.toDouble().clamp(1.0, _totalPages.toDouble())
+                    : 1.0,
                 min: 1.0,
-                max: _totalPages.toDouble(),
-                divisions: _totalPages > 1 ? _totalPages - 1 : 1,
-                label: '$displayPage',
-                onChanged: (val) {
-                  final target = val.round();
-                  final targetIndex = target - 1;
-                  if (targetIndex != _currentPage) {
-                    _pdfViewController?.setPage(targetIndex);
-                    setState(() => _currentPage = targetIndex);
-                  }
-                },
+                max: isReady ? _totalPages.toDouble() : 1.0,
+                divisions: (isReady && _totalPages > 1) ? _totalPages - 1 : 1,
+                label: isReady ? '$displayPage' : null,
+                onChanged: isReady
+                    ? (val) {
+                        final target = val.round();
+                        final targetIndex = target - 1;
+                        if (targetIndex != _currentPage) {
+                          _pdfViewController?.setPage(targetIndex);
+                          setState(() => _currentPage = targetIndex);
+                        }
+                      }
+                    : null,
               ),
             ),
             IconButton(
               icon: const Icon(Icons.chevron_right),
               tooltip: 'Next Page',
-              onPressed: displayPage < _totalPages
+              onPressed: (isReady && displayPage < _totalPages)
                   ? () async {
                       final next = _currentPage + 1;
                       await _pdfViewController?.setPage(next);

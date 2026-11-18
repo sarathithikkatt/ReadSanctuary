@@ -103,6 +103,36 @@ void main() {
 
       expect(find.byType(Interactive3dBookViewer), findsOneWidget);
     });
+
+    testWidgets('Showcase controls: Auto-Orbit toggles turntable and interaction hint renders',
+        (tester) async {
+      await tester.pumpWidget(
+        const ProviderScope(
+          child: MaterialApp(
+            home: Interactive3dBookViewer(book: testBook),
+          ),
+        ),
+      );
+
+      // Verify Auto Orbit button & hint
+      expect(find.text('Auto Orbit'), findsOneWidget);
+      expect(
+        find.text('Drag to rotate 360° • Pinch to zoom • Double-tap to reset'),
+        findsOneWidget,
+      );
+
+      // Tap Auto Orbit
+      await tester.tap(find.text('Auto Orbit'));
+      await tester.pump();
+
+      // State toggles to Pause
+      expect(find.text('Pause'), findsOneWidget);
+
+      // Tap Pause to stop
+      await tester.tap(find.text('Pause'));
+      await tester.pump();
+      expect(find.text('Auto Orbit'), findsOneWidget);
+    });
   });
 
   group('BookSpine25DWidget and BookCoverTiltWidget LongPress Tests', () {

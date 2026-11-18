@@ -120,22 +120,30 @@ class BookActionButtons extends ConsumerWidget {
           final db = ref.read(appDatabaseProvider);
           await db.bookDao.updateBookPdf(book.id, localPdfPath);
 
+          final isEpub = localPdfPath.toLowerCase().endsWith('.epub');
           messenger.showSnackBar(
-            const SnackBar(content: Text('Free PDF downloaded! Tap Read PDF to begin 📖')),
+            SnackBar(
+              content: Text(isEpub
+                  ? 'Free eBook (EPUB) downloaded! Tap Read EPUB to begin 📖'
+                  : 'Free PDF downloaded! Tap Read PDF to begin 📖'),
+            ),
           );
         }
       } else {
         messenger.showSnackBar(
           const SnackBar(
             content: Text(
-                'No free public domain copy found for this title. You can upload a PDF anytime!'),
+                'No free public domain copy found for this title. You can upload your own PDF/eBook anytime!'),
           ),
         );
       }
     } catch (e) {
       if (context.mounted) {
         Navigator.of(context).pop();
-        messenger.showSnackBar(SnackBar(content: Text('Search error: $e')));
+        final errorMsg = e.toString().contains('401') || e.toString().contains('403')
+            ? 'This title is restricted by the archive (borrow-only). You can upload your own PDF/EPUB anytime!'
+            : 'Download error: $e';
+        messenger.showSnackBar(SnackBar(content: Text(errorMsg)));
       }
     }
   }

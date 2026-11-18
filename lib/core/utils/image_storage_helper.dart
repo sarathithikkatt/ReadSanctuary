@@ -23,8 +23,13 @@ class ImageStorageHelper {
         _dio = dio ?? Dio(),
         _uuid = uuid ?? const Uuid();
 
+  static Directory? _cachedMediaDir;
+
   /// The root `media/` directory.
   Future<Directory> getMediaDirectory() async {
+    if (_cachedMediaDir != null && await _cachedMediaDir!.exists()) {
+      return _cachedMediaDir!;
+    }
     final Directory dir;
     if (_baseDirProvider != null) {
       dir = await _baseDirProvider();
@@ -36,7 +41,27 @@ class ImageStorageHelper {
     if (!await dir.exists()) {
       await dir.create(recursive: true);
     }
+    _cachedMediaDir = dir;
     return dir;
+  }
+
+  /// Synchronously returns an absolute path if media directory is already cached,
+  /// or null if not yet initialized.
+  static String? resolvePathSync(String relativePath) {
+    if (_cachedMediaDir != null) {
+      return p.join(_cachedMediaDir!.path, relativePath);
+    }
+    return null;
+  }
+
+  /// Subdirectory for custom decorative props: `<media>/props/`.
+  Future<Directory> getPropsDirectory() async {
+    final mediaDir = await getMediaDirectory();
+    final propsDir = Directory(p.join(mediaDir.path, 'props'));
+    if (!await propsDir.exists()) {
+      await propsDir.create(recursive: true);
+    }
+    return propsDir;
   }
 
   /// Subdirectory for book covers: `<media>/covers/`.
@@ -121,6 +146,19 @@ class ImageStorageHelper {
     return p.join('spines', name).replaceAll(r'\', '/');
   }
 
+  /// Saves raw bytes as a decorative prop image and returns the relative path (e.g. 'props/{filename}').
+  Future<String> savePropBytes(
+    Uint8List bytes, {
+    String? filename,
+    String extension = 'png',
+  }) async {
+    final propsDir = await getPropsDirectory();
+    final name = filename ?? '${_uuid.v4()}.$extension';
+    final file = File(p.join(propsDir.path, name));
+    await file.writeAsBytes(bytes);
+    return p.join('props', name).replaceAll(r'\', '/');
+  }
+
   /// Copies an existing file into the covers directory and returns the relative path.
   Future<String> copyCoverFile(File sourceFile,
       {String? targetFilename}) async {
@@ -197,7 +235,7 @@ class ImageStorageHelper {
     void Function(int count, int total)? onProgress,
   }) async {
     final pdfsDir = await getPdfsDirectory();
-    final isEpub = url.toLowerCase().contains('.epub');
+    final isEpub = url.toLowerCase().contains('.epub') || url.toLowerCase().contains('epub');
     final defaultExt = isEpub ? 'epub' : 'pdf';
     final name = filename != null
         ? (filename.contains('.') ? filename : '$filename.$defaultExt')
@@ -210,11 +248,37 @@ class ImageStorageHelper {
       onReceiveProgress: onProgress,
       options: Options(
         headers: {
-          'User-Agent': 'Mozilla/5.0 (compatible; ReadSanctuary/1.0)',
+          'User-Agent':
+              'Mozilla/5.0 (Linux; Android 14; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36',
+          'Accept':
+              'text/html,application/xhtml+xml,application/xml,application/pdf,application/epub+zip,*/*;q=0.9',
+          'Accept-Language': 'en-US,en;q=0.9',
         },
         followRedirects: true,
       ),
     );
+
+    // Defensive check: Inspect the downloaded file header.
+    // If it's a ZIP/EPUB file (starts with PK\x03\x04) but has a .pdf extension,
+    // rename it to .epub so ShelfCraft opens it with EpubReaderScreen.
+    final downloadedFile = File(targetPath);
+    if (await downloadedFile.exists() && await downloadedFile.length() > 4) {
+      final header = await downloadedFile.openRead(0, 4).first;
+      final isZip = header.length >= 4 &&
+          header[0] == 0x50 &&
+          header[1] == 0x4B &&
+          header[2] == 0x03 &&
+          header[3] == 0x04;
+      if (isZip && name.toLowerCase().endsWith('.pdf')) {
+        final newName = name.replaceAll(RegExp(r'\.pdf$', caseSensitive: false), '.epub');
+        final renamedFile = File(p.join(pdfsDir.path, newName));
+        if (await renamedFile.exists()) {
+          await renamedFile.delete();
+        }
+        await downloadedFile.rename(renamedFile.path);
+        return p.join('pdfs', newName).replaceAll(r'\', '/');
+      }
+    }
 
     return p.join('pdfs', name).replaceAll(r'\', '/');
   }

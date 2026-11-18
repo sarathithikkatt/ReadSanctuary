@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/constants/reading_statuses.dart';
 import '../../../../data/local/database.dart';
 import '../../bookshelf/widgets/book_cover_tilt_widget.dart';
+import '../../bookshelf/widgets/interactive_3d_book_viewer.dart';
 
 /// Top visual header for BookDetailScreen displaying cover preview, title, author, format, and status chips.
 class BookDetailHeader extends StatelessWidget {
@@ -25,31 +26,74 @@ class BookDetailHeader extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Book Cover / Tilt Preview
-        ClipRRect(
-          borderRadius: BorderRadius.circular(6.0),
-          child: Container(
-            width: 100,
-            height: 150,
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(6.0),
-              boxShadow: const [
-                BoxShadow(
-                  color: Colors.black26,
-                  blurRadius: 6,
-                  offset: Offset(2, 3),
-                ),
-              ],
-            ),
-            child: book.coverPath != null && File(book.coverPath!).existsSync()
-                ? Image.file(File(book.coverPath!), fit: BoxFit.cover)
-                : BookCoverTiltWidget(
-                    id: book.id,
-                    title: book.title,
-                    spineColorHex: book.spineColorHex,
-                    spineTextHex: book.spineTextHex,
+        // Book Cover / Tilt Preview with 3D Inspect trigger
+        GestureDetector(
+          onTap: () => Interactive3dBookViewer.show(context, book: book),
+          child: Stack(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(6.0),
+                child: Container(
+                  width: 100,
+                  height: 150,
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: BorderRadius.circular(6.0),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 6,
+                        offset: Offset(2, 3),
+                      ),
+                    ],
                   ),
+                  child: book.coverPath != null &&
+                          File(book.coverPath!).existsSync()
+                      ? Image.file(File(book.coverPath!), fit: BoxFit.cover)
+                      : BookCoverTiltWidget(
+                          id: book.id,
+                          title: book.title,
+                          spineColorHex: book.spineColorHex,
+                          spineTextHex: book.spineTextHex,
+                          onTap: () =>
+                              Interactive3dBookViewer.show(context, book: book),
+                        ),
+                ),
+              ),
+              // Floating 3D badge overlay
+              Positioned(
+                bottom: 6,
+                right: 6,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.68),
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.35),
+                      width: 0.8,
+                    ),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.view_in_ar, size: 10, color: Colors.white),
+                      SizedBox(width: 3),
+                      Text(
+                        '3D',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
         const SizedBox(width: 16),

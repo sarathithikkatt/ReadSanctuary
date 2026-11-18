@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/constants/shelf_props.dart';
 import '../../../../data/local/database.dart';
+import '../../../../data/services/custom_props_service.dart';
 import '../../../../data/services/revenuecat_service.dart';
 import '../../../../data/services/shelf_widget_service.dart';
 import '../../book_detail/book_detail_screen.dart';
@@ -155,11 +157,15 @@ class _ShelfSectionState extends ConsumerState<ShelfSection> {
         widgets.add(ShelfPropWidget(
           key: ValueKey(item.id),
           propAssetId: item.propAssetId!,
+          onTap: () => _showPropOptions(context, item),
+          onLongPress: () => _showPropOptions(context, item),
         ));
       } else if (item.itemType == 'gap') {
         widgets.add(ShelfPropWidget(
           key: ValueKey(item.id),
           propAssetId: 'gap',
+          onTap: () => _showPropOptions(context, item),
+          onLongPress: () => _showPropOptions(context, item),
         ));
       } else if (book != null) {
         void openDetail() {
@@ -217,6 +223,93 @@ class _ShelfSectionState extends ConsumerState<ShelfSection> {
     itemIds.insert(newIdx, moved);
     await widget.shelfDao.reorderShelfItems(widget.shelf.id, itemIds);
     ShelfWidgetService(shelfDao: widget.shelfDao).updateWidget();
+  }
+
+  Future<void> _showPropOptions(BuildContext context, ShelfItem item) async {
+    String title = 'Shelf Decoration';
+    if (item.itemType == 'gap') {
+      title = 'Spacer Gap';
+    } else if (item.propAssetId != null) {
+      if (item.propAssetId!.startsWith('custom:') ||
+          item.propAssetId!.startsWith('custom_')) {
+        final cleanId = item.propAssetId!.replaceFirst('custom:', '');
+        title = CustomPropsNotifier.getCached(cleanId)?.name ?? 'Custom Prop';
+      } else {
+        title = ShelfPropItem.findById(item.propAssetId!)?.title ??
+            'Decorative Prop';
+      }
+    }
+
+    final remove = await showModalBottomSheet<bool>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 20.0, vertical: 8.0),
+                child: Row(
+                  children: [
+                    if (item.propAssetId != null)
+                      SizedBox(
+                        width: 40,
+                        height: 40,
+                        child: ShelfPropWidget(propAssetId: item.propAssetId!),
+                      ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 16),
+                          ),
+                          Text(
+                            'Placed on "${widget.shelf.name}"',
+                            style: TextStyle(
+                                fontSize: 12, color: Colors.grey.shade600),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(),
+              ListTile(
+                leading: const Icon(Icons.delete_outline, color: Colors.red),
+                title: const Text('Remove from Shelf',
+                    style: TextStyle(
+                        color: Colors.red, fontWeight: FontWeight.w600)),
+                subtitle: const Text('Clears this item from the current shelf'),
+                onTap: () => Navigator.of(ctx).pop(true),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (remove == true && mounted) {
+      await widget.shelfDao.deleteShelfItem(item.id);
+      ShelfWidgetService(shelfDao: widget.shelfDao).updateWidget();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Removed "$title" from "${widget.shelf.name}"'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _handleShelfAction(BuildContext context, String action) async {

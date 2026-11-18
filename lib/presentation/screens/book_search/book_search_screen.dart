@@ -13,6 +13,7 @@ import '../../../data/local/database.dart';
 import '../../../data/remote/book_lookup_service.dart';
 import '../../../data/remote/free_book_service.dart';
 import '../../../domain/models/book_metadata.dart';
+import '../epub_reader/epub_reader_screen.dart';
 import '../pdf_reader/pdf_reader_screen.dart';
 
 /// Screen allowing users to search books across multiple sources (OpenLibrary,
@@ -264,18 +265,32 @@ class _BookSearchScreenState extends ConsumerState<BookSearchScreen> {
       );
 
       if (book != null && mounted) {
+        final isEpub = localPdfPath.toLowerCase().endsWith('.epub');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('"${book.title}" added with PDF! Opening reader...')),
+          SnackBar(
+            content: Text(
+              isEpub
+                  ? '"${book.title}" added with free eBook! Opening reader...'
+                  : '"${book.title}" added with free PDF! Opening reader...',
+            ),
+          ),
         );
         Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => PdfReaderScreen(book: book)),
+          MaterialPageRoute(
+            builder: (_) => isEpub
+                ? EpubReaderScreen(book: book)
+                : PdfReaderScreen(book: book),
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
         Navigator.of(context).pop(); // dismiss dialog
+        final errorMsg = e.toString().contains('401') || e.toString().contains('403')
+            ? 'This book is restricted by the online archive (borrow-only). You can upload your own PDF/EPUB anytime!'
+            : 'Failed to download free book: $e';
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to download free PDF: $e')),
+          SnackBar(content: Text(errorMsg)),
         );
       }
     }
@@ -297,11 +312,22 @@ class _BookSearchScreenState extends ConsumerState<BookSearchScreen> {
     );
 
     if (book != null && mounted) {
+      final isEpub = localPdfPath.toLowerCase().endsWith('.epub');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('"${book.title}" added with uploaded PDF! 📖')),
+        SnackBar(
+          content: Text(
+            isEpub
+                ? '"${book.title}" added with uploaded eBook! 📖'
+                : '"${book.title}" added with uploaded PDF! 📖',
+          ),
+        ),
       );
       Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => PdfReaderScreen(book: book)),
+        MaterialPageRoute(
+          builder: (_) => isEpub
+              ? EpubReaderScreen(book: book)
+              : PdfReaderScreen(book: book),
+        ),
       );
     }
   }

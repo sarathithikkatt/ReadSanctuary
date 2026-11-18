@@ -69,6 +69,30 @@ class ShelfPropItem {
       fallbackIcon: Icons.access_time,
     ),
     ShelfPropItem(
+      id: 'reading_glasses',
+      title: 'Vintage Reading Glasses',
+      subtitle: 'Wire-frame tortoiseshell spectacles',
+      fallbackIcon: Icons.auto_stories,
+    ),
+    ShelfPropItem(
+      id: 'globe_antique',
+      title: 'Antique Desktop Globe',
+      subtitle: 'Polished miniature world sphere',
+      fallbackIcon: Icons.public,
+    ),
+    ShelfPropItem(
+      id: 'quill_inkpot',
+      title: 'Feather Quill & Inkwell',
+      subtitle: 'Antique scholar calligraphy set',
+      fallbackIcon: Icons.history_edu,
+    ),
+    ShelfPropItem(
+      id: 'crystal_prism',
+      title: 'Amethyst Crystal Geode',
+      subtitle: 'Natural radiant purple crystal mineral',
+      fallbackIcon: Icons.diamond_outlined,
+    ),
+    ShelfPropItem(
       id: 'gap',
       title: 'Empty Spacer Gap',
       subtitle: '28dp breathing room between books',

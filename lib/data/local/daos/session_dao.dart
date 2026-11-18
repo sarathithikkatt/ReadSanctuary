@@ -82,4 +82,34 @@ class SessionDao extends DatabaseAccessor<AppDatabase> with _$SessionDaoMixin {
   Future<int> deleteNote(String id) {
     return (delete(bookNotes)..where((t) => t.id.equals(id))).go();
   }
+
+  /// Streams all bookmarks for a specific book ordered ascending by page number.
+  Stream<List<BookNote>> watchBookmarksForBook(String bookId) {
+    return (select(bookNotes)
+          ..where((t) => t.bookId.equals(bookId) & t.noteType.equals('bookmark'))
+          ..orderBy([
+            (t) => OrderingTerm(expression: t.pageNumber, mode: OrderingMode.asc)
+          ]))
+        .watch();
+  }
+
+  /// Fetches all bookmarks for a specific book ordered ascending by page number.
+  Future<List<BookNote>> getBookmarksForBook(String bookId) {
+    return (select(bookNotes)
+          ..where((t) => t.bookId.equals(bookId) & t.noteType.equals('bookmark'))
+          ..orderBy([
+            (t) => OrderingTerm(expression: t.pageNumber, mode: OrderingMode.asc)
+          ]))
+        .get();
+  }
+
+  /// Deletes a bookmark for a specific book and page number.
+  Future<int> deleteBookmarkForPage(String bookId, int pageNumber) {
+    return (delete(bookNotes)
+          ..where((t) =>
+              t.bookId.equals(bookId) &
+              t.noteType.equals('bookmark') &
+              t.pageNumber.equals(pageNumber)))
+        .go();
+  }
 }

@@ -147,7 +147,7 @@ void main() {
           isTrue); // Pro
       expect(ProFeatureGate.requiresProForProp('bookend_brass', false),
           isFalse); // Free
-      expect(ProFeatureGate.requiresProForProp('candle_amber', false),
+      expect(ProFeatureGate.requiresProForProp('clock_vintage', false),
           isTrue); // Pro
 
       // Pro User

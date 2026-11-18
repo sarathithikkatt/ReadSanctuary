@@ -115,13 +115,39 @@ class ShelfWallTheme {
     fallbackColor: Color(0xFFF7F2EC),
   );
 
-  static const darkAcademia = ShelfWallTheme(
-    id: 'dark_academia',
-    name: 'Dark Academia Study',
-    description: 'Deep forest green library wall with aged patina',
-    assetPath: 'assets/images/textures/wall_dark_academia.png',
-    fallbackColor: Color(0xFF1E2822),
-    isDark: true,
+  static const classicWhite = ShelfWallTheme(
+    id: 'classic_white',
+    name: 'Clean Minimalist White',
+    description: 'Crisp modern studio backdrop',
+    fallbackColor: Color(0xFFFAFAFA),
+  );
+
+  static const softSage = ShelfWallTheme(
+    id: 'soft_sage',
+    name: 'Soft Sage Plaster',
+    description: 'Tranquil pastel sage with peaceful ambient lighting',
+    fallbackColor: Color(0xFFE2E8DF),
+  );
+
+  static const mistyGrey = ShelfWallTheme(
+    id: 'misty_grey',
+    name: 'Misty Studio Grey',
+    description: 'Refined neutral grey with modern aesthetic',
+    fallbackColor: Color(0xFFECEFF1),
+  );
+
+  static const warmTerracotta = ShelfWallTheme(
+    id: 'warm_terracotta',
+    name: 'Warm Terracotta Clay',
+    description: 'Rustic Tuscan clay plaster with cozy earthy warmth',
+    fallbackColor: Color(0xFFEDE0D4),
+  );
+
+  static const cozyLinen = ShelfWallTheme(
+    id: 'cozy_linen',
+    name: 'Natural Cozy Linen',
+    description: 'Warm textured oatmeal linen wallpaper',
+    fallbackColor: Color(0xFFF4EFE6),
   );
 
   static const botanical = ShelfWallTheme(
@@ -132,28 +158,53 @@ class ShelfWallTheme {
     fallbackColor: Color(0xFFD3DDD0),
   );
 
-  static const classicWhite = ShelfWallTheme(
-    id: 'classic_white',
-    name: 'Clean Minimalist White',
-    description: 'Crisp modern studio backdrop',
-    fallbackColor: Color(0xFFFAFAFA),
+  static const darkAcademia = ShelfWallTheme(
+    id: 'dark_academia',
+    name: 'Dark Academia Study',
+    description: 'Deep forest green library wall with aged patina',
+    assetPath: 'assets/images/textures/wall_dark_academia.png',
+    fallbackColor: Color(0xFF1E2822),
+    isDark: true,
+  );
+
+  static const nordicSlate = ShelfWallTheme(
+    id: 'nordic_slate',
+    name: 'Nordic Slate',
+    description: 'Moody deep charcoal slate library wall',
+    fallbackColor: Color(0xFF262D30),
+    isDark: true,
   );
 
   static const List<ShelfWallTheme> all = [
     warmCream,
-    darkAcademia,
+    classicWhite,
+    softSage,
+    mistyGrey,
+    warmTerracotta,
+    cozyLinen,
     botanical,
-    classicWhite
+    darkAcademia,
+    nordicSlate,
   ];
 
   static ShelfWallTheme fromId(String id) {
     switch (id.toLowerCase()) {
-      case 'dark_academia':
-        return darkAcademia;
-      case 'botanical':
-        return botanical;
       case 'classic_white':
         return classicWhite;
+      case 'soft_sage':
+        return softSage;
+      case 'misty_grey':
+        return mistyGrey;
+      case 'warm_terracotta':
+        return warmTerracotta;
+      case 'cozy_linen':
+        return cozyLinen;
+      case 'botanical':
+        return botanical;
+      case 'dark_academia':
+        return darkAcademia;
+      case 'nordic_slate':
+        return nordicSlate;
       case 'warm_cream':
       default:
         return warmCream;

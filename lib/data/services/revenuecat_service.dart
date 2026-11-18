@@ -193,11 +193,32 @@ final isProUserProvider = StateNotifierProvider<ProUserNotifier, bool>((ref) {
 
 /// Helper defining free vs Pro feature gating rules according to Section 1 of requirement.md.
 class ProFeatureGate {
-  /// The 3 default background wall themes included free.
-  static const freeWallThemes = {'warm_cream', 'soft_sage', 'light_grey'};
+  /// Default background wall themes included free.
+  static const freeWallThemes = {
+    'warm_cream',
+    'classic_white',
+    'soft_sage',
+    'misty_grey',
+    'warm_terracotta',
+    'cozy_linen',
+    'botanical',
+    'light_grey',
+  };
 
-  /// Free shelf props.
-  static const freeProps = {'gap', 'bookend_brass'};
+  /// Default shelf props included free (almost the entire collection is free).
+  static const freeProps = {
+    'gap',
+    'bookend_brass',
+    'plant_monstera',
+    'plant_succulent',
+    'candle_amber',
+    'cup_coffee',
+    'cat_sleeping',
+    'reading_glasses',
+    'globe_antique',
+    'quill_inkpot',
+    'crystal_prism',
+  };
 
   /// Checks if a wall background theme requires Pro membership.
   static bool requiresProForWallTheme(String wallThemeId, bool isProUser) {
@@ -206,7 +227,12 @@ class ProFeatureGate {
   }
 
   /// Checks if a decorative prop requires Pro membership.
+  /// All user-created custom props are 100% free!
   static bool requiresProForProp(String propId, bool isProUser) {
+    // Custom user-uploaded props are always completely free
+    if (propId.startsWith('custom_') || propId.startsWith('custom:')) {
+      return false;
+    }
     if (isProUser) return false;
     return !freeProps.contains(propId);
   }

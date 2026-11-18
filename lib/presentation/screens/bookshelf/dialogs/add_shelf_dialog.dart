@@ -92,7 +92,23 @@ class _AddShelfDialogState extends State<AddShelfDialog> {
               items: ShelfWallTheme.all
                   .map((theme) => DropdownMenuItem(
                         value: theme.id,
-                        child: Text(theme.name),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 14,
+                              height: 14,
+                              margin: const EdgeInsets.only(right: 8),
+                              decoration: BoxDecoration(
+                                color: theme.fallbackColor,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                    color: Colors.grey.shade400, width: 0.5),
+                              ),
+                            ),
+                            Text(theme.name),
+                          ],
+                        ),
                       ))
                   .toList(),
               onChanged: (val) {

@@ -137,6 +137,11 @@ class ShelfDao extends DatabaseAccessor<AppDatabase> with _$ShelfDaoMixin {
         .getSingleOrNull();
   }
 
+  Stream<ShelfItem?> watchItemByBookId(String bookId) {
+    return (select(shelfItems)..where((t) => t.bookId.equals(bookId)))
+        .watchSingleOrNull();
+  }
+
   Future<bool> updateShelfItem(Insertable<ShelfItem> item) {
     return update(shelfItems).replace(item);
   }

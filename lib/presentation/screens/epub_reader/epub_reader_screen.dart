@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -72,6 +75,8 @@ class _EpubReaderScreenState extends ConsumerState<EpubReaderScreen> {
 
   late PageController _pageController;
 
+  List<BookNote> _bookmarks = [];
+
   @override
   void initState() {
     super.initState();
@@ -84,6 +89,19 @@ class _EpubReaderScreenState extends ConsumerState<EpubReaderScreen> {
 
     _loadPreferences();
     _loadEpub();
+    _loadBookmarks();
+  }
+
+  Future<void> _loadBookmarks() async {
+    try {
+      final sessionDao = ref.read(sessionDaoProvider);
+      final bms = await sessionDao.getBookmarksForBook(widget.book.id);
+      if (mounted) {
+        setState(() {
+          _bookmarks = bms;
+        });
+      }
+    } catch (_) {}
   }
 
   @override
@@ -344,6 +362,221 @@ class _EpubReaderScreenState extends ConsumerState<EpubReaderScreen> {
     );
   }
 
+  bool get _isCurrentChapterBookmarked =>
+      _bookmarks.any((b) => b.pageNumber == (_currentChapterIndex + 1));
+
+  Future<void> _toggleBookmark() async {
+    final humanChapter = _currentChapterIndex + 1;
+    final sessionDao = ref.read(sessionDaoProvider);
+    final messenger = ScaffoldMessenger.of(context);
+    final chapterTitle = (_epubBook != null && _currentChapterIndex < _epubBook!.chapters.length)
+        ? _epubBook!.chapters[_currentChapterIndex].title
+        : 'Chapter $humanChapter';
+
+    if (_isCurrentChapterBookmarked) {
+      await sessionDao.deleteBookmarkForPage(widget.book.id, humanChapter);
+      await _loadBookmarks();
+      if (mounted) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text('Bookmark removed from Chapter $humanChapter'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } else {
+      final noteCtrl = TextEditingController(text: chapterTitle);
+      final title = await showDialog<String>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text('Bookmark Chapter $humanChapter 🔖'),
+          content: TextField(
+            controller: noteCtrl,
+            autofocus: true,
+            decoration: const InputDecoration(
+              labelText: 'Bookmark Label (optional)',
+              hintText: 'e.g. Chapter title or thought...',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(null),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(ctx).pop(noteCtrl.text.trim()),
+              child: const Text('Save Bookmark'),
+            ),
+          ],
+        ),
+      );
+
+      if (title != null && mounted) {
+        final label = title.isNotEmpty ? title : chapterTitle;
+        await sessionDao.insertNote(
+          BookNotesCompanion.insert(
+            id: _uuid.v4(),
+            bookId: widget.book.id,
+            noteType: 'bookmark',
+            content: label,
+            pageNumber: drift.Value(humanChapter),
+            createdAt: DateTime.now().millisecondsSinceEpoch,
+          ),
+        );
+        await _loadBookmarks();
+        if (mounted) {
+          messenger.showSnackBar(
+            SnackBar(
+              content: Text('Chapter $humanChapter bookmarked! 🔖'),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  void _showBookmarksSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: _themeMode.backgroundColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheetState) {
+          return SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.bookmarks, color: Colors.amber),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Bookmarks (${_bookmarks.length})',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: _themeMode.textColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.close, color: _themeMode.textColor),
+                        onPressed: () => Navigator.of(ctx).pop(),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(height: 1),
+                if (_bookmarks.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.all(32.0),
+                    child: Column(
+                      children: [
+                        Icon(Icons.bookmark_border,
+                            size: 48, color: _themeMode.textColor.withOpacity(0.4)),
+                        const SizedBox(height: 12),
+                        Text(
+                          'No bookmarks yet.',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: _themeMode.textColor,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Tap the bookmark icon in the top bar to bookmark this chapter.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: _themeMode.textColor.withOpacity(0.6)),
+                        ),
+                      ],
+                    ),
+                  )
+                else
+                  Expanded(
+                    child: ListView.separated(
+                      itemCount: _bookmarks.length,
+                      separatorBuilder: (_, __) => Divider(
+                        height: 1,
+                        color: _themeMode.textColor.withOpacity(0.1),
+                      ),
+                      itemBuilder: (ctx, i) {
+                        final bm = _bookmarks[i];
+                        final chNum = bm.pageNumber ?? 1;
+                        final isCurrent = chNum == (_currentChapterIndex + 1);
+
+                        return ListTile(
+                          leading: CircleAvatar(
+                            backgroundColor: isCurrent
+                                ? Colors.amber.shade700
+                                : Colors.amber.shade100,
+                            foregroundColor: isCurrent
+                                ? Colors.white
+                                : Colors.amber.shade900,
+                            child: Text(
+                              '$chNum',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                          title: Text(
+                            bm.content.isNotEmpty ? bm.content : 'Chapter $chNum',
+                            style: TextStyle(
+                              fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
+                              color: isCurrent
+                                  ? Theme.of(context).primaryColor
+                                  : _themeMode.textColor,
+                            ),
+                          ),
+                          subtitle: Text(
+                            'Chapter $chNum',
+                            style: TextStyle(color: _themeMode.textColor.withOpacity(0.6)),
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                                tooltip: 'Delete bookmark',
+                                onPressed: () async {
+                                  final sessionDao = ref.read(sessionDaoProvider);
+                                  await sessionDao.deleteNote(bm.id);
+                                  await _loadBookmarks();
+                                  setSheetState(() {});
+                                },
+                              ),
+                              Icon(Icons.chevron_right, color: _themeMode.textColor.withOpacity(0.4)),
+                            ],
+                          ),
+                          onTap: () {
+                            Navigator.of(ctx).pop();
+                            final targetIndex = chNum - 1;
+                            _pageController.jumpToPage(targetIndex);
+                            setState(() => _currentChapterIndex = targetIndex);
+                          },
+                        );
+                      },
+                    ),
+                  ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   void _showTypographySettings() {
     showModalBottomSheet(
       context: context,
@@ -553,6 +786,25 @@ class _EpubReaderScreenState extends ConsumerState<EpubReaderScreen> {
         ),
         actions: [
           IconButton(
+            icon: Icon(
+              _isCurrentChapterBookmarked ? Icons.bookmark : Icons.bookmark_border,
+              color: _isCurrentChapterBookmarked ? Colors.amber : null,
+            ),
+            tooltip: _isCurrentChapterBookmarked
+                ? 'Remove Bookmark (Chapter ${_currentChapterIndex + 1})'
+                : 'Bookmark Chapter ${_currentChapterIndex + 1}',
+            onPressed: _toggleBookmark,
+          ),
+          IconButton(
+            icon: Badge(
+              isLabelVisible: _bookmarks.isNotEmpty,
+              label: Text('${_bookmarks.length}'),
+              child: const Icon(Icons.bookmarks_outlined),
+            ),
+            tooltip: 'View Bookmarks (${_bookmarks.length})',
+            onPressed: _showBookmarksSheet,
+          ),
+          IconButton(
             icon: const Icon(Icons.format_size),
             tooltip: 'Typography & Theme',
             onPressed: _showTypographySettings,
@@ -567,8 +819,10 @@ class _EpubReaderScreenState extends ConsumerState<EpubReaderScreen> {
       body: PageView.builder(
         controller: _pageController,
         itemCount: totalChapters,
-        onPageChanged: (index) {
+        onPageChanged: (index) async {
           setState(() => _currentChapterIndex = index);
+          final bookDao = ref.read(bookDaoProvider);
+          await bookDao.updateBookLastReadPage(widget.book.id, index + 1);
         },
         itemBuilder: (context, chapterIdx) {
           final chapter = _epubBook!.chapters[chapterIdx];

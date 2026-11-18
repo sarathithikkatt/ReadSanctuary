@@ -122,6 +122,7 @@ void main() {
                   'title': 'Frankenstein',
                   'author_name': ['Mary Shelley'],
                   'has_fulltext': true,
+                  'public_scan_b': true,
                   'ia': ['frankenstein00shelley'],
                 }
               ]

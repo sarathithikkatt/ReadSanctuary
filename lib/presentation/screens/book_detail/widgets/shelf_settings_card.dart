@@ -15,8 +15,8 @@ class ShelfSettingsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<ShelfItem?>(
-      future: shelfDao.getItemByBookId(book.id),
+    return StreamBuilder<ShelfItem?>(
+      stream: shelfDao.watchItemByBookId(book.id),
       builder: (context, snapshot) {
         final item = snapshot.data;
         if (item == null) return const SizedBox.shrink();

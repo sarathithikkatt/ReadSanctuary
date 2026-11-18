@@ -17,10 +17,12 @@ class FreeBookService {
   })  : _dio = dio ??
             Dio(
               BaseOptions(
-                connectTimeout: const Duration(seconds: 10),
-                receiveTimeout: const Duration(seconds: 15),
+                connectTimeout: const Duration(seconds: 15),
+                receiveTimeout: const Duration(seconds: 25),
                 headers: {
-                  'User-Agent': 'ReadSanctuary/1.0 (free-books-reader)',
+                  'User-Agent':
+                      'Mozilla/5.0 (Linux; Android 14; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36',
+                  'Accept': 'application/json,text/html,*/*',
                 },
               ),
             ),
@@ -48,18 +50,19 @@ class FreeBookService {
       if (olResponse.statusCode == 200 && olResponse.data is Map<String, dynamic>) {
         final docs = (olResponse.data['docs'] as List<dynamic>?) ?? [];
         for (final doc in docs.whereType<Map<String, dynamic>>()) {
-          final hasFullText = doc['has_fulltext'] == true;
           final isPublicScan = doc['public_scan_b'] == true;
           final iaList = (doc['ia'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [];
 
           String? freePdfUrl;
-          if (iaList.isNotEmpty) {
-            // Find a valid IA item ID (preferring non-isbn prefixes)
+          // CRITICAL: Only set freePdfUrl if it is genuinely a verified public scan.
+          // In OpenLibrary, almost all copyrighted modern books have an 'ia' id (lending library),
+          // but trying to download them anonymously results in HTTP 401 Unauthorized or 403 Forbidden.
+          if (isPublicScan && iaList.isNotEmpty) {
             final iaId = iaList.firstWhere(
               (id) => !id.startsWith('isbn_') && !id.startsWith('bwb_'),
-              orElse: () => iaList.first,
+              orElse: () => '',
             );
-            if (hasFullText || isPublicScan || iaId.isNotEmpty) {
+            if (iaId.isNotEmpty) {
               freePdfUrl = 'https://archive.org/download/$iaId/$iaId.pdf';
             }
           }
@@ -239,16 +242,18 @@ class FreeBookService {
     return firstWithPdf.freePdfUrl;
   }
 
-  /// Downloads a remote PDF and saves it locally in `<AppDocuments>/media/pdfs/{bookId}.pdf`.
-  /// Returns the relative path e.g. `'pdfs/{bookId}.pdf'`.
+  /// Downloads a remote PDF or EPUB and saves it locally in `<AppDocuments>/media/pdfs/{bookId}.(pdf|epub)`.
+  /// Returns the relative path e.g. `'pdfs/{bookId}.pdf'` or `'pdfs/{bookId}.epub'`.
   Future<String> downloadAndSavePdf(
     String url,
     String bookId, {
     void Function(int count, int total)? onProgress,
   }) async {
+    final isEpub = url.toLowerCase().contains('.epub') || url.toLowerCase().contains('epub');
+    final ext = isEpub ? 'epub' : 'pdf';
     return await _imageStorageHelper.downloadAndSavePdf(
       url,
-      filename: '$bookId.pdf',
+      filename: '$bookId.$ext',
       onProgress: onProgress,
     );
   }

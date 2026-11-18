@@ -4,6 +4,9 @@ import 'package:drift/drift.dart' as drift;
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../data/local/database.dart';
@@ -72,11 +75,20 @@ class _SettingsBackupScreenState extends ConsumerState<SettingsBackupScreen> {
 
   Future<void> _handleLocalExport() async {
     try {
-      final FileSaveLocation? result = await getSaveLocation(
-        suggestedName:
-            'readsanctuary_backup_${DateTime.now().millisecondsSinceEpoch}.zip',
-      );
-      if (result == null) return;
+      final filename =
+          'readsanctuary_backup_${DateTime.now().millisecondsSinceEpoch}.zip';
+      File targetFile;
+
+      if (Platform.isAndroid || Platform.isIOS) {
+        final tempDir = await getTemporaryDirectory();
+        targetFile = File(p.join(tempDir.path, filename));
+      } else {
+        final FileSaveLocation? result = await getSaveLocation(
+          suggestedName: filename,
+        );
+        if (result == null) return;
+        targetFile = File(result.path);
+      }
 
       setState(() => _isBackingUp = true);
       final backupService = ref.read(googleDriveBackupServiceProvider);
@@ -84,9 +96,18 @@ class _SettingsBackupScreenState extends ConsumerState<SettingsBackupScreen> {
 
       await backupService.exportLocalBackup(
         db: db,
-        targetFile: File(result.path),
+        targetFile: targetFile,
       );
       setState(() => _isBackingUp = false);
+
+      if (Platform.isAndroid || Platform.isIOS) {
+        await SharePlus.instance.share(
+          ShareParams(
+            files: [XFile(targetFile.path, mimeType: 'application/zip')],
+            text: 'ReadSanctuary Library Backup Archive 📦',
+          ),
+        );
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -243,11 +264,20 @@ class _SettingsBackupScreenState extends ConsumerState<SettingsBackupScreen> {
 
   Future<void> _handleCsvExport() async {
     try {
-      final FileSaveLocation? result = await getSaveLocation(
-        suggestedName:
-            'readsanctuary_library_${DateTime.now().millisecondsSinceEpoch}.csv',
-      );
-      if (result == null) return;
+      final filename =
+          'readsanctuary_library_${DateTime.now().millisecondsSinceEpoch}.csv';
+      File targetFile;
+
+      if (Platform.isAndroid || Platform.isIOS) {
+        final tempDir = await getTemporaryDirectory();
+        targetFile = File(p.join(tempDir.path, filename));
+      } else {
+        final FileSaveLocation? result = await getSaveLocation(
+          suggestedName: filename,
+        );
+        if (result == null) return;
+        targetFile = File(result.path);
+      }
 
       final db = ref.read(appDatabaseProvider);
       final books = await db.bookDao.getAllBooks();
@@ -255,8 +285,16 @@ class _SettingsBackupScreenState extends ConsumerState<SettingsBackupScreen> {
       final csvService = ref.read(csvImportServiceProvider);
       final csvString = csvService.exportToCsv(books);
 
-      final file = File(result.path);
-      await file.writeAsString(csvString);
+      await targetFile.writeAsString(csvString);
+
+      if (Platform.isAndroid || Platform.isIOS) {
+        await SharePlus.instance.share(
+          ShareParams(
+            files: [XFile(targetFile.path, mimeType: 'text/csv')],
+            text: 'ReadSanctuary Books CSV Export 📄',
+          ),
+        );
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
