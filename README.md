@@ -125,12 +125,11 @@ Most modern reading trackers treat books like flat spreadsheets or ad-stuffed so
 3. If you have years of reading history on Goodreads or The StoryGraph, head to **Settings & Backup** to import your CSV file right away.
 
 ### App Navigation Layout
-ReadSanctuary is organized into four main tabs along the bottom navigation bar:
+ReadSanctuary is organized into a clean, streamlined three-destination bottom navigation bar, with rapid scanner intake right at your fingertips:
 
-1. **Bookshelf (Home):** Your 2.5D wooden shelves, displaying your books, props, and decorative items.
-2. **Scan ISBN:** The camera scanner for adding single books or batch-scanning entire physical stacks.
-3. **Stats:** Reading habits, daily streak counters, monthly reading charts, and yearly challenge progress.
-4. **Backup & Pro:** Data migration (CSV import), offline archive backup/restore, gift redemption, and cloud synchronization.
+1. **Bookshelf (Home):** Your 2.5D wooden shelves, displaying your books, custom decorations, props, and spacers, with direct action icons in the top AppBar for **Barcode Scanner**, **Search & Free Books**, **Drag Reorder**, and the **1-Click Social Shelf Exporter**.
+2. **Stats:** Reading habits, daily streak counters, monthly reading velocity charts, format distribution analysis, and the editable yearly reading goal challenge.
+3. **Settings & Backup:** Data migration (Goodreads & StoryGraph CSV import), offline byte-for-byte `.zip` archive backup/restore (with Zip-Slip traversal protection), RFC-4180 CSV export with sub-ratings, offline gift voucher redemption, and Google Drive AppData sync.
 
 ---
 
@@ -198,10 +197,11 @@ Want to rearrange books on a shelf?
 4. Tap the **Done** icon (`✓`) in the app bar when finished. All new positions are immediately saved to the database.
 
 #### Interactive 3D Book Viewer
-Experience your books in tactile 3D:
+Experience your books as tangible, physical volumes in full interactive 3D:
 1. Open any book in Book Detail and tap the 3D cover preview.
-2. Drag with your finger to rotate the book in 3D perspective space.
-3. On supported devices, gyro sensors allow the book to gently tilt and catch light highlights as you move your phone.
+2. **True 6-Face 3D Geometry:** Renders front cover, back cover, procedural/custom spine, top edge (-Y), bottom edge (+Y), and side edge (+X) with realistic paper texture and specular lighting.
+3. **Tactile Bookmark Ribbon:** Features an embedded satin bookmark ribbon draped along the book's edge.
+4. **Touch & Gyroscopic Motion:** Drag smoothly with finger touch to rotate in 3D perspective space with natural momentum. On supported devices, gyro sensors gently tilt the book and cast dynamic lighting highlights as you shift your phone.
 
 #### Android Home Screen App Widget
 Keep your reading journey front and center without launching the app:
@@ -220,17 +220,17 @@ Show off your monthly reads or favorite collections on Instagram Stories, Thread
 ### 2. Book Intake & Library Management
 
 #### Fast ISBN Barcode Scanner
-1. Tap the **Scan ISBN** tab in the bottom bar.
+1. Tap the **Barcode Scanner** icon (`qr_code_scanner`) in the top app bar of the Bookshelf screen (or access it from the Search catalog).
 2. Point your camera at the ISBN-13 or ISBN-10 barcode on the back of any physical book.
-3. The red aiming reticle instantly recognizes the barcode and triggers a medium haptic pulse.
-4. ReadSanctuary queries OpenLibrary and Google Books in the background and opens the book entry with cover, title, author, and page count pre-populated.
+3. The red aiming reticle instantly recognizes the barcode and triggers a tactile haptic pulse.
+4. ReadSanctuary queries OpenLibrary and Google Books in the background and populates cover art, title, author, page count, description, publisher, and publication year.
 5. Tap **Add to Shelf**.
 
 #### Rapid Batch Scanning Mode
-Cataloging an entire room or bookshelf?
-1. In the **Scan ISBN** tab, toggle **Batch Mode** in the top-right corner.
+Cataloging an entire room or personal library?
+1. In the scanner overlay, toggle **Batch Mode** in the top-right corner.
 2. Select the target shelf where scanned books should go.
-3. Scan barcodes one after another. ReadSanctuary chirps/vibrates on each scan, increments the scanned counter, and queues background lookups and shelf insertions automatically without interrupting your camera stream.
+3. Scan barcodes one after another. ReadSanctuary chirps and vibrates on each scan, increments the counter, and asynchronously inserts new books with rich metadata into your SQLite database without ever interrupting your camera stream.
 4. Scan 20 books in 30 seconds!
 
 #### Manual Book Creation & Editing
@@ -320,8 +320,9 @@ Share your ratings and thoughts with fellow readers:
 #### Reflowable EPUB Reader
 ReadSanctuary includes a pure-Dart, high-performance EPUB reader built right into the app:
 * **Zero Bloat:** No external reading apps required.
+* **Virtualized High-Performance Layout:** Paragraphs are rendered dynamically via virtualized `ListView.builder` per chapter, delivering silky 60/120 FPS scrolling and zero memory lag even on massive 50+ page chapters.
 * **Clean Reading Surface:** Distraction-free pagination with chapter headers, progress percentage, and tap zones.
-* **Automatic Status Promotion:** Opening a book from Want to Read (TBR) automatically marks it as Currently Reading.
+* **Automatic Status Promotion & Finish Tracking:** Opening a book from Want to Read (TBR) automatically marks it as Currently Reading. Reaching the final chapter automatically promotes it to Finished and records the exact completion timestamp (`finishedAt`).
 
 #### Reading Themes & Typography Controls
 Customize your reading experience for maximum comfort:
@@ -343,7 +344,7 @@ Customize your reading experience for maximum comfort:
 * Automatically records a `ReadingSession` into your database, updating your reading streak and speed metrics!
 
 #### In-App PDF Reader
-* For PDFs, research papers, and graphic novels, ReadSanctuary provides an integrated PDF viewer with zoom, horizontal/vertical paging, and thumbnail navigation.
+* For PDFs, research papers, and graphic novels, ReadSanctuary provides an integrated PDF viewer with smooth pinch zoom, horizontal/vertical paging, thumbnail navigation, and automatic finish timestamp tracking upon reaching the final page.
 
 ---
 
@@ -360,8 +361,9 @@ Track your reading sessions and focus without distraction:
 
 #### Background-Kill Protection
 Never lose a reading session to an operating system memory clean-up:
-* ReadSanctuary continuously syncs timer state and start timestamps to resilient on-device storage (`SharedPreferences`).
-* If your phone battery dies, incoming phone calls interrupt you, or the OS terminates background processes, your timer resumes from the exact second when you reopen the app.
+* ReadSanctuary continuously syncs timer state, active tick timestamps (`last_tick_ms`), and start timestamps to resilient on-device storage (`SharedPreferences`).
+* If your phone battery dies, incoming phone calls interrupt you, or the OS terminates background processes, your timer resumes from the exact second without clock drift when you reopen the app.
+* Marking a book finished upon completing a session automatically commits the exact finish timestamp (`finishedAt`) to the database.
 
 #### Pages-per-Minute Speed Calculations
 Upon finishing a session, ReadSanctuary calculates:
@@ -401,7 +403,7 @@ Life happens. If you read offline during a flight or forgot your phone during a 
 #### Editable Yearly Reading Challenge Goal
 * Set your target number of books for the year (e.g., 25 or 52 books).
 * Tap the pencil icon directly on the **Yearly Challenge Card** to update your goal anytime.
-* An animated progress ring displays completed books, percentage progress, and pace status.
+* An animated progress ring displays completed books, percentage progress, and pace status, accurately measured by each book's recorded `finishedAt` timestamp.
 
 ---
 
@@ -418,7 +420,8 @@ Moving your library to ReadSanctuary is seamless:
 #### 100% Free Offline ZIP Backups & Full Restoration
 We believe you should never pay to access or export your own data:
 1. **Export Local Archive (.zip):** Flushes SQLite WAL (`PRAGMA wal_checkpoint(FULL);`) and bundles `app_database.sqlite`, a JSON schema manifest, and all local covers/cropped spines into a single compressed `.zip` archive.
-2. **Restore Local Archive (.zip):** Tap **Restore Local .ZIP Backup** under Settings & Backup to restore your entire library, book spines, and notes byte-for-byte on any device. Completely free!
+2. **Restore Local Archive (.zip):** Tap **Restore Local .ZIP Backup** under Settings & Backup to restore your entire library, book spines, and notes byte-for-byte on any device.
+3. **Zip-Slip Directory Traversal Protection:** Every entry path in restored archives is validated against the destination root with canonical path verification, securing your device against malicious path traversal attacks. Completely free and secure!
 
 #### RFC-4180 CSV Export with Sub-Ratings
 Export your entire collection anytime:

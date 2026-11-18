@@ -5,9 +5,9 @@
 [![Flutter Version](https://img.shields.io/badge/Flutter-3.24%2B-02569B?logo=flutter)](https://flutter.dev)
 [![Dart Version](https://img.shields.io/badge/Dart-3.5%2B-0175C2?logo=dart)](https://dart.dev)
 [![Architecture](https://img.shields.io/badge/Architecture-Clean%20Architecture%20%2F%20MVVM-informational)](https://github.com)
-[![Database](https://img.shields.io/badge/Database-Drift%20(SQLite)%20v3-blue)](https://drift.simonbinder.eu)
+[![Database](https://img.shields.io/badge/Database-Drift%20(SQLite)%20v4-blue)](https://drift.simonbinder.eu)
 [![State Management](https://img.shields.io/badge/State-Flutter%20Riverpod%202.x-teal)](https://riverpod.dev)
-[![Tests Passing](https://img.shields.io/badge/Tests-96%2F96%20Passing-success)](test/)
+[![Tests Passing](https://img.shields.io/badge/Tests-101%2F101%20Passing-success)](test/)
 [![User Guide](https://img.shields.io/badge/Documentation-User%20README-green)](README.md)
 
 ---
@@ -194,21 +194,25 @@ lib/
 
 ## 🗄️ Database Architecture & Drift Specifications
 
-### Schema Definition (Schema V3)
+### Schema Definition (Schema V4)
 
 ReadSanctuary uses **Drift** on top of SQLite, ensuring high-speed transactional reliability and typed Dart mappings.
 
 ```sql
--- Schema Version 3
+-- Schema Version 4
 CREATE TABLE books (
   id TEXT PRIMARY KEY,
   isbn13 TEXT NULL,
   title TEXT NOT NULL,
   subtitle TEXT NULL,
+  description TEXT NULL,                  -- Synopsis / description from metadata lookup (Schema v4)
+  publisher TEXT NULL,                    -- Publishing imprint / house (Schema v4)
+  publish_year TEXT NULL,                 -- Publication year string e.g. '2024' (Schema v4)
   authors TEXT NOT NULL,                  -- JSON string array e.g. '["Brandon Sanderson"]'
   page_count INTEGER NOT NULL DEFAULT 250,
   format TEXT NOT NULL DEFAULT 'paperback',-- 'paperback', 'hardcover', 'ebook', 'audiobook'
   status TEXT NOT NULL,                   -- 'tbr', 'reading', 'finished', 'dnf', 'lent'
+  finished_at INTEGER NULL,               -- Unix epoch ms when book was finished reading (Schema v4)
   series_name TEXT NULL,
   series_index REAL NULL,                 -- Decimal float supporting #0.5, #1.5 novellas
   cover_path TEXT NULL,                   -- Relative filename in <AppDocs>/media/covers/
@@ -228,6 +232,15 @@ CREATE TABLE books (
   created_at INTEGER NOT NULL,            -- Unix epoch ms
   updated_at INTEGER NOT NULL             -- Unix epoch ms
 );
+
+-- Schema Version 4 Performance Indices
+CREATE INDEX books_status_idx ON books (status);
+CREATE INDEX shelves_sort_order_idx ON shelves (sort_order);
+CREATE INDEX shelf_items_shelf_idx ON shelf_items (shelf_id, position_index);
+CREATE INDEX shelf_items_book_idx ON shelf_items (book_id);
+CREATE INDEX reading_sessions_book_idx ON reading_sessions (book_id);
+CREATE INDEX reading_sessions_time_idx ON reading_sessions (start_time);
+CREATE INDEX book_notes_book_idx ON book_notes (book_id);
 ```
 
 #### Other Core Tables:
@@ -253,6 +266,19 @@ CREATE TABLE books (
        await migrator.addColumn(books, books.ratingWriting);
        await migrator.addColumn(books, books.ratingPacing);
      }
+     if (from < 4) {
+       await migrator.addColumn(books, books.finishedAt);
+       await migrator.addColumn(books, books.description);
+       await migrator.addColumn(books, books.publisher);
+       await migrator.addColumn(books, books.publishYear);
+       await customStatement('CREATE INDEX IF NOT EXISTS books_status_idx ON books (status);');
+       await customStatement('CREATE INDEX IF NOT EXISTS shelves_sort_order_idx ON shelves (sort_order);');
+       await customStatement('CREATE INDEX IF NOT EXISTS shelf_items_shelf_idx ON shelf_items (shelf_id, position_index);');
+       await customStatement('CREATE INDEX IF NOT EXISTS shelf_items_book_idx ON shelf_items (book_id);');
+       await customStatement('CREATE INDEX IF NOT EXISTS reading_sessions_book_idx ON reading_sessions (book_id);');
+       await customStatement('CREATE INDEX IF NOT EXISTS reading_sessions_time_idx ON reading_sessions (start_time);');
+       await customStatement('CREATE INDEX IF NOT EXISTS book_notes_book_idx ON book_notes (book_id);');
+     }
    }
    ```
    All new columns are nullable or have sensible defaults, guaranteeing zero data loss when updating.
@@ -271,7 +297,7 @@ Drift DAOs provide reactive streams to the presentation layer:
 * **`BookDao`**:
   * `watchAllBooks()`: Continuous stream for search and statistics.
   * `watchBookById(String id)`: Emits updates immediately when the book is edited or a rating is changed.
-  * `insertBatchBooks(List<BooksCompanion> books)`: Transactional batch intake used by CSV import and batch barcode scanner.
+  * `insertBooks(List<Insertable<Book>> bookList)`: High-performance atomic batch intake (`batch((b) => b.insertAll(books, bookList))`) used by CSV import and batch barcode scanner.
 * **`ShelfDao`**:
   * `watchAllShelves()`: Listens for shelf additions, renames, and deletions.
   * `watchItemsForShelf(String shelfId)`: Reactive items stream sorted by `positionIndex ASC`.
@@ -344,7 +370,8 @@ flowchart TD
 
 1. **Manifest & Spine Resolution:** Extracts `<manifest>` items with their MIME types and builds an `id -> href` mapping. The `<spine>` then dictates canonical chapter order.
 2. **HTML Cleanup:** Strips XML tags, parses headings, extracts raw text paragraphs, and trims duplicate chapter title headings to provide distraction-free reflowable typography.
-3. **Session Logging:** When `EpubReaderScreen` is popped, it calculates reading time and records a `reading_sessions` entry automatically.
+3. **Virtualized Paragraph Rendering:** Rather than rendering entire chapters into an unbounded column, paragraphs are dynamically virtualized with `ListView.builder`, guaranteeing 60/120 FPS scrolling and negligible RAM usage even on 50+ page chapters.
+4. **Session Logging & Finished Timestamp:** When `EpubReaderScreen` is popped or when the reader reaches the final chapter, it calculates reading time, logs a `reading_sessions` entry, promotes status to `finished`, and records `finished_at` automatically.
 
 ---
 
@@ -406,10 +433,11 @@ File handling is managed by [`ImageStorageHelper`](file:///d:/Dev/ReadSanctuary/
 ### 8. Focus Reading Timer & OS-Kill Resilience
 
 [`ReadingTimerScreen`](file:///d:/Dev/ReadSanctuary/lib/presentation/screens/timer/reading_timer_screen.dart) continuously synchronizes state to `SharedPreferences`:
-* Keys: `ReadSanctuary_reading_timer_start_ms`, `ReadSanctuary_reading_timer_is_running`, `ReadSanctuary_reading_timer_accumulated_seconds`.
+* Keys: `ReadSanctuary_reading_timer_start_ms`, `ReadSanctuary_reading_timer_last_tick_ms`, `ReadSanctuary_reading_timer_is_running`, `ReadSanctuary_reading_timer_accumulated_seconds`.
 * Upon app restart:
-  $$\text{Elapsed} = \text{accumulatedSeconds} + \left(\frac{\text{nowMs} - \text{startMs}}{1000}\right)$$
-* Recalculates elapsed time down to the exact second, making it immune to Android/iOS memory kills.
+  $$\text{Elapsed} = \text{accumulatedSeconds} + \left(\frac{\text{nowMs} - \text{lastTickMs}}{1000}\right)$$
+* Recalculates elapsed time down to the exact second, making it completely immune to Android/iOS memory kills and background drift.
+* Automatically records `finishedAt` when a book is completed through the end-session dialog.
 
 ---
 
@@ -427,8 +455,9 @@ File handling is managed by [`ImageStorageHelper`](file:///d:/Dev/ReadSanctuary/
 [`BackupArchiveService`](file:///d:/Dev/ReadSanctuary/lib/data/services/backup_archive_service.dart) manages library backups:
 1. **WAL Flushing:** Runs `PRAGMA wal_checkpoint(FULL);` before packaging so all SQLite transactions commit to disk.
 2. **Packaging:** Bundles `app_database.sqlite`, `media/covers`, `media/spines`, and `backup_manifest.json` into a `.zip` file using `archive`.
-3. **Restoration:** Validates manifest schema version, restores database file, unpacks media assets, and invalidates Drift cache.
-4. **Google Drive Sync (Pro):** Uploads to sandboxed `drive.appdata` folder.
+3. **Zip-Slip Directory Traversal Defense:** Validates each archive entry's canonical path (`p.canonicalize()`) against the destination directory (`p.isWithin()`), rejecting any path traversal attempt with a `FormatException`.
+4. **Restoration:** Validates manifest schema version, restores database file, unpacks media assets safely, and invalidates Drift cache.
+5. **Google Drive Sync (Pro):** Uploads to sandboxed `drive.appdata` folder.
 
 ---
 
@@ -510,12 +539,14 @@ test/
     ├── end_to_end_test.dart                 # Complete boot, shelf creation, detail edit, and session flow
     ├── interactive_3d_book_viewer_test.dart # Gyro & touch drag 3D book viewer test
     ├── screen_rendering_test.dart           # Scanner, stats, timer, and backup screen tests
-    └── shelf_home_widget_test.dart          # Android HomeWidget synchronization verification
+    ├── shelf_decorations_fe_test.dart       # Decorator sheet, custom props, and shelf themes test
+    ├── shelf_home_widget_test.dart          # Android HomeWidget synchronization verification
+    └── ui_add_book_and_3d_model_test.dart   # Responsive add-book dialog, 3D model formation & reading ribbon test
 ```
 
 ### Executing Tests
 ```bash
-# Run all 96 unit, widget, and integration tests
+# Run all 101 unit, widget, and integration tests
 flutter test
 
 # Run a specific test suite
@@ -527,7 +558,7 @@ The codebase enforces strict lint rules configured via `flutter_lints` and `anal
 ```bash
 flutter analyze lib/
 ```
-All pull requests must pass `flutter analyze lib/` and `flutter test` with **0 errors and 0 warnings** (currently **96 / 96 passing**).
+All pull requests must pass `flutter analyze lib/` and `flutter test` with **0 errors and 0 warnings** (currently **101 / 101 passing**).
 
 ---
 
