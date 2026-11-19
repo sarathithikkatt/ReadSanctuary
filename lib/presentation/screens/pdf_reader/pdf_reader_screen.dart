@@ -445,6 +445,7 @@ class _PdfReaderScreenState extends ConsumerState<PdfReaderScreen> {
 
     return Scaffold(
       backgroundColor: bgColor,
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -654,57 +655,63 @@ class _PdfReaderScreenState extends ConsumerState<PdfReaderScreen> {
     final isReady = _totalPages > 0;
     final displayPage = isReady ? (_currentPage + 1) : 0;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+    return Material(
       color: Theme.of(context).cardColor,
+      elevation: 4,
       child: SafeArea(
         top: false,
-        child: Row(
-          children: [
-            IconButton(
-              icon: const Icon(Icons.chevron_left),
-              tooltip: 'Previous Page',
-              onPressed: (isReady && _currentPage > 0)
-                  ? () async {
-                      final prev = _currentPage - 1;
-                      await _pdfViewController?.setPage(prev);
-                      setState(() => _currentPage = prev);
-                    }
-                  : null,
-            ),
-            Expanded(
-              child: Slider(
-                value: isReady
-                    ? displayPage.toDouble().clamp(1.0, _totalPages.toDouble())
-                    : 1.0,
-                min: 1.0,
-                max: isReady ? _totalPages.toDouble() : 1.0,
-                divisions: (isReady && _totalPages > 1) ? _totalPages - 1 : 1,
-                label: isReady ? '$displayPage' : null,
-                onChanged: isReady
-                    ? (val) {
-                        final target = val.round();
-                        final targetIndex = target - 1;
-                        if (targetIndex != _currentPage) {
-                          _pdfViewController?.setPage(targetIndex);
-                          setState(() => _currentPage = targetIndex);
+        child: SizedBox(
+          height: 56,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.chevron_left),
+                  tooltip: 'Previous Page',
+                  onPressed: (isReady && _currentPage > 0)
+                      ? () async {
+                          final prev = _currentPage - 1;
+                          await _pdfViewController?.setPage(prev);
+                          setState(() => _currentPage = prev);
                         }
-                      }
-                    : null,
-              ),
+                      : null,
+                ),
+                Expanded(
+                  child: Slider(
+                    value: isReady
+                        ? displayPage.toDouble().clamp(1.0, _totalPages.toDouble())
+                        : 1.0,
+                    min: 1.0,
+                    max: isReady ? _totalPages.toDouble() : 1.0,
+                    divisions: (isReady && _totalPages > 1) ? _totalPages - 1 : 1,
+                    label: isReady ? '$displayPage' : null,
+                    onChanged: isReady
+                        ? (val) {
+                            final target = val.round();
+                            final targetIndex = target - 1;
+                            if (targetIndex != _currentPage) {
+                              _pdfViewController?.setPage(targetIndex);
+                              setState(() => _currentPage = targetIndex);
+                            }
+                          }
+                        : null,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.chevron_right),
+                  tooltip: 'Next Page',
+                  onPressed: (isReady && displayPage < _totalPages)
+                      ? () async {
+                          final next = _currentPage + 1;
+                          await _pdfViewController?.setPage(next);
+                          setState(() => _currentPage = next);
+                        }
+                      : null,
+                ),
+              ],
             ),
-            IconButton(
-              icon: const Icon(Icons.chevron_right),
-              tooltip: 'Next Page',
-              onPressed: (isReady && displayPage < _totalPages)
-                  ? () async {
-                      final next = _currentPage + 1;
-                      await _pdfViewController?.setPage(next);
-                      setState(() => _currentPage = next);
-                    }
-                  : null,
-            ),
-          ],
+          ),
         ),
       ),
     );
