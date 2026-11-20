@@ -97,6 +97,12 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
   late final GeneratedColumn<String> coverPath = GeneratedColumn<String>(
       'cover_path', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _backCoverPathMeta =
+      const VerificationMeta('backCoverPath');
+  @override
+  late final GeneratedColumn<String> backCoverPath = GeneratedColumn<String>(
+      'back_cover_path', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _customSpinePathMeta =
       const VerificationMeta('customSpinePath');
   @override
@@ -187,6 +193,7 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
         seriesName,
         seriesIndex,
         coverPath,
+        backCoverPath,
         customSpinePath,
         pdfPath,
         lastReadPage,
@@ -286,6 +293,12 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
     if (data.containsKey('cover_path')) {
       context.handle(_coverPathMeta,
           coverPath.isAcceptableOrUnknown(data['cover_path']!, _coverPathMeta));
+    }
+    if (data.containsKey('back_cover_path')) {
+      context.handle(
+          _backCoverPathMeta,
+          backCoverPath.isAcceptableOrUnknown(
+              data['back_cover_path']!, _backCoverPathMeta));
     }
     if (data.containsKey('custom_spine_path')) {
       context.handle(
@@ -398,6 +411,8 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
           .read(DriftSqlType.double, data['${effectivePrefix}series_index']),
       coverPath: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}cover_path']),
+      backCoverPath: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}back_cover_path']),
       customSpinePath: attachedDatabase.typeMapping.read(
           DriftSqlType.string, data['${effectivePrefix}custom_spine_path']),
       pdfPath: attachedDatabase.typeMapping
@@ -447,6 +462,7 @@ class Book extends DataClass implements Insertable<Book> {
   final String? seriesName;
   final double? seriesIndex;
   final String? coverPath;
+  final String? backCoverPath;
   final String? customSpinePath;
   final String? pdfPath;
   final int lastReadPage;
@@ -475,6 +491,7 @@ class Book extends DataClass implements Insertable<Book> {
       this.seriesName,
       this.seriesIndex,
       this.coverPath,
+      this.backCoverPath,
       this.customSpinePath,
       this.pdfPath,
       required this.lastReadPage,
@@ -522,6 +539,9 @@ class Book extends DataClass implements Insertable<Book> {
     }
     if (!nullToAbsent || coverPath != null) {
       map['cover_path'] = Variable<String>(coverPath);
+    }
+    if (!nullToAbsent || backCoverPath != null) {
+      map['back_cover_path'] = Variable<String>(backCoverPath);
     }
     if (!nullToAbsent || customSpinePath != null) {
       map['custom_spine_path'] = Variable<String>(customSpinePath);
@@ -586,6 +606,9 @@ class Book extends DataClass implements Insertable<Book> {
       coverPath: coverPath == null && nullToAbsent
           ? const Value.absent()
           : Value(coverPath),
+      backCoverPath: backCoverPath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(backCoverPath),
       customSpinePath: customSpinePath == null && nullToAbsent
           ? const Value.absent()
           : Value(customSpinePath),
@@ -633,6 +656,7 @@ class Book extends DataClass implements Insertable<Book> {
       seriesName: serializer.fromJson<String?>(json['seriesName']),
       seriesIndex: serializer.fromJson<double?>(json['seriesIndex']),
       coverPath: serializer.fromJson<String?>(json['coverPath']),
+      backCoverPath: serializer.fromJson<String?>(json['backCoverPath']),
       customSpinePath: serializer.fromJson<String?>(json['customSpinePath']),
       pdfPath: serializer.fromJson<String?>(json['pdfPath']),
       lastReadPage: serializer.fromJson<int>(json['lastReadPage']),
@@ -666,6 +690,7 @@ class Book extends DataClass implements Insertable<Book> {
       'seriesName': serializer.toJson<String?>(seriesName),
       'seriesIndex': serializer.toJson<double?>(seriesIndex),
       'coverPath': serializer.toJson<String?>(coverPath),
+      'backCoverPath': serializer.toJson<String?>(backCoverPath),
       'customSpinePath': serializer.toJson<String?>(customSpinePath),
       'pdfPath': serializer.toJson<String?>(pdfPath),
       'lastReadPage': serializer.toJson<int>(lastReadPage),
@@ -697,6 +722,7 @@ class Book extends DataClass implements Insertable<Book> {
           Value<String?> seriesName = const Value.absent(),
           Value<double?> seriesIndex = const Value.absent(),
           Value<String?> coverPath = const Value.absent(),
+          Value<String?> backCoverPath = const Value.absent(),
           Value<String?> customSpinePath = const Value.absent(),
           Value<String?> pdfPath = const Value.absent(),
           int? lastReadPage,
@@ -725,6 +751,8 @@ class Book extends DataClass implements Insertable<Book> {
         seriesName: seriesName.present ? seriesName.value : this.seriesName,
         seriesIndex: seriesIndex.present ? seriesIndex.value : this.seriesIndex,
         coverPath: coverPath.present ? coverPath.value : this.coverPath,
+        backCoverPath:
+            backCoverPath.present ? backCoverPath.value : this.backCoverPath,
         customSpinePath: customSpinePath.present
             ? customSpinePath.value
             : this.customSpinePath,
@@ -766,6 +794,9 @@ class Book extends DataClass implements Insertable<Book> {
       seriesIndex:
           data.seriesIndex.present ? data.seriesIndex.value : this.seriesIndex,
       coverPath: data.coverPath.present ? data.coverPath.value : this.coverPath,
+      backCoverPath: data.backCoverPath.present
+          ? data.backCoverPath.value
+          : this.backCoverPath,
       customSpinePath: data.customSpinePath.present
           ? data.customSpinePath.value
           : this.customSpinePath,
@@ -814,6 +845,7 @@ class Book extends DataClass implements Insertable<Book> {
           ..write('seriesName: $seriesName, ')
           ..write('seriesIndex: $seriesIndex, ')
           ..write('coverPath: $coverPath, ')
+          ..write('backCoverPath: $backCoverPath, ')
           ..write('customSpinePath: $customSpinePath, ')
           ..write('pdfPath: $pdfPath, ')
           ..write('lastReadPage: $lastReadPage, ')
@@ -847,6 +879,7 @@ class Book extends DataClass implements Insertable<Book> {
         seriesName,
         seriesIndex,
         coverPath,
+        backCoverPath,
         customSpinePath,
         pdfPath,
         lastReadPage,
@@ -879,6 +912,7 @@ class Book extends DataClass implements Insertable<Book> {
           other.seriesName == this.seriesName &&
           other.seriesIndex == this.seriesIndex &&
           other.coverPath == this.coverPath &&
+          other.backCoverPath == this.backCoverPath &&
           other.customSpinePath == this.customSpinePath &&
           other.pdfPath == this.pdfPath &&
           other.lastReadPage == this.lastReadPage &&
@@ -909,6 +943,7 @@ class BooksCompanion extends UpdateCompanion<Book> {
   final Value<String?> seriesName;
   final Value<double?> seriesIndex;
   final Value<String?> coverPath;
+  final Value<String?> backCoverPath;
   final Value<String?> customSpinePath;
   final Value<String?> pdfPath;
   final Value<int> lastReadPage;
@@ -938,6 +973,7 @@ class BooksCompanion extends UpdateCompanion<Book> {
     this.seriesName = const Value.absent(),
     this.seriesIndex = const Value.absent(),
     this.coverPath = const Value.absent(),
+    this.backCoverPath = const Value.absent(),
     this.customSpinePath = const Value.absent(),
     this.pdfPath = const Value.absent(),
     this.lastReadPage = const Value.absent(),
@@ -968,6 +1004,7 @@ class BooksCompanion extends UpdateCompanion<Book> {
     this.seriesName = const Value.absent(),
     this.seriesIndex = const Value.absent(),
     this.coverPath = const Value.absent(),
+    this.backCoverPath = const Value.absent(),
     this.customSpinePath = const Value.absent(),
     this.pdfPath = const Value.absent(),
     this.lastReadPage = const Value.absent(),
@@ -1005,6 +1042,7 @@ class BooksCompanion extends UpdateCompanion<Book> {
     Expression<String>? seriesName,
     Expression<double>? seriesIndex,
     Expression<String>? coverPath,
+    Expression<String>? backCoverPath,
     Expression<String>? customSpinePath,
     Expression<String>? pdfPath,
     Expression<int>? lastReadPage,
@@ -1035,6 +1073,7 @@ class BooksCompanion extends UpdateCompanion<Book> {
       if (seriesName != null) 'series_name': seriesName,
       if (seriesIndex != null) 'series_index': seriesIndex,
       if (coverPath != null) 'cover_path': coverPath,
+      if (backCoverPath != null) 'back_cover_path': backCoverPath,
       if (customSpinePath != null) 'custom_spine_path': customSpinePath,
       if (pdfPath != null) 'pdf_path': pdfPath,
       if (lastReadPage != null) 'last_read_page': lastReadPage,
@@ -1067,6 +1106,7 @@ class BooksCompanion extends UpdateCompanion<Book> {
       Value<String?>? seriesName,
       Value<double?>? seriesIndex,
       Value<String?>? coverPath,
+      Value<String?>? backCoverPath,
       Value<String?>? customSpinePath,
       Value<String?>? pdfPath,
       Value<int>? lastReadPage,
@@ -1096,6 +1136,7 @@ class BooksCompanion extends UpdateCompanion<Book> {
       seriesName: seriesName ?? this.seriesName,
       seriesIndex: seriesIndex ?? this.seriesIndex,
       coverPath: coverPath ?? this.coverPath,
+      backCoverPath: backCoverPath ?? this.backCoverPath,
       customSpinePath: customSpinePath ?? this.customSpinePath,
       pdfPath: pdfPath ?? this.pdfPath,
       lastReadPage: lastReadPage ?? this.lastReadPage,
@@ -1160,6 +1201,9 @@ class BooksCompanion extends UpdateCompanion<Book> {
     if (coverPath.present) {
       map['cover_path'] = Variable<String>(coverPath.value);
     }
+    if (backCoverPath.present) {
+      map['back_cover_path'] = Variable<String>(backCoverPath.value);
+    }
     if (customSpinePath.present) {
       map['custom_spine_path'] = Variable<String>(customSpinePath.value);
     }
@@ -1220,6 +1264,7 @@ class BooksCompanion extends UpdateCompanion<Book> {
           ..write('seriesName: $seriesName, ')
           ..write('seriesIndex: $seriesIndex, ')
           ..write('coverPath: $coverPath, ')
+          ..write('backCoverPath: $backCoverPath, ')
           ..write('customSpinePath: $customSpinePath, ')
           ..write('pdfPath: $pdfPath, ')
           ..write('lastReadPage: $lastReadPage, ')
@@ -2753,6 +2798,7 @@ typedef $$BooksTableCreateCompanionBuilder = BooksCompanion Function({
   Value<String?> seriesName,
   Value<double?> seriesIndex,
   Value<String?> coverPath,
+  Value<String?> backCoverPath,
   Value<String?> customSpinePath,
   Value<String?> pdfPath,
   Value<int> lastReadPage,
@@ -2783,6 +2829,7 @@ typedef $$BooksTableUpdateCompanionBuilder = BooksCompanion Function({
   Value<String?> seriesName,
   Value<double?> seriesIndex,
   Value<String?> coverPath,
+  Value<String?> backCoverPath,
   Value<String?> customSpinePath,
   Value<String?> pdfPath,
   Value<int> lastReadPage,
@@ -2900,6 +2947,9 @@ class $$BooksTableFilterComposer extends Composer<_$AppDatabase, $BooksTable> {
 
   ColumnFilters<String> get coverPath => $composableBuilder(
       column: $table.coverPath, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get backCoverPath => $composableBuilder(
+      column: $table.backCoverPath, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get customSpinePath => $composableBuilder(
       column: $table.customSpinePath,
@@ -3057,6 +3107,10 @@ class $$BooksTableOrderingComposer
   ColumnOrderings<String> get coverPath => $composableBuilder(
       column: $table.coverPath, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get backCoverPath => $composableBuilder(
+      column: $table.backCoverPath,
+      builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get customSpinePath => $composableBuilder(
       column: $table.customSpinePath,
       builder: (column) => ColumnOrderings(column));
@@ -3154,6 +3208,9 @@ class $$BooksTableAnnotationComposer
 
   GeneratedColumn<String> get coverPath =>
       $composableBuilder(column: $table.coverPath, builder: (column) => column);
+
+  GeneratedColumn<String> get backCoverPath => $composableBuilder(
+      column: $table.backCoverPath, builder: (column) => column);
 
   GeneratedColumn<String> get customSpinePath => $composableBuilder(
       column: $table.customSpinePath, builder: (column) => column);
@@ -3294,6 +3351,7 @@ class $$BooksTableTableManager extends RootTableManager<
             Value<String?> seriesName = const Value.absent(),
             Value<double?> seriesIndex = const Value.absent(),
             Value<String?> coverPath = const Value.absent(),
+            Value<String?> backCoverPath = const Value.absent(),
             Value<String?> customSpinePath = const Value.absent(),
             Value<String?> pdfPath = const Value.absent(),
             Value<int> lastReadPage = const Value.absent(),
@@ -3324,6 +3382,7 @@ class $$BooksTableTableManager extends RootTableManager<
             seriesName: seriesName,
             seriesIndex: seriesIndex,
             coverPath: coverPath,
+            backCoverPath: backCoverPath,
             customSpinePath: customSpinePath,
             pdfPath: pdfPath,
             lastReadPage: lastReadPage,
@@ -3354,6 +3413,7 @@ class $$BooksTableTableManager extends RootTableManager<
             Value<String?> seriesName = const Value.absent(),
             Value<double?> seriesIndex = const Value.absent(),
             Value<String?> coverPath = const Value.absent(),
+            Value<String?> backCoverPath = const Value.absent(),
             Value<String?> customSpinePath = const Value.absent(),
             Value<String?> pdfPath = const Value.absent(),
             Value<int> lastReadPage = const Value.absent(),
@@ -3384,6 +3444,7 @@ class $$BooksTableTableManager extends RootTableManager<
             seriesName: seriesName,
             seriesIndex: seriesIndex,
             coverPath: coverPath,
+            backCoverPath: backCoverPath,
             customSpinePath: customSpinePath,
             pdfPath: pdfPath,
             lastReadPage: lastReadPage,

@@ -29,7 +29,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? e]) : super(e ?? _openConnection());
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -63,6 +63,9 @@ class AppDatabase extends _$AppDatabase {
                 'CREATE INDEX IF NOT EXISTS reading_sessions_time_idx ON reading_sessions (start_time);');
             await customStatement(
                 'CREATE INDEX IF NOT EXISTS book_notes_book_idx ON book_notes (book_id);');
+          }
+          if (from < 5) {
+            await m.addColumn(books, books.backCoverPath);
           }
         },
         beforeOpen: (details) async {

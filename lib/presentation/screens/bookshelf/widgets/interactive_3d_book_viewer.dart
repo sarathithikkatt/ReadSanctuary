@@ -64,7 +64,8 @@ class _Interactive3dBookViewerState extends State<Interactive3dBookViewer>
   Animation<double>? _inertiaAnimY;
 
   double _rotationY = 0.52; // Start with attractive 3D angle (~30°)
-  double _rotationX = -0.18; // Downward pitch (~10°) cleanly revealing top paper block
+  double _rotationX =
+      -0.18; // Downward pitch (~10°) cleanly revealing top paper block
   double _scale = 1.0;
   double _baseScale = 1.0;
   bool _isAutoOrbiting = false;
@@ -72,6 +73,7 @@ class _Interactive3dBookViewerState extends State<Interactive3dBookViewer>
   DateTime? _lastTapTime;
 
   String? _resolvedCoverAbsPath;
+  String? _resolvedBackCoverAbsPath;
   String? _resolvedSpineAbsPath;
 
   @override
@@ -127,6 +129,10 @@ class _Interactive3dBookViewerState extends State<Interactive3dBookViewer>
     if (widget.book.coverPath != null) {
       final abs = await storage.resolveAbsolutePath(widget.book.coverPath!);
       if (mounted) setState(() => _resolvedCoverAbsPath = abs);
+    }
+    if (widget.book.backCoverPath != null) {
+      final abs = await storage.resolveAbsolutePath(widget.book.backCoverPath!);
+      if (mounted) setState(() => _resolvedBackCoverAbsPath = abs);
     }
     if (widget.book.customSpinePath != null) {
       final abs =
@@ -193,7 +199,8 @@ class _Interactive3dBookViewerState extends State<Interactive3dBookViewer>
   }
 
   String _getActivePresetLabel() {
-    if ((_rotationX - (-0.18)).abs() < 0.18 && (_rotationY - 0.52).abs() < 0.28) {
+    if ((_rotationX - (-0.18)).abs() < 0.18 &&
+        (_rotationY - 0.52).abs() < 0.28) {
       return '3D View';
     }
     final normY = ((_rotationY % (2 * math.pi)) + 2 * math.pi) % (2 * math.pi);
@@ -321,8 +328,9 @@ class _Interactive3dBookViewerState extends State<Interactive3dBookViewer>
                         _scale = (_baseScale * details.scale).clamp(0.75, 2.3);
                       }
                       _rotationY += details.focalPointDelta.dx * 0.013;
-                      _rotationX = (_rotationX - details.focalPointDelta.dy * 0.013)
-                          .clamp(-0.85, 0.85);
+                      _rotationX =
+                          (_rotationX - details.focalPointDelta.dy * 0.013)
+                              .clamp(-0.85, 0.85);
                       _checkHapticDetents();
                     });
                   },
@@ -370,7 +378,9 @@ class _Interactive3dBookViewerState extends State<Interactive3dBookViewer>
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             _buildFloatingGlassPill(
-                              icon: _isAutoOrbiting ? Icons.pause : Icons.rotate_right,
+                              icon: _isAutoOrbiting
+                                  ? Icons.pause
+                                  : Icons.rotate_right,
                               label: _isAutoOrbiting ? 'Pause' : 'Auto Orbit',
                               isActive: _isAutoOrbiting,
                               onTap: () {
@@ -428,7 +438,8 @@ class _Interactive3dBookViewerState extends State<Interactive3dBookViewer>
                   borderRadius:
                       const BorderRadius.vertical(top: Radius.circular(24.0)),
                   border: Border(
-                    top: BorderSide(color: Colors.white.withOpacity(0.1), width: 1.0),
+                    top: BorderSide(
+                        color: Colors.white.withOpacity(0.1), width: 1.0),
                   ),
                   boxShadow: const [
                     BoxShadow(
@@ -444,15 +455,20 @@ class _Interactive3dBookViewerState extends State<Interactive3dBookViewer>
                       Builder(
                         builder: (ctx) {
                           final isEpub = widget.book.pdfPath != null &&
-                              (widget.book.pdfPath!.toLowerCase().endsWith('.epub') ||
-                                  widget.book.pdfPath!.toLowerCase().endsWith('.epub3'));
+                              (widget.book.pdfPath!
+                                      .toLowerCase()
+                                      .endsWith('.epub') ||
+                                  widget.book.pdfPath!
+                                      .toLowerCase()
+                                      .endsWith('.epub3'));
                           return Expanded(
                             flex: 3,
                             child: ElevatedButton.icon(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.green.shade700,
                                 foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 14),
                                 elevation: 4.0,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(14.0),
@@ -467,7 +483,8 @@ class _Interactive3dBookViewerState extends State<Interactive3dBookViewer>
                                     : (widget.book.lastReadPage > 1
                                         ? 'Read (Pg ${widget.book.lastReadPage})'
                                         : 'Read Book (PDF)'),
-                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold),
                               ),
                               onPressed: () {
                                 Navigator.of(context).pop();
@@ -489,7 +506,8 @@ class _Interactive3dBookViewerState extends State<Interactive3dBookViewer>
                         child: OutlinedButton.icon(
                           style: OutlinedButton.styleFrom(
                             foregroundColor: Colors.white,
-                            side: BorderSide(color: Colors.white.withOpacity(0.4)),
+                            side: BorderSide(
+                                color: Colors.white.withOpacity(0.4)),
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(14.0),
@@ -518,7 +536,8 @@ class _Interactive3dBookViewerState extends State<Interactive3dBookViewer>
                       flex: 2,
                       child: ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Theme.of(context).colorScheme.primary,
+                          backgroundColor:
+                              Theme.of(context).colorScheme.primary,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           elevation: 4.0,
@@ -605,16 +624,16 @@ class _Interactive3dBookViewerState extends State<Interactive3dBookViewer>
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 7.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12.0, vertical: 7.0),
               decoration: BoxDecoration(
                 color: isActive
                     ? primary.withOpacity(0.85)
                     : Colors.white.withOpacity(0.12),
                 borderRadius: BorderRadius.circular(20.0),
                 border: Border.all(
-                  color: isActive
-                      ? Colors.white38
-                      : Colors.white.withOpacity(0.2),
+                  color:
+                      isActive ? Colors.white38 : Colors.white.withOpacity(0.2),
                   width: 1.0,
                 ),
               ),
@@ -648,13 +667,15 @@ class _Interactive3dBookViewerState extends State<Interactive3dBookViewer>
         if (brightness < 0.96)
           Positioned.fill(
             child: Container(
-              color: Colors.black.withOpacity(((1.0 - brightness) * 0.65).clamp(0.0, 0.7)),
+              color: Colors.black
+                  .withOpacity(((1.0 - brightness) * 0.65).clamp(0.0, 0.7)),
             ),
           )
         else if (brightness > 0.88)
           Positioned.fill(
             child: Container(
-              color: Colors.white.withOpacity(((brightness - 0.88) * 0.25).clamp(0.0, 0.2)),
+              color: Colors.white
+                  .withOpacity(((brightness - 0.88) * 0.25).clamp(0.0, 0.2)),
             ),
           ),
       ],
@@ -700,7 +721,8 @@ class _Interactive3dBookViewerState extends State<Interactive3dBookViewer>
     final frontNy = -cosY * sinX;
     final frontNz = cosY * cosX;
     final isFrontVis = frontNz > -0.05;
-    final frontLight = (frontNx * lx + frontNy * ly + frontNz * lz).clamp(0.0, 1.0);
+    final frontLight =
+        (frontNx * lx + frontNy * ly + frontNz * lz).clamp(0.0, 1.0);
     final frontBrightness = (0.55 + 0.45 * frontLight).clamp(0.4, 1.0);
 
     // 2. Back Face (-Z)
@@ -718,7 +740,8 @@ class _Interactive3dBookViewerState extends State<Interactive3dBookViewer>
     final spineNy = -sinY * sinX;
     final spineNz = sinY * cosX;
     final isSpineVis = spineNz > -0.05;
-    final spineLight = (spineNx * lx + spineNy * ly + spineNz * lz).clamp(0.0, 1.0);
+    final spineLight =
+        (spineNx * lx + spineNy * ly + spineNz * lz).clamp(0.0, 1.0);
     final spineBrightness = (0.55 + 0.45 * spineLight).clamp(0.4, 1.0);
 
     // 4. Fore-Edge Face (+X)
@@ -754,8 +777,7 @@ class _Interactive3dBookViewerState extends State<Interactive3dBookViewer>
           depth: frontCz,
           widget: Transform(
             alignment: Alignment.center,
-            transform: Matrix4.identity()
-              ..translate(overhang / 2, 0.0, hz),
+            transform: Matrix4.identity()..translate(overhang / 2, 0.0, hz),
             child: SizedBox(
               width: coverWidth,
               height: coverHeight,
@@ -804,7 +826,8 @@ class _Interactive3dBookViewerState extends State<Interactive3dBookViewer>
               width: thickness,
               height: coverHeight,
               child: _applyLighting(
-                _buildSpineFace(thickness, coverHeight, spineColor, spineTextColor),
+                _buildSpineFace(
+                    thickness, coverHeight, spineColor, spineTextColor),
                 spineBrightness,
               ),
             ),
@@ -880,9 +903,11 @@ class _Interactive3dBookViewerState extends State<Interactive3dBookViewer>
     }
 
     // Silk Ribbon Bookmark hanging from bottom page block
-    final hasProgress = widget.book.lastReadPage > 1 && widget.book.pageCount > 0;
+    final hasProgress =
+        widget.book.lastReadPage > 1 && widget.book.pageCount > 0;
     if (hasProgress) {
-      final ratio = (widget.book.lastReadPage / widget.book.pageCount).clamp(0.06, 0.94);
+      final ratio =
+          (widget.book.lastReadPage / widget.book.pageCount).clamp(0.06, 0.94);
       final ribbonZ = hz - (ratio * thickness);
       final ribbonCz = hy * (-sinX) + ribbonZ * cosY * cosX;
       faces.add(
@@ -905,7 +930,8 @@ class _Interactive3dBookViewerState extends State<Interactive3dBookViewer>
       child: Transform(
         alignment: Alignment.center,
         transform: Matrix4.identity()
-          ..setEntry(3, 2, -0.0013) // Perspective (negative for true camera-space depth)
+          ..setEntry(3, 2,
+              -0.0013) // Perspective (negative for true camera-space depth)
           ..rotateX(_rotationX)
           ..rotateY(_rotationY),
         child: Stack(
@@ -1022,7 +1048,8 @@ class _Interactive3dBookViewerState extends State<Interactive3dBookViewer>
               ),
               borderRadius: BorderRadius.circular(3.0),
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 12.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 10.0, vertical: 12.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -1092,7 +1119,8 @@ class _Interactive3dBookViewerState extends State<Interactive3dBookViewer>
     );
   }
 
-  Widget _buildSpineFace(double thickness, double h, Color baseColor, Color textColor) {
+  Widget _buildSpineFace(
+      double thickness, double h, Color baseColor, Color textColor) {
     return SizedBox(
       width: thickness,
       height: h,
@@ -1166,181 +1194,23 @@ class _Interactive3dBookViewerState extends State<Interactive3dBookViewer>
   }
 
   Widget _buildBackCover(double w, double h, Color baseColor) {
-    final textColor = Color(widget.book.spineTextHex);
-    final authorsList = Formatters.parseAuthors(widget.book.authors);
-    final isReading = widget.book.status == 'reading';
-    final hasRating = widget.book.rating != null && widget.book.rating! > 0;
-    final hasSeries = widget.book.seriesName != null && widget.book.seriesName!.isNotEmpty;
-
     return SizedBox(
       width: w,
       height: h,
       child: Stack(
         fit: StackFit.expand,
         children: [
-          // Embossed leather texture matching front cover
-          Image.asset(
-            'assets/images/placeholders/default_book_cover.png',
-            fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => Container(color: baseColor),
-          ),
-          Container(
-            color: baseColor.withOpacity(0.65),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 22.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Top Header Row on Back
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      widget.book.format.toUpperCase(),
-                      style: TextStyle(
-                        color: textColor.withOpacity(0.7),
-                        fontSize: 11,
-                        letterSpacing: 1.5,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Icon(Icons.bookmark_border,
-                        size: 16, color: textColor.withOpacity(0.5)),
-                  ],
-                ),
-
-                // Center Synopsis / Series / Rating
-                Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (hasSeries) ...[
-                        Text(
-                          '${widget.book.seriesName!} #${widget.book.seriesIndex != null ? (widget.book.seriesIndex! % 1 == 0 ? widget.book.seriesIndex!.toInt() : widget.book.seriesIndex) : 1}',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: textColor.withOpacity(0.75),
-                            fontSize: 11,
-                            fontStyle: FontStyle.italic,
-                            letterSpacing: 0.4,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                      ],
-                      Text(
-                        widget.book.title,
-                        textAlign: TextAlign.center,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: textColor,
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.3,
-                        ),
-                      ),
-                      if (authorsList.isNotEmpty) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          authorsList.join(', '),
-                          textAlign: TextAlign.center,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: textColor.withOpacity(0.7),
-                            fontSize: 11,
-                          ),
-                        ),
-                      ],
-                      if (isReading) ...[
-                        const SizedBox(height: 6),
-                        Text(
-                          'Page ${widget.book.lastReadPage} of ${widget.book.pageCount}',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: textColor.withOpacity(0.65),
-                            fontSize: 10,
-                          ),
-                        ),
-                      ],
-                      if (hasRating) ...[
-                        const SizedBox(height: 10),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            ...List.generate(5, (i) {
-                              final starVal = i + 1;
-                              final r = widget.book.rating!;
-                              IconData iconData = Icons.star_border;
-                              if (r >= starVal) {
-                                iconData = Icons.star;
-                              } else if (r >= starVal - 0.5) {
-                                iconData = Icons.star_half;
-                              }
-                              return Icon(iconData, size: 14, color: const Color(0xFFFFB300));
-                            }),
-                            const SizedBox(width: 4),
-                            Text(
-                              widget.book.rating!.toStringAsFixed(1),
-                              style: TextStyle(
-                                color: textColor.withOpacity(0.85),
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-
-                // Barcode Simulation with Real ISBN
-                Align(
-                  alignment: Alignment.bottomRight,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 4.0),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(2.0),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: List.generate(
-                            20,
-                            (i) => Container(
-                              width: (i % 4 == 0) ? 2.5 : (i % 2 == 0 ? 1.5 : 1.0),
-                              height: 20,
-                              margin: const EdgeInsets.symmetric(horizontal: 0.6),
-                              color: Colors.black,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          widget.book.isbn13 != null && widget.book.isbn13!.isNotEmpty
-                              ? 'ISBN ${widget.book.isbn13}'
-                              : 'SHELF CRAFT',
-                          style: const TextStyle(
-                            color: Colors.black87,
-                            fontSize: 7,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+          if (_resolvedBackCoverAbsPath != null &&
+              File(_resolvedBackCoverAbsPath!).existsSync())
+            Image.file(File(_resolvedBackCoverAbsPath!), fit: BoxFit.cover)
+          else if (widget.book.backCoverPath != null &&
+              widget.book.backCoverPath!.startsWith('http'))
+            CachedNetworkImage(
+              imageUrl: widget.book.backCoverPath!,
+              fit: BoxFit.cover,
+            )
+          else
+            _buildProceduralBackCover(baseColor),
 
           // Spine hinge groove shadow on the right edge of back cover
           Align(
@@ -1359,6 +1229,188 @@ class _Interactive3dBookViewerState extends State<Interactive3dBookViewer>
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildProceduralBackCover(Color baseColor) {
+    final textColor = Color(widget.book.spineTextHex);
+    final authorsList = Formatters.parseAuthors(widget.book.authors);
+    final isReading = widget.book.status == 'reading';
+    final hasRating = widget.book.rating != null && widget.book.rating! > 0;
+    final hasSeries =
+        widget.book.seriesName != null && widget.book.seriesName!.isNotEmpty;
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        // Embossed leather texture matching front cover
+        Image.asset(
+          'assets/images/placeholders/default_book_cover.png',
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => Container(color: baseColor),
+        ),
+        Container(
+          color: baseColor.withOpacity(0.65),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 22.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Top Header Row on Back
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    widget.book.format.toUpperCase(),
+                    style: TextStyle(
+                      color: textColor.withOpacity(0.7),
+                      fontSize: 11,
+                      letterSpacing: 1.5,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Icon(Icons.bookmark_border,
+                      size: 16, color: textColor.withOpacity(0.5)),
+                ],
+              ),
+
+              // Center Synopsis / Series / Rating
+              Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (hasSeries) ...[
+                      Text(
+                        '${widget.book.seriesName!} #${widget.book.seriesIndex != null ? (widget.book.seriesIndex! % 1 == 0 ? widget.book.seriesIndex!.toInt() : widget.book.seriesIndex) : 1}',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: textColor.withOpacity(0.75),
+                          fontSize: 11,
+                          fontStyle: FontStyle.italic,
+                          letterSpacing: 0.4,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                    ],
+                    Text(
+                      widget.book.title,
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: textColor,
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                    if (authorsList.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        authorsList.join(', '),
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: textColor.withOpacity(0.7),
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                    if (isReading) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        'Page ${widget.book.lastReadPage} of ${widget.book.pageCount}',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: textColor.withOpacity(0.65),
+                          fontSize: 10,
+                        ),
+                      ),
+                    ],
+                    if (hasRating) ...[
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ...List.generate(5, (i) {
+                            final starVal = i + 1;
+                            final r = widget.book.rating!;
+                            IconData iconData = Icons.star_border;
+                            if (r >= starVal) {
+                              iconData = Icons.star;
+                            } else if (r >= starVal - 0.5) {
+                              iconData = Icons.star_half;
+                            }
+                            return Icon(iconData,
+                                size: 14, color: const Color(0xFFFFB300));
+                          }),
+                          const SizedBox(width: 4),
+                          Text(
+                            widget.book.rating!.toStringAsFixed(1),
+                            style: TextStyle(
+                              color: textColor.withOpacity(0.85),
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+
+              // Barcode Simulation with Real ISBN
+              Align(
+                alignment: Alignment.bottomRight,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 6.0, vertical: 4.0),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(2.0),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: List.generate(
+                          20,
+                          (i) => Container(
+                            width:
+                                (i % 4 == 0) ? 2.5 : (i % 2 == 0 ? 1.5 : 1.0),
+                            height: 20,
+                            margin: const EdgeInsets.symmetric(horizontal: 0.6),
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        widget.book.isbn13 != null &&
+                                widget.book.isbn13!.isNotEmpty
+                            ? 'ISBN ${widget.book.isbn13}'
+                            : 'SHELF CRAFT',
+                        style: const TextStyle(
+                          color: Colors.black87,
+                          fontSize: 7,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 

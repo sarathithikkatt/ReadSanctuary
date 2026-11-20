@@ -44,6 +44,7 @@
    - [3. Deep Book Detail, Ratings & Notes](#3-deep-book-detail-ratings--notes)
      - [Granular 0.25-Star Ratings & Sub-Ratings Breakdown](#granular-025-star-ratings--sub-ratings-breakdown)
      - [OCR Camera Quote Scanner](#ocr-camera-quote-scanner)
+     - [Custom Back Cover Artwork](#custom-back-cover-artwork)
      - [Categorized Notes (Quotes, Thoughts, Characters)](#categorized-notes-quotes-thoughts-characters)
      - [1-Click Social Review Sharing](#1-click-social-review-sharing)
    - [4. In-App eBook & PDF Reading](#4-in-app-ebook--pdf-reading)
@@ -200,8 +201,9 @@ Want to rearrange books on a shelf?
 Experience your books as tangible, physical volumes in full interactive 3D:
 1. Open any book in Book Detail and tap the 3D cover preview.
 2. **True 6-Face 3D Geometry:** Renders front cover, back cover, procedural/custom spine, top edge (-Y), bottom edge (+Y), and side edge (+X) with realistic paper texture and specular lighting.
-3. **Tactile Bookmark Ribbon:** Features an embedded satin bookmark ribbon draped along the book's edge.
-4. **Touch & Gyroscopic Motion:** Drag smoothly with finger touch to rotate in 3D perspective space with natural momentum. On supported devices, gyro sensors gently tilt the book and cast dynamic lighting highlights as you shift your phone.
+3. **Custom Back Cover Art (v1.1.0):** Set custom back cover images directly from the Book Detail screen (Set Back Cover), seamlessly mapped onto the rear face in 3D. If no custom back cover is set, ReadSanctuary procedurally crafts an elegant textured back cover with book synopsis, star rating, spine hinge shadow, and simulated barcode with the real ISBN-13.
+4. **Tactile Bookmark Ribbon:** Features an embedded satin bookmark ribbon draped along the book's edge.
+5. **Touch & Gyroscopic Motion:** Drag smoothly with finger touch to rotate in 3D perspective space with natural momentum. On supported devices, gyro sensors gently tilt the book and cast dynamic lighting highlights as you shift your phone.
 
 #### Android Home Screen App Widget
 Keep your reading journey front and center without launching the app:
@@ -296,6 +298,13 @@ Save unforgettable quotes directly from the printed page without manual typing:
 4. Tap recognized text segments to insert them into your quote editor.
 5. Add the page number and optional chapter notes, then tap **Save Quote**.
 6. The quote is saved locally to your book notes and can be copied or shared anytime.
+
+#### Custom Back Cover Artwork
+Give your physical editions a complete 360-degree presence:
+1. Open any book's detail screen.
+2. Tap the **Set Back Cover** button (Icons.flip_to_back) in the action toolbar.
+3. Select an image from your photo gallery.
+4. The back cover is safely stored locally in <AppDocs>/media/covers/ and immediately integrated into the 3D book model.
 
 #### Categorized Notes (Quotes, Thoughts, Characters)
 Keep reading notes organized:
@@ -436,7 +445,7 @@ Want to gift Pro features to friends, beta testers, or book club members without
   * Voucher pattern: Any `GIFT-` followed by letters or digits (e.g. `GIFT-FRIEND100`, `GIFT-SARATH`)
   * Creator debug passkey: `DEV-OVERRIDE-2026`
 * Pro is permanently unlocked in on-device persistent storage (`SharedPreferences`) without requiring app store payments or internet connection!
-* **Creator Easter Egg:** Tap the *"ReadSanctuary v1.0.0"* footer 7 times in Settings to open the secret redemption dialog.
+* **Creator Easter Egg:** Tap the *"ReadSanctuary v1.1.0"* footer 7 times in Settings to open the secret redemption dialog.
 
 #### Automated Google Drive AppData Sync (Pro)
 For hands-free cloud redundancy:
@@ -484,7 +493,7 @@ ReadSanctuary is committed to a **generous free tier with zero lock-in**:
 **Never.** ReadSanctuary is an ad-free experience.
 
 ### What happens to my library if I switch phones?
-Simply tap **Export Local Archive (.zip)** under Settings & Backup. Move that single zip file to your new phone (via AirDrop, USB, Drive, or email), tap **Restore Local Archive (.zip)** in ReadSanctuary, and your entire library—including all covers, custom spines, sub-ratings, and notes—will load identically. Pro users can also restore from Google Drive in one tap.
+Simply tap **Export Local Archive (.zip)** under Settings & Backup. Move that single zip file to your new phone (via AirDrop, USB, Drive, or email), tap **Restore Local Archive (.zip)** in ReadSanctuary, and your entire library—including all covers, custom back covers, custom spines, sub-ratings, and notes—will load identically. Pro users can also restore from Google Drive in one tap.
 
 ### How does ReadSanctuary calculate spine thickness?
 Spine thickness is calculated directly from the book's verified page count using a smooth proportional curve (`pages / 14.0`, bounded between 26 and 62 logical pixels). A 150-page novella will look visibly slimmer than an 800-page hardcover.

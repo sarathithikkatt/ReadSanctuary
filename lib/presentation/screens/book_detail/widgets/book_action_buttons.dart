@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/utils/image_storage_helper.dart';
@@ -347,6 +350,34 @@ class BookActionButtons extends ConsumerWidget {
                   );
                   messenger.showSnackBar(
                     const SnackBar(content: Text('Custom spine updated! 🎨')),
+                  );
+                }
+              },
+            ),
+            const SizedBox(width: 8),
+            IconButton.filledTonal(
+              icon: const Icon(Icons.flip_to_back),
+              tooltip: 'Set Back Cover',
+              onPressed: () async {
+                final messenger = ScaffoldMessenger.of(context);
+                final picker = ImagePicker();
+                final picked = await picker.pickImage(source: ImageSource.gallery);
+                if (picked != null) {
+                  final storage = ref.read(imageStorageHelperProvider);
+                  final bytes = await File(picked.path).readAsBytes();
+                  final relPath = await storage.saveCoverBytes(
+                    bytes,
+                    filename: 'back_${book.id}.jpg',
+                  );
+                  final db = ref.read(appDatabaseProvider);
+                  await db.bookDao.updateBook(
+                    book.copyWith(
+                      backCoverPath: drift.Value(relPath),
+                      updatedAt: DateTime.now().millisecondsSinceEpoch,
+                    ),
+                  );
+                  messenger.showSnackBar(
+                    const SnackBar(content: Text('Back cover updated! 🎨')),
                   );
                 }
               },

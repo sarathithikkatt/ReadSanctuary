@@ -5,9 +5,9 @@
 [![Flutter Version](https://img.shields.io/badge/Flutter-3.24%2B-02569B?logo=flutter)](https://flutter.dev)
 [![Dart Version](https://img.shields.io/badge/Dart-3.5%2B-0175C2?logo=dart)](https://dart.dev)
 [![Architecture](https://img.shields.io/badge/Architecture-Clean%20Architecture%20%2F%20MVVM-informational)](https://github.com)
-[![Database](https://img.shields.io/badge/Database-Drift%20(SQLite)%20v4-blue)](https://drift.simonbinder.eu)
+[![Database](https://img.shields.io/badge/Database-Drift%20(SQLite)%20v5-blue)](https://drift.simonbinder.eu)
 [![State Management](https://img.shields.io/badge/State-Flutter%20Riverpod%202.x-teal)](https://riverpod.dev)
-[![Tests Passing](https://img.shields.io/badge/Tests-101%2F101%20Passing-success)](test/)
+[![Tests Passing](https://img.shields.io/badge/Tests-108%2F108%20Passing-success)](test/)
 [![User Guide](https://img.shields.io/badge/Documentation-User%20README-green)](README.md)
 
 ---
@@ -22,7 +22,7 @@
 1. [Architecture & Design Principles](#-architecture--design-principles)
 2. [Codebase Directory Structure](#-codebase-directory-structure)
 3. [Database Architecture & Drift Specifications](#-database-architecture--drift-specifications)
-   - [Schema Definition (Schema V3)](#schema-definition-schema-v3)
+   - [Schema Definition (Schema V5)](#schema-definition-schema-v5)
    - [Architectural Schema Decisions](#architectural-schema-decisions)
    - [Data Access Objects (DAOs) & Reactive Streams](#data-access-objects-daos--reactive-streams)
 4. [Deep Dives: Key Systems & Algorithms](#-deep-dives-key-systems--algorithms)
@@ -69,7 +69,7 @@ flowchart TD
     end
 
     subgraph Data ["Data Layer"]
-        DAOs[Drift DAOs & SQLite Tables (v3)]
+        DAOs[Drift DAOs & SQLite Tables (v5)]
         EpubService[Pure Dart EPUB Parser]
         RemoteServices[Book Lookup & Gutenberg APIs]
         StorageHelper[Image Storage & Path Resolver]
@@ -117,7 +117,7 @@ lib/
 │
 ├── data/
 │   ├── local/
-│   │   ├── database.dart                   # Drift AppDatabase instance (Schema v3) and providers
+│   │   ├── database.dart                   # Drift AppDatabase instance (Schema v5) and providers
 │   │   ├── database.g.dart                 # Generated Drift database code
 │   │   ├── daos/
 │   │   │   ├── book_dao.dart               # CRUD, batch inserts, and fractional series queries
@@ -194,12 +194,12 @@ lib/
 
 ## 🗄️ Database Architecture & Drift Specifications
 
-### Schema Definition (Schema V4)
+### Schema Definition (Schema V5)
 
 ReadSanctuary uses **Drift** on top of SQLite, ensuring high-speed transactional reliability and typed Dart mappings.
 
 ```sql
--- Schema Version 4
+-- Schema Version 5
 CREATE TABLE books (
   id TEXT PRIMARY KEY,
   isbn13 TEXT NULL,
@@ -216,6 +216,7 @@ CREATE TABLE books (
   series_name TEXT NULL,
   series_index REAL NULL,                 -- Decimal float supporting #0.5, #1.5 novellas
   cover_path TEXT NULL,                   -- Relative filename in <AppDocs>/media/covers/
+  back_cover_path TEXT NULL,              -- Relative filename in <AppDocs>/media/covers/ (Schema v5)
   custom_spine_path TEXT NULL,            -- Relative filename in <AppDocs>/media/spines/
   spine_color_hex INTEGER NOT NULL,       -- 32-bit ARGB hex int extracted from cover
   spine_text_hex INTEGER NOT NULL,        -- Contrasting 32-bit ARGB hex for typography
@@ -278,6 +279,9 @@ CREATE INDEX book_notes_book_idx ON book_notes (book_id);
        await customStatement('CREATE INDEX IF NOT EXISTS reading_sessions_book_idx ON reading_sessions (book_id);');
        await customStatement('CREATE INDEX IF NOT EXISTS reading_sessions_time_idx ON reading_sessions (start_time);');
        await customStatement('CREATE INDEX IF NOT EXISTS book_notes_book_idx ON book_notes (book_id);');
+     }
+     if (from < 5) {
+       await migrator.addColumn(books, books.backCoverPath);
      }
    }
    ```
@@ -546,7 +550,7 @@ test/
 
 ### Executing Tests
 ```bash
-# Run all 101 unit, widget, and integration tests
+# Run all 108 unit and widget tests
 flutter test
 
 # Run a specific test suite
@@ -558,7 +562,7 @@ The codebase enforces strict lint rules configured via `flutter_lints` and `anal
 ```bash
 flutter analyze lib/
 ```
-All pull requests must pass `flutter analyze lib/` and `flutter test` with **0 errors and 0 warnings** (currently **101 / 101 passing**).
+All pull requests must pass `flutter analyze lib/` and `flutter test` with **0 errors and 0 warnings** (currently **108 / 108 passing**).
 
 ---
 

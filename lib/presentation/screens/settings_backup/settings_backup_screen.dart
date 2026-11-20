@@ -512,7 +512,7 @@ class _SettingsBackupScreenState extends ConsumerState<SettingsBackupScreen> {
                         child: Column(
                           children: [
                             Text(
-                              'ReadSanctuary v1.0.0',
+                              'ReadSanctuary v1.1.0',
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Colors.grey.shade500,

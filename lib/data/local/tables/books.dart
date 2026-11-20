@@ -24,6 +24,8 @@ class Books extends Table {
       real().nullable()(); // Fractional float e.g. 0.5, 1.0, 1.5, 2.0
   TextColumn get coverPath => text()
       .nullable()(); // Relative path to local cover image in media/covers/
+  TextColumn get backCoverPath =>
+      text().nullable()(); // Relative path to local back cover image in media/covers/
   TextColumn get customSpinePath =>
       text().nullable()(); // Relative path to user spine image in media/spines/
   TextColumn get pdfPath =>
