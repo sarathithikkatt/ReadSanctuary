@@ -40,10 +40,13 @@ class StreakCardsRow extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     streak.isTodayCompleted
-                        ? 'Read Today ✨'
-                        : 'Today Pending ⏳',
+                        ? 'Read Today'
+                        : 'Today Pending',
                     style:
                         TextStyle(fontSize: 12, color: Colors.amber.shade900),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
                   ),
                 ],
               ),

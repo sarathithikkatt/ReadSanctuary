@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 @DataClassName('Book')
 @TableIndex(name: 'books_isbn13_idx', columns: {#isbn13})
 @TableIndex(name: 'books_status_idx', columns: {#status})
+@TableIndex(name: 'books_last_read_at_idx', columns: {#lastReadAt})
 class Books extends Table {
   TextColumn get id => text()();
   TextColumn get isbn13 => text().nullable()();
@@ -40,8 +41,12 @@ class Books extends Table {
   RealColumn get ratingCharacters => real().nullable()(); // 0.0 to 5.0 (0.25 steps)
   RealColumn get ratingWriting => real().nullable()(); // 0.0 to 5.0 (0.25 steps)
   RealColumn get ratingPacing => real().nullable()(); // 0.0 to 5.0 (0.25 steps)
+  IntColumn get lastReadAt =>
+      integer().nullable()(); // Unix epoch ms of last reading activity
   IntColumn get createdAt => integer()(); // Unix epoch ms
   IntColumn get updatedAt => integer()(); // Unix epoch ms
+  IntColumn get deletedAt =>
+      integer().nullable()(); // Unix epoch ms for soft delete
 
   @override
   Set<Column> get primaryKey => {id};

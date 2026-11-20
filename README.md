@@ -1,10 +1,13 @@
 # 📚 ReadSanctuary — Visual Bookshelf & Reading Companion
 
-> **A tactile, local-first, 2.5D visual book tracker, in-app eBook reader, and personal library crafted for readers who love books.**
+> **A tactile, local-first, 2.5D visual book tracker, in-app eBook & PDF reader, and personal library crafted for readers who love books.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Flutter Version](https://img.shields.io/badge/Flutter-3.24%2B-02569B?logo=flutter)](https://flutter.dev)
-[![Local First](https://img.shields.io/badge/Storage-100%25%20Local%20SQLite-success)](#privacy--local-first-promise)
+[![Storage](https://img.shields.io/badge/Storage-100%25%20Local%20SQLite%20(Schema%20v6)-success)](#privacy--local-first-promise)
+[![FTS5](https://img.shields.io/badge/Search-SQLite%20FTS5%20Fast%20Text-purple)](#fts5-full-text-live-search)
+[![Tests Passing](https://img.shields.io/badge/Tests-128%2B%20Passing-brightgreen)](test/)
+[![Version](https://img.shields.io/badge/Version-v1.2.0-teal)](pubspec.yaml)
 [![Developer Guide](https://img.shields.io/badge/Documentation-Developer%20README-orange)](README_DEV.md)
 
 ---
@@ -15,13 +18,30 @@
 
 ---
 
+## 📸 Visual Showcase
+
+| 2.5D Wooden Bookshelf & Props | Modern Library Grid & Filter View | Interactive 3D Book Viewer |
+| :---: | :---: | :---: |
+| ![Bookshelf View](screenshots/01_bookshelf_3d/02_populated_shelves.png) | ![Library Grid](screenshots/02_library_grid_and_filter/01_library_grid_view.png) | ![3D Book Viewer](screenshots/04_3d_book_viewer/01_3d_front_angle.png) |
+
+| In-App Reflowable EPUB Reader | Active Focus Reading Timer | Multi-Attribute Filter Sheet |
+| :---: | :---: | :---: |
+| ![EPUB Reader](screenshots/12_reader/01_epub_reader_screen.png) | ![Reading Timer](screenshots/08_reading_timer/01_reading_timer_active.png) | ![Filter Sheet](screenshots/02_library_grid_and_filter/04_filter_bottom_sheet_filter_tab.png) |
+
+| Book Detail & Granular Sub-Ratings | Manage Shelves & Categories | Reading Stats & Habit Streaks |
+| :---: | :---: | :---: |
+| ![Book Detail](screenshots/03_book_detail/01_book_detail_overview.png) | ![Manage Shelves](screenshots/07_manage_shelves/01_manage_shelves_list.png) | ![Stats Screen](screenshots/09_stats_screen/01_stats_overview.png) |
+
+---
+
 ## Table of Contents
-1. [Why ReadSanctuary?](#-why-ReadSanctuary)
-2. [Feature Highlights at a Glance](#-feature-highlights-at-a-glance)
-3. [Getting Started](#-getting-started)
+1. [Why ReadSanctuary?](#-why-readsanctuary)
+2. [What's New in v1.2.0](#-whats-new-in-v120)
+3. [Feature Highlights at a Glance](#-feature-highlights-at-a-glance)
+4. [Getting Started](#-getting-started)
    - [Initial Launch](#initial-launch)
    - [App Navigation Layout](#app-navigation-layout)
-4. [Comprehensive Feature Walkthrough & How to Use](#-comprehensive-feature-walkthrough--how-to-use)
+5. [Comprehensive Feature Walkthrough & How to Use](#-comprehensive-feature-walkthrough--how-to-use)
    - [1. Bookshelf Experience & 2.5D Display](#1-bookshelf-experience--25d-display)
      - [Procedural 2.5D Book Spines](#procedural-25d-book-spines)
      - [Custom Spine & Sprayed-Edge Cropper](#custom-spine--sprayed-edge-cropper)
@@ -29,49 +49,62 @@
      - [Custom Wood Shelves & Backdrop Themes](#custom-wood-shelves--backdrop-themes)
      - [Decorative Props & Spacer Gaps](#decorative-props--spacer-gaps)
      - [Horizontal Shelf Drag-and-Drop Reordering](#horizontal-shelf-drag-and-drop-reordering)
-     - [Interactive 3D Book Viewer](#interactive-3d-book-viewer)
+     - [Interactive 3D Book Viewer (Front, Spine & Back Cover)](#interactive-3d-book-viewer-front-spine--back-cover)
      - [Android Home Screen App Widget](#android-home-screen-app-widget)
      - [1-Click Social Shelf Exporter](#1-click-social-shelf-exporter)
-   - [2. Book Intake & Library Management](#2-book-intake--library-management)
+   - [2. Library Grid & List View Mode (New in v1.2.0)](#2-library-grid--list-view-mode-new-in-v120)
+     - [Instant Display Switching (Shelf vs. Grid vs. List)](#instant-display-switching-shelf-vs-grid-vs-list)
+     - [FTS5 Full-Text Live Search](#fts5-full-text-live-search)
+     - [Multi-Attribute Library Filtering](#multi-attribute-library-filtering)
+     - [Comprehensive Library Sorting](#comprehensive-library-sorting)
+     - [Typographic Fallback Cards & Cover Cache](#typographic-fallback-cards--cover-cache)
+   - [3. Manage Shelves & Multi-Shelf Organization (New in v1.2.0)](#3-manage-shelves--multi-shelf-organization-new-in-v120)
+     - [Dedicated Shelf Management Hub](#dedicated-shelf-management-hub)
+     - [Multi-Shelf Categorization (Many-to-Many Linking)](#multi-shelf-categorization-many-to-many-linking)
+     - [Reordering, Customizing, and Soft Deleting Shelves](#reordering-customizing-and-soft-deleting-shelves)
+   - [4. Book Intake & Library Management](#4-book-intake--library-management)
      - [Fast ISBN Barcode Scanner](#fast-isbn-barcode-scanner)
      - [Rapid Batch Scanning Mode](#rapid-batch-scanning-mode)
      - [Manual Book Creation & Editing](#manual-book-creation--editing)
      - [Fractional Series Sorting (Novellas & #0.5)](#fractional-series-sorting-novellas--05)
-     - [Dual-API Automatic Metadata Lookup](#dual-api-automatic-metadata-lookup)
+     - [Pluggable Metadata Aggregator Service (Google Books + OpenLibrary)](#pluggable-metadata-aggregator-service-google-books--openlibrary)
      - [Reading Statuses & Multiple Formats](#reading-statuses--multiple-formats)
      - [Book Lending Tracking](#book-lending-tracking)
      - [Free Public Domain eBook Catalog (Gutenberg)](#free-public-domain-ebook-catalog-gutenberg)
-   - [3. Deep Book Detail, Ratings & Notes](#3-deep-book-detail-ratings--notes)
+   - [5. Deep Book Detail, Ratings & Notes](#5-deep-book-detail-ratings--notes)
      - [Granular 0.25-Star Ratings & Sub-Ratings Breakdown](#granular-025-star-ratings--sub-ratings-breakdown)
      - [OCR Camera Quote Scanner](#ocr-camera-quote-scanner)
      - [Custom Back Cover Artwork](#custom-back-cover-artwork)
-     - [Categorized Notes (Quotes, Thoughts, Characters)](#categorized-notes-quotes-thoughts-characters)
+     - [Categorized Notes (Quotes, Thoughts, Characters, Bookmarks)](#categorized-notes-quotes-thoughts-characters-bookmarks)
      - [1-Click Social Review Sharing](#1-click-social-review-sharing)
-   - [4. In-App eBook & PDF Reading](#4-in-app-ebook--pdf-reading)
+   - [6. In-App eBook & PDF Reading](#6-in-app-ebook--pdf-reading)
      - [Reflowable EPUB Reader](#reflowable-epub-reader)
      - [Reading Themes & Typography Controls](#reading-themes--typography-controls)
      - [Chapter Table of Contents Drawer](#chapter-table-of-contents-drawer)
      - [Automatic Reading Session Logging](#automatic-reading-session-logging)
-     - [In-App PDF Reader](#in-app-pdf-reader)
-   - [5. Active Focus Reading Timer](#5-active-focus-reading-timer)
+     - [In-App PDF Reader & Bookmarks](#in-app-pdf-reader--bookmarks)
+   - [7. Active Focus Reading Timer & Habit Streaks](#7-active-focus-reading-timer--habit-streaks)
      - [Using the Reading Timer](#using-the-reading-timer)
      - [Background-Kill Protection](#background-kill-protection)
      - [Pages-per-Minute Speed Calculations](#pages-per-minute-speed-calculations)
-   - [6. Reading Stats, Streaks & Insights](#6-reading-stats-streaks--insights)
      - [Daily Reading Streak & Streak Protection](#daily-reading-streak--streak-protection)
      - [Manual Missed-Day Backfill](#manual-missed-day-backfill)
      - [Monthly Reading Velocity Charts](#monthly-reading-velocity-charts)
      - [Format Distribution Analysis](#format-distribution-analysis)
      - [Editable Yearly Reading Challenge Goal](#editable-yearly-reading-challenge-goal)
-   - [7. Anti-Lock-In Backups, Data Freedom & Cloud Sync](#7-anti-lock-in-backups-data-freedom--cloud-sync)
-     - [Goodreads & StoryGraph CSV Migration](#goodreads--storygraph-csv-migration)
+   - [8. Anti-Lock-In Backups, Data Freedom & Cloud Sync](#8-anti-lock-in-backups-data-freedom--cloud-sync)
+     - [Versioned .RSBK Portable Snapshot Backups](#versioned-rsbk-portable-snapshot-backups)
+     - [Smart Idempotent Merge (Last-Write-Wins)](#smart-idempotent-merge-last-write-wins)
      - [100% Free Offline ZIP Backups & Full Restoration](#100-free-offline-zip-backups--full-restoration)
+     - [Goodreads & StoryGraph CSV Migration](#goodreads--storygraph-csv-migration)
      - [RFC-4180 CSV Export with Sub-Ratings](#rfc-4180-csv-export-with-sub-ratings)
      - [Offline Gift Codes & Creator Passkey](#offline-gift-codes--creator-passkey)
+     - [Storage & Cover Cache Management](#storage--cover-cache-management)
      - [Automated Google Drive AppData Sync (Pro)](#automated-google-drive-appdata-sync-pro)
-5. [Free vs. Pro Features](#-free-vs-pro-features)
-6. [Frequently Asked Questions (FAQ)](#-frequently-asked-questions-faq)
-7. [Privacy & Local-First Promise](#-privacy--local-first-promise)
+6. [Free vs. Pro Features](#-free-vs-pro-features)
+7. [Frequently Asked Questions (FAQ)](#-frequently-asked-questions-faq)
+8. [Privacy & Local-First Promise](#-privacy--local-first-promise)
+9. [Building & Running the App](#-building--running-the-app)
 
 ---
 
@@ -81,12 +114,42 @@ Most modern reading trackers treat books like flat spreadsheets or ad-stuffed so
 
 **ReadSanctuary is built differently:**
 * **Instant Procedural Beauty:** Books look like real, tangible volumes the second you add them. Spines scale their thickness based on actual page count, heights adjust for hardcovers vs mass-market paperbacks, and lighting shaders create realistic depth.
-* **Built-in eBook Reading:** Read your own `.epub` and `.pdf` files directly in the app with customized typography, night themes, and automatic reading session tracking.
-* **True Local Ownership:** Your reading log belongs to you. Everything is stored in an open SQLite database directly on your device.
+* **Dual Viewing Perspectives:** Toggle effortlessly between the immersive **2.5D wooden bookshelf** and a modern, high-density **Library Grid / List View** with live search and multi-attribute filters.
+* **Built-in eBook & PDF Reading:** Read your own `.epub` and `.pdf` files directly in the app with customized typography, night themes, and automatic reading session tracking.
+* **True Local Ownership:** Your reading log belongs to you. Everything is stored in an open SQLite database directly on your device with zero account requirements.
+* **Sub-15ms Full-Text Search:** SQLite FTS5 index enables instantaneous searching across titles, authors, descriptions, and personal notes across thousands of volumes.
 * **Fractional Series Novellas:** Read a `#0.5` prequel or `#2.5` interlude? ReadSanctuary places it in the exact reading order instead of breaking sorting.
 * **Granular Sub-Ratings:** Rate books across Plot, Characters, Writing, and Pacing with 0.25-step precision and an auto-averaging helper.
 * **Camera-Ready OCR Quotes:** Scan passages right off the physical page using on-device machine learning. No typing required.
-* **Zero Hostile Lock-In:** Export all your books, covers, and notes as portable files anytime for free.
+* **Zero Hostile Lock-In:** Export your library as portable `.rsbk` snapshots, complete byte-for-byte `.zip` archives, or RFC-4180 CSV files anytime for free.
+
+---
+
+## 🚀 What's New in v1.2.0
+
+* **Drift SQLite Schema v6 Upgrade:**
+  * **Multi-Shelf Support (`book_shelves` table):** Books can now belong to multiple custom shelves simultaneously.
+  * **SQLite FTS5 Full-Text Search:** Virtual table `books_fts` with `porter unicode61` tokenizer and automated database triggers indexing titles, authors, descriptions, and book notes in real time.
+  * **Soft-Deletion Support:** `deleted_at` timestamps on books and shelves for safe recovery and sync resolution.
+  * **Reading Timestamps:** Dedicated `last_read_at` tracking and indexed ordering for rapid resume access.
+* **Library Grid & List View Mode:**
+  * One-tap switch from 2.5D bookshelf rows to a high-density, visual Cover Grid or List view.
+  * Live search bar powered by SQLite FTS5 for sub-15ms search across 2,000+ volumes.
+  * Multi-attribute Filter Bottom Sheet: filter by reading status, specific shelf, minimum star rating, unread-only, and books with notes.
+  * Sort by Last Read, Title, Author, Reading Progress, Date Added, and Rating (ascending or descending).
+* **Pluggable Metadata Aggregator Service:**
+  * Clean Architecture priority chain inspired by Mihon: queries OpenLibrary with seamless Google Books fallback.
+  * Automatic rate-limit (429) resilience, timeout safeguards, and secondary metadata enrichment for missing covers, page counts, publishers, years, and descriptions.
+* **Manage Shelves & Categories Screen:**
+  * Dedicated management hub to reorder custom shelves via drag-and-drop, create new shelves, edit wood themes, and rename collections.
+* **Versioned `.rsbk` Portable Backups:**
+  * Structured, Gzipped JSON snapshot backups (`BackupSnapshotDto`) with schema version validation.
+  * Smart idempotent merge engine utilizing Last-Write-Wins (LWW) conflict resolution—importing the same backup multiple times creates zero duplicate records.
+* **Storage & Cover Cache Manager:**
+  * Live storage breakdown showing SQLite database file size and offline cover cache size.
+  * One-tap cache clearing to reclaim local device storage.
+* **Quality & Test Coverage:**
+  * Over 128 comprehensive unit, DAO, widget, and domain tests verified with pure Dart domain layer separation.
 
 ---
 
@@ -94,23 +157,23 @@ Most modern reading trackers treat books like flat spreadsheets or ad-stuffed so
 
 | Feature | What It Does | Why Readers Love It |
 | :--- | :--- | :--- |
-| **In-App EPUB Reader** | Pure-Dart reflowable `.epub` reader with Light, Sepia, and Night themes | Seamless reading without switching apps; auto-logs reading time and pages |
-| **Sub-Ratings Breakdown** | 0.25-star sliders for Plot, Characters, Writing, and Pacing | Nuanced book evaluations with 1-tap auto-average to overall rating |
 | **2.5D Procedural Spines** | Generates 3D-shaded book spines scaled by page count and cover palette | Shelves look gorgeous instantly without taking manual spine photos |
-| **Interactive 3D Viewer** | Gyroscopic tilt and touch-drag 3D book perspective view | Experience cover art and book depth as a tangible physical volume |
-| **Android Home Widget** | Glanceable home screen widget showing current book and streak | Keep reading habits front-and-center every time you unlock your phone |
-| **Physical Spine Cropper** | Photo capture and crop tool for real spines and sprayed edges | Perfect for displaying special sprayed-edge editions or antique books |
+| **Library Grid & Filter View** | High-density grid and list view with multi-attribute filtering chips | Effortlessly navigate and filter large personal libraries of 500+ books |
+| **FTS5 Fast Text Search** | SQLite FTS5 engine querying titles, authors, blurbs, and notes in <15ms | Find any passage, character name, or book title in the blink of an eye |
+| **Multi-Shelf Organization** | Assign a single book to multiple custom shelves at the same time | Perfect for tagging books across genres, read years, and custom collections |
+| **In-App EPUB & PDF Reader** | Pure-Dart reflowable `.epub` and native `.pdf` readers with Night themes | Seamless reading without switching apps; auto-logs reading time and pages |
+| **Interactive 3D Viewer** | Gyroscopic tilt and touch-drag 3D book perspective view | Experience cover art, spine, and custom back covers in full 3D space |
+| **Sub-Ratings Breakdown** | 0.25-star sliders for Plot, Characters, Writing, and Pacing | Nuanced book evaluations with 1-tap auto-average to overall rating |
+| **Pluggable Metadata Lookup** | Dual-source fallback (OpenLibrary + Google Books) with auto-enrichment | Max cover image resolution, complete synopses, and accurate page counts |
+| **Custom Spine & Edge Cropper** | Photo capture and crop tool for real spines and sprayed edges | Perfect for displaying special sprayed-edge editions or antique books |
+| **Custom Back Cover Art** | Attach custom back cover images mapped onto the 3D book model | Complete 360-degree representation of physical collector editions |
 | **Batch Barcode Scanner** | Scans ISBN barcodes continuously with tactile haptic feedback | Digitize an entire physical bookshelf in under 5 minutes |
-| **Free Gutenberg Catalog** | Search and download free public domain classics in one tap | Instant access to thousands of classic masterpieces at zero cost |
-| **Book Lending Tracker** | Track borrower name and lent date when books are borrowed | Never lose track of which friend has your favorite paperback |
-| **Dual-API Auto Lookup** | Combines OpenLibrary API with Google Books API fallback | Max cover image resolution and accurate page counts every time |
-| **Fractional Series Engine** | Supports novella numbers like `0.5`, `1.5`, `2.5` | Prequels and side-novellas stay in canonical narrative order |
 | **Focus Reading Timer** | Stopwatch tracking start/end pages and reading pace (pages/min) | Crash-proof and OS-kill proof; preserves timer even if phone reboots |
 | **OCR Quote Scanner** | Uses on-device camera ML to extract quotes from physical pages | Save favorite book quotes in seconds with exact page attribution |
 | **Streak Engine with Backfill** | Daily habit counter with pending-day safety and retroactive logging | Never lose your hard-earned streak due to forgetting to tap the app |
-| **1-Click Social Sharing** | Renders 1080x1920 story graphics of shelves and formatted review cards | Share your aesthetic bookshelf and book reviews effortlessly |
-| **Goodreads / StoryGraph Import**| Imports existing library CSVs, sanitizing Excel-escaped ISBNs | Effortless 1-click migration from legacy reading trackers |
-| **Local ZIP & CSV Freedom** | Full archive export of database + media folder, plus free restore | 100% offline security; never pay to backup or restore your own data |
+| **1-Click Social Sharing** | Renders high-res 3.0× share graphics of shelves and formatted review cards | Share your aesthetic bookshelf and book reviews effortlessly |
+| **Versioned `.rsbk` Backups** | Gzipped portable snapshot with smart idempotent merge (LWW) | Zero-duplicate sync and complete device-to-device migration freedom |
+| **100% Free Offline ZIP Backups**| Byte-for-byte `.zip` archive of database + media with Zip-Slip protection | 100% offline security; never pay to backup or restore your own data |
 | **Offline Pro Gift Codes** | Curated promo codes, `GIFT-XXXXX` vouchers, and 7-tap creator unlock | Gift full Pro features to friends and book club members without paying |
 
 ---
@@ -118,19 +181,18 @@ Most modern reading trackers treat books like flat spreadsheets or ad-stuffed so
 ## 🚀 Getting Started
 
 ### Initial Launch
-1. When you first launch ReadSanctuary, three default shelves are automatically set up:
+1. When you first launch ReadSanctuary, default shelves are automatically set up:
    - 📖 **Currently Reading**
-   - ⏳ **Want to Read (TBR)**
-   - 🏆 **Finished**
+   - ⏳ **Favorites & TBR**
 2. You can immediately tap **Add Book** or jump to the **Scan ISBN** tab to add your first physical book.
 3. If you have years of reading history on Goodreads or The StoryGraph, head to **Settings & Backup** to import your CSV file right away.
 
 ### App Navigation Layout
 ReadSanctuary is organized into a clean, streamlined three-destination bottom navigation bar, with rapid scanner intake right at your fingertips:
 
-1. **Bookshelf (Home):** Your 2.5D wooden shelves, displaying your books, custom decorations, props, and spacers, with direct action icons in the top AppBar for **Barcode Scanner**, **Search & Free Books**, **Drag Reorder**, and the **1-Click Social Shelf Exporter**.
+1. **Bookshelf (Home):** Your library view displaying books across your choice of **2.5D Wooden Shelves** or the modern **Cover Grid / List View**. Direct action icons in the top AppBar give you instant access to **View Switcher**, **Filter Bottom Sheet**, **Barcode Scanner**, **Search & Free Books**, **Drag Reorder**, and the **1-Click Social Shelf Exporter**.
 2. **Stats:** Reading habits, daily streak counters, monthly reading velocity charts, format distribution analysis, and the editable yearly reading goal challenge.
-3. **Settings & Backup:** Data migration (Goodreads & StoryGraph CSV import), offline byte-for-byte `.zip` archive backup/restore (with Zip-Slip traversal protection), RFC-4180 CSV export with sub-ratings, offline gift voucher redemption, and Google Drive AppData sync.
+3. **Settings & Backup:** Data migration (Goodreads & StoryGraph CSV import), versioned `.rsbk` snapshot export/import, offline byte-for-byte `.zip` archive backup/restore (with Zip-Slip traversal protection), storage management, offline gift voucher redemption, and Google Drive AppData sync.
 
 ---
 
@@ -197,11 +259,11 @@ Want to rearrange books on a shelf?
 3. Long-press and drag any book, prop, or spacer horizontally to its new position.
 4. Tap the **Done** icon (`✓`) in the app bar when finished. All new positions are immediately saved to the database.
 
-#### Interactive 3D Book Viewer
+#### Interactive 3D Book Viewer (Front, Spine & Back Cover)
 Experience your books as tangible, physical volumes in full interactive 3D:
 1. Open any book in Book Detail and tap the 3D cover preview.
 2. **True 6-Face 3D Geometry:** Renders front cover, back cover, procedural/custom spine, top edge (-Y), bottom edge (+Y), and side edge (+X) with realistic paper texture and specular lighting.
-3. **Custom Back Cover Art (v1.1.0):** Set custom back cover images directly from the Book Detail screen (Set Back Cover), seamlessly mapped onto the rear face in 3D. If no custom back cover is set, ReadSanctuary procedurally crafts an elegant textured back cover with book synopsis, star rating, spine hinge shadow, and simulated barcode with the real ISBN-13.
+3. **Custom Back Cover Art:** Set custom back cover images directly from the Book Detail screen (**Set Back Cover**), seamlessly mapped onto the rear face in 3D. If no custom back cover is set, ReadSanctuary procedurally crafts an elegant textured back cover with book synopsis, star rating, spine hinge shadow, and simulated barcode with the real ISBN-13.
 4. **Tactile Bookmark Ribbon:** Features an embedded satin bookmark ribbon draped along the book's edge.
 5. **Touch & Gyroscopic Motion:** Drag smoothly with finger touch to rotate in 3D perspective space with natural momentum. On supported devices, gyro sensors gently tilt the book and cast dynamic lighting highlights as you shift your phone.
 
@@ -219,10 +281,67 @@ Show off your monthly reads or favorite collections on Instagram Stories, Thread
 
 ---
 
-### 2. Book Intake & Library Management
+### 2. Library Grid & List View Mode (New in v1.2.0)
+
+#### Instant Display Switching (Shelf vs. Grid vs. List)
+Preference matters! While the 2.5D wooden bookshelf provides unmatched warmth, readers with larger libraries (hundreds of volumes) often prefer a high-density, catalog-style layout:
+* In the top app bar, tap the view switcher icon to toggle between **3D Wooden Shelves** and **Library Grid / List View**.
+* ReadSanctuary remembers your display preference across app restarts via `SharedPreferences`.
+
+#### FTS5 Full-Text Live Search
+* Type anything into the search field: title keywords, author surnames, descriptive words from the book's synopsis, or specific phrases written in your private book notes.
+* Powered by SQLite's **FTS5** (Full-Text Search 5) virtual table with `porter unicode61` stemming.
+* Matches query terms instantaneously in **<15ms**, even across libraries with 2,000+ volumes.
+
+#### Multi-Attribute Library Filtering
+Tap the **Filter** icon (`tune`) to open the **Library Filter Bottom Sheet**:
+* **Reading Status Filter:** Filter by *All*, *Currently Reading*, *Want to Read (TBR)*, *Finished*, or *Did Not Finish (DNF)*.
+* **Shelf Filter:** Narrow results to a specific shelf or view across your entire collection.
+* **Minimum Star Rating:** Set a threshold (e.g. 4.0+ stars) to find your all-time favorites.
+* **Filter Toggles:**
+  * 🔖 **Unread Only:** Instantly filter out completed books.
+  * 📝 **Has Notes:** Quickly surface books where you've captured quotes, character notes, or review thoughts.
+* Active filter badges reflect the current filter criteria so you always know what subset you're viewing.
+
+#### Comprehensive Library Sorting
+In the Filter & Sort sheet, choose between six distinct sorting fields:
+1. 🕒 **Last Read:** Books with the most recent reading activity float to the top.
+2. 📖 **Reading Progress:** Sort by percentage completed.
+3. 🔤 **Title:** Alphabetical ordering (A-Z or Z-A).
+4. ✍️ **Author:** Alphabetical ordering by author name.
+5. ⭐ **Rating:** Sort by your recorded star ratings.
+6. 📅 **Date Added:** Chronological order from newest to oldest.
+* Toggle the **Ascending / Descending** arrow button with one tap.
+
+#### Typographic Fallback Cards & Cover Cache
+* Books without network covers or added completely offline display elegant, procedurally generated typography cards (`CoverImageCard`) with matched palette accents.
+* `CoverCacheManager` caches disk images efficiently in memory and provides 1-tap cache management in Settings.
+
+---
+
+### 3. Manage Shelves & Multi-Shelf Organization (New in v1.2.0)
+
+#### Dedicated Shelf Management Hub
+Open **Settings & Backup → Manage Shelves & Categories** or access it directly from the shelf options:
+* View every shelf, its wood theme, and its assigned book count at a glance.
+* Reorder shelves vertically with intuitive move handles.
+* Tap **Add Shelf** to create custom categories (e.g., *"Favorites"*, *"Cozy Sci-Fi"*, *"2026 Reading Challenge"*, *"Signed First Editions"*).
+
+#### Multi-Shelf Categorization (Many-to-Many Linking)
+* Books aren't constrained to a single shelf. A fantasy novel can simultaneously be on your *"Currently Reading"* shelf, your *"Brandon Sanderson"* collection, and your *"Book Club 2026"* shelf.
+* Backed by the Drift `book_shelves` relational junction table in SQLite Schema v6.
+
+#### Reordering, Customizing, and Soft Deleting Shelves
+* Rename any shelf at any time.
+* Change wood styles (Oak, Walnut, Mahogany, Birch) and wall backdrop themes per shelf.
+* Soft-deletion support preserves book integrity: deleting a shelf never deletes your books, only removes the shelf categorization.
+
+---
+
+### 4. Book Intake & Library Management
 
 #### Fast ISBN Barcode Scanner
-1. Tap the **Barcode Scanner** icon (`qr_code_scanner`) in the top app bar of the Bookshelf screen (or access it from the Search catalog).
+1. Tap the **Barcode Scanner** icon (`qr_code_scanner`) in the top app bar of the Bookshelf screen.
 2. Point your camera at the ISBN-13 or ISBN-10 barcode on the back of any physical book.
 3. The red aiming reticle instantly recognizes the barcode and triggers a tactile haptic pulse.
 4. ReadSanctuary queries OpenLibrary and Google Books in the background and populates cover art, title, author, page count, description, publisher, and publication year.
@@ -245,13 +364,13 @@ For indie books, self-published titles, or uncataloged editions:
 #### Fractional Series Sorting (Novellas & #0.5)
 Fantasy and romance series frequently have prequel novellas, companion shorts, and half-volumes (e.g., Book `0.5`, `1.5`, `2.5`).
 * Unlike other apps that force integers or break ordering, ReadSanctuary natively stores series numbers as high-precision decimals (`double`/`REAL`).
-* If you set **Series Name:** `The Way of Kings` and **Series Vol:** `2.5`, your novella (*Edgedancer*) sorts canonically between Book 2 (*Words of Radiance*) and Book 3 (*Oathbringer*).
+* If you set **Series Name:** `The Stormlight Archive` and **Series Vol:** `2.5`, your novella (*Edgedancer*) sorts canonically between Book 2 (*Words of Radiance*) and Book 3 (*Oathbringer*).
 
-#### Dual-API Automatic Metadata Lookup
-ReadSanctuary features an intelligent dual-engine lookup system:
+#### Pluggable Metadata Aggregator Service (Google Books + OpenLibrary)
+ReadSanctuary features an intelligent multi-source metadata aggregator inspired by Mihon's source fallback architecture:
 1. **Primary Lookup (OpenLibrary):** Queries the non-profit OpenLibrary API for work and edition records to fetch community-curated metadata and high-resolution book covers.
-2. **Fallback & Field Enrichment (Google Books):** If OpenLibrary returns a 404, or if page count or cover art is missing, ReadSanctuary automatically supplements the missing fields from Google Books API v1.
-3. You get complete metadata and cover art without worrying about dead APIs.
+2. **Fallback & Secondary Enrichment (Google Books):** If OpenLibrary is rate-limited (429), times out, or returns a 404, the aggregator automatically falls back to Google Books API v1.
+3. **Missing Field Enrichment:** If primary lookup returns a title and author but lacks a synopsis or verified page count, secondary sources enrich the record seamlessly.
 
 #### Reading Statuses & Multiple Formats
 Organize your library across all formats:
@@ -277,10 +396,10 @@ Looking for something classic to read?
 
 ---
 
-### 3. Deep Book Detail, Ratings & Notes
+### 5. Deep Book Detail, Ratings & Notes
 
 #### Granular 0.25-Star Ratings & Sub-Ratings Breakdown
-Five generic stars aren't enough for avid reviewers.
+Five generic stars aren't enough for avid reviewers:
 * **Overall Rating:** 0.25-star increments (`3.25`, `3.75`, `4.5`, `4.75` stars).
 * **Four Sub-Ratings Dimensions:**
   * 📖 **Plot:** Narrative tension, pacing arcs, and story resolution.
@@ -302,15 +421,16 @@ Save unforgettable quotes directly from the printed page without manual typing:
 #### Custom Back Cover Artwork
 Give your physical editions a complete 360-degree presence:
 1. Open any book's detail screen.
-2. Tap the **Set Back Cover** button (Icons.flip_to_back) in the action toolbar.
+2. Tap the **Set Back Cover** button in the action toolbar.
 3. Select an image from your photo gallery.
-4. The back cover is safely stored locally in <AppDocs>/media/covers/ and immediately integrated into the 3D book model.
+4. The back cover is safely stored locally in `<AppDocs>/media/covers/` and immediately integrated into the 3D book model.
 
-#### Categorized Notes (Quotes, Thoughts, Characters)
+#### Categorized Notes (Quotes, Thoughts, Characters, Bookmarks)
 Keep reading notes organized:
 * **Quote:** Memorable lines from the book with page attribution.
 * **Thought:** Your personal reactions, theorycrafting, or plot reflections while reading.
 * **Character:** Notes on character names, relationships, and descriptions.
+* **Bookmark:** Digital bookmarks captured directly from within the EPUB and PDF readers.
 
 #### 1-Click Social Review Sharing
 Share your ratings and thoughts with fellow readers:
@@ -324,7 +444,7 @@ Share your ratings and thoughts with fellow readers:
 
 ---
 
-### 4. In-App eBook & PDF Reading
+### 6. In-App eBook & PDF Reading
 
 #### Reflowable EPUB Reader
 ReadSanctuary includes a pure-Dart, high-performance EPUB reader built right into the app:
@@ -352,12 +472,12 @@ Customize your reading experience for maximum comfort:
 * When you exit the reader, ReadSanctuary computes the active reading duration and chapter progress.
 * Automatically records a `ReadingSession` into your database, updating your reading streak and speed metrics!
 
-#### In-App PDF Reader
-* For PDFs, research papers, and graphic novels, ReadSanctuary provides an integrated PDF viewer with smooth pinch zoom, horizontal/vertical paging, thumbnail navigation, and automatic finish timestamp tracking upon reaching the final page.
+#### In-App PDF Reader & Bookmarks
+* For PDFs, research papers, and graphic novels, ReadSanctuary provides an integrated PDF viewer with smooth pinch zoom, horizontal flip vs. vertical scroll modes, jump-to-page dialog, bookmarks management sheet, and automatic finish timestamp tracking upon reaching the final page.
 
 ---
 
-### 5. Active Focus Reading Timer
+### 7. Active Focus Reading Timer & Habit Streaks
 
 #### Using the Reading Timer
 Track your reading sessions and focus without distraction:
@@ -380,12 +500,6 @@ Upon finishing a session, ReadSanctuary calculates:
 * Total pages read
 * **Reading Pace:** Pages per minute (e.g., `0.85 pages/min`)
 * Estimated time to finish the remaining chapters in your book!
-
----
-
-### 6. Reading Stats, Streaks & Insights
-
-Tap the **Stats** tab to see your reading habits visualized:
 
 #### Daily Reading Streak & Streak Protection
 * **Current Streak:** Consecutive days with at least one logged reading session.
@@ -416,7 +530,23 @@ Life happens. If you read offline during a flight or forgot your phone during a 
 
 ---
 
-### 7. Anti-Lock-In Backups, Data Freedom & Cloud Sync
+### 8. Anti-Lock-In Backups, Data Freedom & Cloud Sync
+
+#### Versioned `.RSBK` Portable Snapshot Backups
+Introduced in v1.2.0, `.rsbk` files are lightweight, versioned, portable JSON snapshots compressed via Gzip:
+* Contains all books, multi-shelf relationships, shelf items, reading sessions, and book notes with strict schema versioning (`schema_version: 6`).
+* 100% portable across Android, iOS, Windows, macOS, and Linux.
+
+#### Smart Idempotent Merge (Last-Write-Wins)
+* Traditional imports often duplicate records or create messy conflicts.
+* ReadSanctuary's **Smart Merge** applies a deterministic **Last-Write-Wins (LWW)** algorithm based on entity `updatedAt` timestamps.
+* You can safely export on one device and import on another, or import the exact same file twice—ReadSanctuary creates **zero duplicates** and updates only records with newer modification timestamps.
+
+#### 100% Free Offline ZIP Backups & Full Restoration
+We believe you should never pay to access or export your own data:
+1. **Export Local Archive (.zip):** Flushes SQLite WAL (`PRAGMA wal_checkpoint(FULL);`) and bundles `app_database.sqlite`, a JSON schema manifest, and all local covers/cropped spines into a single compressed `.zip` archive.
+2. **Restore Local Archive (.zip):** Tap **Restore Local .ZIP Backup** under Settings & Backup to restore your entire library, book spines, and notes byte-for-byte on any device.
+3. **Zip-Slip Directory Traversal Protection:** Every entry path in restored archives is validated against the destination root with canonical path verification, securing your device against malicious path traversal attacks.
 
 #### Goodreads & StoryGraph CSV Migration
 Moving your library to ReadSanctuary is seamless:
@@ -425,12 +555,6 @@ Moving your library to ReadSanctuary is seamless:
 3. In ReadSanctuary, open **Settings & Backup** and tap **Import from Goodreads / StoryGraph CSV**.
 4. Select your CSV file.
 5. ReadSanctuary cleans Excel-escaped ISBN strings (e.g., `="9780140283297"`), maps exclusive shelves (`to-read`, `currently-reading`, `read`), parses fractional novella series entries, and transactionally imports your entire reading history into your local SQLite database in seconds!
-
-#### 100% Free Offline ZIP Backups & Full Restoration
-We believe you should never pay to access or export your own data:
-1. **Export Local Archive (.zip):** Flushes SQLite WAL (`PRAGMA wal_checkpoint(FULL);`) and bundles `app_database.sqlite`, a JSON schema manifest, and all local covers/cropped spines into a single compressed `.zip` archive.
-2. **Restore Local Archive (.zip):** Tap **Restore Local .ZIP Backup** under Settings & Backup to restore your entire library, book spines, and notes byte-for-byte on any device.
-3. **Zip-Slip Directory Traversal Protection:** Every entry path in restored archives is validated against the destination root with canonical path verification, securing your device against malicious path traversal attacks. Completely free and secure!
 
 #### RFC-4180 CSV Export with Sub-Ratings
 Export your entire collection anytime:
@@ -445,13 +569,18 @@ Want to gift Pro features to friends, beta testers, or book club members without
   * Voucher pattern: Any `GIFT-` followed by letters or digits (e.g. `GIFT-FRIEND100`, `GIFT-SARATH`)
   * Creator debug passkey: `DEV-OVERRIDE-2026`
 * Pro is permanently unlocked in on-device persistent storage (`SharedPreferences`) without requiring app store payments or internet connection!
-* **Creator Easter Egg:** Tap the *"ReadSanctuary v1.1.0"* footer 7 times in Settings to open the secret redemption dialog.
+* **Creator Easter Egg:** Tap the *"ReadSanctuary v1.2.0"* footer 7 times in Settings to open the secret redemption dialog.
+
+#### Storage & Cover Cache Management
+Keep your phone running lean:
+* Check your actual SQLite database file size and offline cover cache size directly in Settings.
+* Clear cached covers in one tap to free up storage while keeping all books and reading history safe.
 
 #### Automated Google Drive AppData Sync (Pro)
 For hands-free cloud redundancy:
 * Connect your Google account. ReadSanctuary uses strictly the sandboxed `drive.appdata` scope.
 * **Privacy Guarantee:** The app *only* reads and writes inside its own hidden application folder; it cannot view, access, or modify your personal files, Google Docs, or Google Photos.
-* 1-click automatic backup and cloud restoration across devices.
+* Automated 5-snapshot retention ensures you can roll back to previous states if needed.
 
 ---
 
@@ -462,38 +591,50 @@ ReadSanctuary is committed to a **generous free tier with zero lock-in**:
 | Capability | Free Community Edition | Pro Supporter Tier |
 | :--- | :---: | :---: |
 | **Complete Offline Bookshelf** | Unlimited books | Unlimited books |
+| **Library Grid & List View** | ✅ 100% Free | ✅ 100% Free |
+| **FTS5 Instant Full-Text Search** | ✅ 100% Free | ✅ 100% Free |
+| **Multi-Attribute Filter Sheet** | ✅ 100% Free | ✅ 100% Free |
+| **Multi-Shelf Linking & Manage Shelves** | ✅ 100% Free | ✅ 100% Free |
 | **In-App EPUB & PDF Reader** | ✅ 100% Free | ✅ 100% Free |
-| **Sub-Ratings Breakdown (Plot, Characters, Writing, Pacing)** | ✅ 100% Free | ✅ 100% Free |
+| **Sub-Ratings (Plot, Characters, Writing, Pacing)** | ✅ 100% Free | ✅ 100% Free |
 | **Interactive 3D Book Viewer** | ✅ 100% Free | ✅ 100% Free |
 | **Android Home Screen App Widget** | ✅ 100% Free | ✅ 100% Free |
 | **Procedural 2.5D Spines** | ✅ Yes | ✅ Yes |
 | **Custom Spine & Edge Cropper** | ✅ Yes | ✅ Yes |
+| **Custom Back Cover Art** | ✅ Yes | ✅ Yes |
 | **Barcode Scanner (Single & Batch)** | ✅ Yes | ✅ Yes |
 | **Reading Timer & OCR Quotes** | ✅ Yes | ✅ Yes |
 | **Reading Streaks & Full Stats** | ✅ Yes | ✅ Yes |
 | **Goodreads / StoryGraph CSV Import** | ✅ 100% Free | ✅ 100% Free |
+| **Versioned `.RSBK` Snapshot Export & Smart Merge** | ✅ 100% Free | ✅ 100% Free |
 | **Local ZIP Archive Backup & Restore** | ✅ 100% Free | ✅ 100% Free |
 | **Full CSV Export / Import with Sub-Ratings** | ✅ 100% Free | ✅ 100% Free |
 | **Offline Gift / Promo Code Redemption** | ✅ 100% Free | ✅ 100% Free |
 | **Shelves & Wood Themes** | 3 Classic Themes | Unlimited Artisan Styles |
 | **Shelf Props & Spacers** | Starter Greenery & Gap | Full Premium Prop Catalog |
-| **Automated Google Drive Sync** | — | ✅ Automated Cloud Backup |
+| **Automated Google Drive Sync** | — | ✅ Automated 5-Snapshot Cloud Sync |
 
 ---
 
 ## ❓ Frequently Asked Questions (FAQ)
 
 ### Does ReadSanctuary require an Internet connection?
-**No.** ReadSanctuary is offline-first. All books, in-app EPUB reading, reading timers, streaks, notes, and local backups work completely offline in Airplane Mode. Internet access is only used when looking up new ISBN barcodes, downloading Gutenberg eBooks, or backing up to Google Drive.
+**No.** ReadSanctuary is offline-first. All books, library grid views, in-app EPUB reading, reading timers, streaks, notes, and local backups work completely offline in Airplane Mode. Internet access is only used when looking up new ISBN barcodes, downloading Gutenberg eBooks, or backing up to Google Drive.
 
 ### Can I read EPUB and PDF books directly inside ReadSanctuary?
 **Yes!** ReadSanctuary has a built-in reflowable EPUB reader with Light, Sepia, and Night modes, customizable fonts and font sizes, and chapter navigation. You can also view PDF files without third-party apps.
+
+### Can I organize books into multiple shelves at once?
+**Yes!** With Schema v6, books have a many-to-many relationship with shelves. You can place the same book on your *"Currently Reading"* shelf, your *"Cozy Sci-Fi"* shelf, and your *"Favorites"* shelf simultaneously.
 
 ### Will ReadSanctuary show advertisements?
 **Never.** ReadSanctuary is an ad-free experience.
 
 ### What happens to my library if I switch phones?
-Simply tap **Export Local Archive (.zip)** under Settings & Backup. Move that single zip file to your new phone (via AirDrop, USB, Drive, or email), tap **Restore Local Archive (.zip)** in ReadSanctuary, and your entire library—including all covers, custom back covers, custom spines, sub-ratings, and notes—will load identically. Pro users can also restore from Google Drive in one tap.
+You have two great offline options:
+1. **`.rsbk` Snapshot:** Export an `.rsbk` file under Settings & Backup and import it on your new phone. ReadSanctuary's Smart Merge will import all books, notes, and sessions idempotently.
+2. **`.zip` Archive:** Export a Local Archive (.zip) to transfer your entire database and every single cover image and cropped spine byte-for-byte.
+Pro users can also restore from Google Drive in one tap.
 
 ### How does ReadSanctuary calculate spine thickness?
 Spine thickness is calculated directly from the book's verified page count using a smooth proportional curve (`pages / 14.0`, bounded between 26 and 62 logical pixels). A 150-page novella will look visibly slimmer than an 800-page hardcover.
@@ -509,6 +650,34 @@ Spine thickness is calculated directly from the book's verified page count using
 2. **On-Device Database:** Your reading list, ratings, notes, and reading times live in an open SQLite database on your hardware.
 3. **Zero Analytics Tracking:** We do not track your reading speed, what books you read, or sell reading habits to publishers or advertisers.
 4. **Sandboxed Cloud:** Even if you use Pro Google Drive sync, ReadSanctuary requests only `drive.appdata` permissions, keeping your cloud backup encrypted in your private sandboxed folder.
+
+---
+
+## 🛠️ Building & Running the App
+
+### Prerequisites
+- Flutter SDK `^3.24.0` or higher
+- Dart SDK `^3.5.0` or higher
+- Android Studio / Android SDK (for Android build)
+
+### Quickstart Commands
+```bash
+# 1. Clone repository
+git clone https://github.com/sarathithikkatt/ReadSanctuary.git
+cd ReadSanctuary
+
+# 2. Install dependencies
+flutter pub get
+
+# 3. Generate Drift & Riverpod code (if modifying schemas or providers)
+dart run build_runner build --delete-conflicting-outputs
+
+# 4. Run test suite
+flutter test
+
+# 5. Build Release APK
+flutter build apk --release
+```
 
 ---
 

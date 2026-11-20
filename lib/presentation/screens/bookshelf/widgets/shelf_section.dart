@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/shelf_props.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../data/local/database.dart';
 import '../../../../data/services/custom_props_service.dart';
 import '../../../../data/services/revenuecat_service.dart';
@@ -47,23 +48,24 @@ class _ShelfSectionState extends ConsumerState<ShelfSection> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildShelfHeader(context),
-        StreamBuilder<List<ShelfItemWithBook>>(
-          stream: _itemsStream,
-          builder: (context, snapshot) {
-            final allItems = snapshot.data ?? [];
-            final displayableItems = allItems
-                .where((entry) =>
-                    entry.item.itemType == 'prop' ||
-                    entry.item.itemType == 'gap' ||
-                    entry.book != null)
-                .toList();
-            final itemWidgets = _buildShelfWidgets(context, displayableItems);
+    return StreamBuilder<List<ShelfItemWithBook>>(
+      stream: _itemsStream,
+      builder: (context, snapshot) {
+        final allItems = snapshot.data ?? [];
+        final displayableItems = allItems
+            .where((entry) =>
+                entry.item.itemType == 'prop' ||
+                entry.item.itemType == 'gap' ||
+                entry.book != null)
+            .toList();
+        final bookCount = allItems.where((e) => e.book != null).length;
+        final itemWidgets = _buildShelfWidgets(context, displayableItems);
 
-            return WoodenShelfRow(
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildShelfHeader(context, bookCount),
+            WoodenShelfRow(
               shelfId: widget.shelf.id,
               shelfName: widget.shelf.name,
               woodThemeId: widget.shelf.woodThemeId,
@@ -72,29 +74,61 @@ class _ShelfSectionState extends ConsumerState<ShelfSection> {
               isReorderable: widget.isReorderable,
               onReorder: (oldIdx, newIdx) =>
                   _handleReorder(displayableItems, oldIdx, newIdx),
-            );
-          },
-        ),
-      ],
+            ),
+          ],
+        );
+      },
     );
   }
 
-  Widget _buildShelfHeader(BuildContext context) {
+  Widget _buildShelfHeader(BuildContext context, int bookCount) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16.0, 16.0, 8.0, 4.0),
+      padding: const EdgeInsets.fromLTRB(16.0, 18.0, 8.0, 6.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            widget.shelf.name,
-            style: const TextStyle(
-              fontSize: 16.0,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.5,
+          Expanded(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(
+                  child: Text(
+                    widget.shelf.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF222222),
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryBurgundy.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  child: Text(
+                    '$bookCount ${bookCount == 1 ? 'book' : 'books'}',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primaryBurgundy,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           PopupMenuButton<String>(
-            icon: const Icon(Icons.more_horiz),
+            icon: const Icon(Icons.more_horiz, color: Color(0xFF555555)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
             onSelected: (action) => _handleShelfAction(context, action),
             itemBuilder: (context) => const [
               PopupMenuItem(

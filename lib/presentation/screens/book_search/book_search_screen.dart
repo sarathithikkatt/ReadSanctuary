@@ -410,11 +410,13 @@ class _BookSearchScreenState extends ConsumerState<BookSearchScreen> {
           ),
 
           // Filters
-          Padding(
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 12.0),
             child: Row(
               children: [
                 FilterChip(
+                  showCheckmark: false,
                   label: const Text('All Books'),
                   selected: !_filterFreeOnly,
                   onSelected: (val) {
@@ -423,6 +425,7 @@ class _BookSearchScreenState extends ConsumerState<BookSearchScreen> {
                 ),
                 const SizedBox(width: 8),
                 FilterChip(
+                  showCheckmark: false,
                   avatar: const Icon(Icons.auto_stories, size: 16),
                   label: const Text('Free to Read (PDF/eBook)'),
                   selected: _filterFreeOnly,

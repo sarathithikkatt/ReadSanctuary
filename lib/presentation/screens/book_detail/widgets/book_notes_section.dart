@@ -53,15 +53,27 @@ class BookNotesSection extends StatelessWidget {
             final notes = snapshot.data ?? [];
             if (notes.isEmpty) {
               return Container(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 20.0, vertical: 24.0),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(8.0),
+                  borderRadius: BorderRadius.circular(14.0),
+                  border: Border.all(color: Colors.black.withOpacity(0.06)),
                 ),
                 child: Center(
-                  child: Text(
-                    'No quotes or notes yet. Scan physical pages with OCR!',
-                    style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.edit_note_outlined,
+                          size: 28, color: Colors.grey.shade400),
+                      const SizedBox(height: 8),
+                      Text(
+                        'No quotes or notes yet. Scan physical pages with OCR!',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            color: Colors.grey.shade600, fontSize: 13),
+                      ),
+                    ],
                   ),
                 ),
               );
@@ -71,43 +83,64 @@ class BookNotesSection extends StatelessWidget {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: notes.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 8),
+              separatorBuilder: (_, __) => const SizedBox(height: 10),
               itemBuilder: (context, idx) {
                 final note = notes[idx];
-                return Card(
-                  elevation: 1,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Chip(
-                              label: Text(note.noteType.toUpperCase()),
-                              visualDensity: VisualDensity.compact,
-                              labelStyle: const TextStyle(
-                                  fontSize: 10, fontWeight: FontWeight.bold),
+                final isQuote = note.noteType.toLowerCase() == 'quote';
+
+                return Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: Colors.black.withOpacity(0.06)),
+                  ),
+                  padding: const EdgeInsets.all(14.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: isQuote
+                                  ? const Color(0xFF6B1D2F).withOpacity(0.08)
+                                  : const Color(0xFFC79C5E).withOpacity(0.14),
+                              borderRadius: BorderRadius.circular(6),
                             ),
-                            if (note.pageNumber != null)
-                              Text(
-                                'Page ${note.pageNumber}',
-                                style: TextStyle(
-                                    color: Colors.grey.shade600, fontSize: 12),
+                            child: Text(
+                              note.noteType.toUpperCase(),
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.5,
+                                color: isQuote
+                                    ? const Color(0xFF6B1D2F)
+                                    : const Color(0xFFA87E42),
                               ),
-                          ],
+                            ),
+                          ),
+                          if (note.pageNumber != null)
+                            Text(
+                              'Page ${note.pageNumber}',
+                              style: TextStyle(
+                                  color: Colors.grey.shade600, fontSize: 12),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '"${note.content}"',
+                        style: const TextStyle(
+                          fontStyle: FontStyle.italic,
+                          fontSize: 14,
+                          height: 1.4,
+                          color: Color(0xFF2C2C2C),
                         ),
-                        const SizedBox(height: 6),
-                        Text(
-                          '"${note.content}"',
-                          style: const TextStyle(
-                              fontStyle: FontStyle.italic, fontSize: 14),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 );
               },

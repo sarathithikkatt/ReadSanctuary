@@ -205,7 +205,7 @@ class BookActionButtons extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Primary eBook / PDF Reading / Upload Area
+        // Primary Action Row
         if (hasFile) ...[
           Row(
             children: [
@@ -214,9 +214,13 @@ class BookActionButtons extends ConsumerWidget {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green.shade700,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
                   ),
-                  icon: Icon(isEpub ? Icons.auto_stories : Icons.picture_as_pdf),
+                  icon: Icon(isEpub ? Icons.auto_stories : Icons.picture_as_pdf, size: 20),
                   label: Text(
                     isEpub
                         ? (book.lastReadPage > 1
@@ -225,7 +229,7 @@ class BookActionButtons extends ConsumerWidget {
                         : (book.lastReadPage > 1
                             ? 'Read PDF (Resume Page ${book.lastReadPage})'
                             : 'Read Book (PDF)'),
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                   ),
                   onPressed: () => Navigator.of(context).push(
                     MaterialPageRoute(
@@ -237,40 +241,238 @@ class BookActionButtons extends ConsumerWidget {
                 ),
               ),
               const SizedBox(width: 6),
-              PopupMenuButton<String>(
-                icon: const Icon(Icons.more_vert),
-                tooltip: isEpub ? 'eBook Options' : 'PDF Options',
-                onSelected: (val) {
-                  if (val == 'replace') {
-                    _handleUploadPdf(context, ref);
-                  } else if (val == 'remove') {
-                    _handleRemovePdf(context, ref);
-                  }
-                },
-                itemBuilder: (context) => [
-                  PopupMenuItem(
-                    value: 'replace',
-                    child: Text(isEpub ? 'Replace EPUB' : 'Replace PDF'),
-                  ),
-                  PopupMenuItem(
-                    value: 'remove',
-                    child: Text(isEpub ? 'Remove EPUB' : 'Remove PDF'),
-                  ),
-                ],
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.black.withOpacity(0.1)),
+                ),
+                child: PopupMenuButton<String>(
+                  icon: const Icon(Icons.more_vert, size: 20),
+                  tooltip: isEpub ? 'eBook Options' : 'PDF Options',
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  onSelected: (val) {
+                    if (val == 'replace') {
+                      _handleUploadPdf(context, ref);
+                    } else if (val == 'remove') {
+                      _handleRemovePdf(context, ref);
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      value: 'replace',
+                      child: Text(isEpub ? 'Replace EPUB' : 'Replace PDF'),
+                    ),
+                    PopupMenuItem(
+                      value: 'remove',
+                      child: Text(isEpub ? 'Remove EPUB' : 'Remove PDF'),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
           const SizedBox(height: 10),
+          // Secondary actions for books with attached PDF/eBook
+          Row(
+            children: [
+              Expanded(
+                flex: 3,
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF6B1D2F),
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+                  ),
+                  icon: const Icon(Icons.timer_outlined, size: 18),
+                  label: const Text(
+                    'Read Timer',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                  ),
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => ReadingTimerScreen(book: book),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                flex: 3,
+                child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    side: BorderSide(color: Colors.black.withOpacity(0.12)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+                  ),
+                  icon: const Icon(Icons.document_scanner_outlined, size: 18),
+                  label: const Text(
+                    'Quote OCR',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                  ),
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => OcrQuoteScanner(
+                        bookId: book.id,
+                        bookTitle: book.title,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.black.withOpacity(0.1)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.crop, size: 18),
+                      tooltip: 'Crop Spine',
+                      visualDensity: VisualDensity.compact,
+                      onPressed: () async {
+                        final messenger = ScaffoldMessenger.of(context);
+                        final customSpinePath =
+                            await Navigator.of(context).push<String>(
+                          MaterialPageRoute(
+                            builder: (_) => SpineCropperScreen(bookId: book.id),
+                          ),
+                        );
+                        if (customSpinePath != null && context.mounted) {
+                          final db = ref.read(appDatabaseProvider);
+                          await db.bookDao.updateBook(
+                            book.copyWith(
+                              customSpinePath: drift.Value(customSpinePath),
+                              updatedAt: DateTime.now().millisecondsSinceEpoch,
+                            ),
+                          );
+                          messenger.showSnackBar(
+                            const SnackBar(content: Text('Custom spine updated! 🎨')),
+                          );
+                        }
+                      },
+                    ),
+                    Container(width: 1, height: 18, color: Colors.black.withOpacity(0.08)),
+                    IconButton(
+                      icon: const Icon(Icons.flip_to_back, size: 18),
+                      tooltip: 'Set Back Cover',
+                      visualDensity: VisualDensity.compact,
+                      onPressed: () async {
+                        final messenger = ScaffoldMessenger.of(context);
+                        final picker = ImagePicker();
+                        final picked = await picker.pickImage(source: ImageSource.gallery);
+                        if (picked != null) {
+                          final storage = ref.read(imageStorageHelperProvider);
+                          final bytes = await File(picked.path).readAsBytes();
+                          final relPath = await storage.saveCoverBytes(
+                            bytes,
+                            filename: 'back_${book.id}.jpg',
+                          );
+                          final db = ref.read(appDatabaseProvider);
+                          await db.bookDao.updateBook(
+                            book.copyWith(
+                              backCoverPath: drift.Value(relPath),
+                              updatedAt: DateTime.now().millisecondsSinceEpoch,
+                            ),
+                          );
+                          messenger.showSnackBar(
+                            const SnackBar(content: Text('Back cover updated! 🎨')),
+                          );
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ] else ...[
+          // Row 1: Focus reading & OCR quotes
+          Row(
+            children: [
+              Expanded(
+                flex: 3,
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF6B1D2F),
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                  ),
+                  icon: const Icon(Icons.play_arrow, size: 18),
+                  label: const Text(
+                    'Read Timer',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                  ),
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => ReadingTimerScreen(book: book),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                flex: 3,
+                child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    side: BorderSide(color: Colors.black.withOpacity(0.12)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                  ),
+                  icon: const Icon(Icons.document_scanner_outlined, size: 18),
+                  label: const Text(
+                    'Quote OCR',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                  ),
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => OcrQuoteScanner(
+                        bookId: book.id,
+                        bookTitle: book.title,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          // Row 2: Digital copies & Spine customization
           Row(
             children: [
               Expanded(
                 child: OutlinedButton.icon(
                   style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                    backgroundColor: Colors.white,
+                    side: BorderSide(color: Colors.black.withOpacity(0.1)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
                   ),
-                  icon: const Icon(Icons.upload_file, size: 18),
-                  label: const Text('Upload PDF', maxLines: 1, overflow: TextOverflow.ellipsis),
+                  icon: const Icon(Icons.upload_file_outlined, size: 16),
+                  label: const Text(
+                    'Upload PDF',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                  ),
                   onPressed: () => _handleUploadPdf(context, ref),
                 ),
               ),
@@ -278,112 +480,92 @@ class BookActionButtons extends ConsumerWidget {
               Expanded(
                 child: OutlinedButton.icon(
                   style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                    backgroundColor: Colors.white,
+                    side: BorderSide(color: Colors.black.withOpacity(0.1)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
                   ),
-                  icon: const Icon(Icons.download, size: 18),
-                  label: const Text('Find Free PDF', maxLines: 1, overflow: TextOverflow.ellipsis),
+                  icon: const Icon(Icons.download_outlined, size: 16),
+                  label: const Text(
+                    'Find Free PDF',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                  ),
                   onPressed: () => _handleFindFreePdf(context, ref),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.black.withOpacity(0.1)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.crop, size: 18),
+                      tooltip: 'Crop Spine',
+                      visualDensity: VisualDensity.compact,
+                      onPressed: () async {
+                        final messenger = ScaffoldMessenger.of(context);
+                        final customSpinePath =
+                            await Navigator.of(context).push<String>(
+                          MaterialPageRoute(
+                            builder: (_) => SpineCropperScreen(bookId: book.id),
+                          ),
+                        );
+                        if (customSpinePath != null && context.mounted) {
+                          final db = ref.read(appDatabaseProvider);
+                          await db.bookDao.updateBook(
+                            book.copyWith(
+                              customSpinePath: drift.Value(customSpinePath),
+                              updatedAt: DateTime.now().millisecondsSinceEpoch,
+                            ),
+                          );
+                          messenger.showSnackBar(
+                            const SnackBar(content: Text('Custom spine updated! 🎨')),
+                          );
+                        }
+                      },
+                    ),
+                    Container(width: 1, height: 18, color: Colors.black.withOpacity(0.08)),
+                    IconButton(
+                      icon: const Icon(Icons.flip_to_back, size: 18),
+                      tooltip: 'Set Back Cover',
+                      visualDensity: VisualDensity.compact,
+                      onPressed: () async {
+                        final messenger = ScaffoldMessenger.of(context);
+                        final picker = ImagePicker();
+                        final picked = await picker.pickImage(source: ImageSource.gallery);
+                        if (picked != null) {
+                          final storage = ref.read(imageStorageHelperProvider);
+                          final bytes = await File(picked.path).readAsBytes();
+                          final relPath = await storage.saveCoverBytes(
+                            bytes,
+                            filename: 'back_${book.id}.jpg',
+                          );
+                          final db = ref.read(appDatabaseProvider);
+                          await db.bookDao.updateBook(
+                            book.copyWith(
+                              backCoverPath: drift.Value(relPath),
+                              updatedAt: DateTime.now().millisecondsSinceEpoch,
+                            ),
+                          );
+                          messenger.showSnackBar(
+                            const SnackBar(content: Text('Back cover updated! 🎨')),
+                          );
+                        }
+                      },
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
         ],
-
-        // Secondary Actions: Read Timer, Quote OCR, and Crop Spine
-        Row(
-          children: [
-            Expanded(
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-                ),
-                icon: const Icon(Icons.play_arrow, size: 18),
-                label: const Text('Read Timer',
-                    maxLines: 1, overflow: TextOverflow.ellipsis),
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => ReadingTimerScreen(book: book),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: OutlinedButton.icon(
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-                ),
-                icon: const Icon(Icons.document_scanner, size: 18),
-                label: const Text('Quote OCR',
-                    maxLines: 1, overflow: TextOverflow.ellipsis),
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => OcrQuoteScanner(
-                      bookId: book.id,
-                      bookTitle: book.title,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            IconButton.filledTonal(
-              icon: const Icon(Icons.crop),
-              tooltip: 'Crop Spine',
-              onPressed: () async {
-                final messenger = ScaffoldMessenger.of(context);
-                final customSpinePath = await Navigator.of(context).push<String>(
-                  MaterialPageRoute(
-                    builder: (_) => SpineCropperScreen(bookId: book.id),
-                  ),
-                );
-                if (customSpinePath != null && context.mounted) {
-                  final db = ref.read(appDatabaseProvider);
-                  await db.bookDao.updateBook(
-                    book.copyWith(
-                      customSpinePath: drift.Value(customSpinePath),
-                      updatedAt: DateTime.now().millisecondsSinceEpoch,
-                    ),
-                  );
-                  messenger.showSnackBar(
-                    const SnackBar(content: Text('Custom spine updated! 🎨')),
-                  );
-                }
-              },
-            ),
-            const SizedBox(width: 8),
-            IconButton.filledTonal(
-              icon: const Icon(Icons.flip_to_back),
-              tooltip: 'Set Back Cover',
-              onPressed: () async {
-                final messenger = ScaffoldMessenger.of(context);
-                final picker = ImagePicker();
-                final picked = await picker.pickImage(source: ImageSource.gallery);
-                if (picked != null) {
-                  final storage = ref.read(imageStorageHelperProvider);
-                  final bytes = await File(picked.path).readAsBytes();
-                  final relPath = await storage.saveCoverBytes(
-                    bytes,
-                    filename: 'back_${book.id}.jpg',
-                  );
-                  final db = ref.read(appDatabaseProvider);
-                  await db.bookDao.updateBook(
-                    book.copyWith(
-                      backCoverPath: drift.Value(relPath),
-                      updatedAt: DateTime.now().millisecondsSinceEpoch,
-                    ),
-                  );
-                  messenger.showSnackBar(
-                    const SnackBar(content: Text('Back cover updated! 🎨')),
-                  );
-                }
-              },
-            ),
-          ],
-        ),
       ],
     );
   }

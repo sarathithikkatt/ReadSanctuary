@@ -23,56 +23,71 @@ class ShelfSettingsCard extends StatelessWidget {
 
         final isCoverOut = item.displayMode == 'cover_out';
 
-        return Card(
-          child: Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Row(
-                    children: [
-                      Icon(
-                        isCoverOut ? Icons.image : Icons.view_column,
-                        color: Theme.of(context).colorScheme.primary,
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14.0),
+            border: Border.all(color: Colors.black.withOpacity(0.06)),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF6B1D2F).withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Shelf Display Style',
-                              style: TextStyle(fontWeight: FontWeight.w600),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            Text(
-                              isCoverOut
-                                  ? 'Front Cover View'
-                                  : '2.5D Spine View',
-                              style: TextStyle(
-                                  color: Colors.grey.shade600, fontSize: 12),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ),
+                      child: Icon(
+                        isCoverOut ? Icons.image_outlined : Icons.view_column_outlined,
+                        color: const Color(0xFF6B1D2F),
+                        size: 20,
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Shelf Display Style',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                              color: Color(0xFF222222),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            isCoverOut
+                                ? 'Front Cover View'
+                                : '2.5D Spine View',
+                            style: TextStyle(
+                                color: Colors.grey.shade600, fontSize: 12),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                Switch(
-                  value: isCoverOut,
-                  onChanged: (val) async {
-                    await shelfDao.updateShelfItem(
-                      item.copyWith(displayMode: val ? 'cover_out' : 'spine'),
-                    );
-                  },
-                ),
-              ],
-            ),
+              ),
+              Switch(
+                value: isCoverOut,
+                activeColor: const Color(0xFF6B1D2F),
+                onChanged: (val) async {
+                  await shelfDao.updateShelfItem(
+                    item.copyWith(displayMode: val ? 'cover_out' : 'spine'),
+                  );
+                },
+              ),
+            ],
           ),
         );
       },

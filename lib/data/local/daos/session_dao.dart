@@ -79,6 +79,10 @@ class SessionDao extends DatabaseAccessor<AppDatabase> with _$SessionDaoMixin {
     return into(bookNotes).insert(note);
   }
 
+  Future<bool> updateNote(Insertable<BookNote> note) {
+    return update(bookNotes).replace(note);
+  }
+
   Future<int> deleteNote(String id) {
     return (delete(bookNotes)..where((t) => t.id.equals(id))).go();
   }

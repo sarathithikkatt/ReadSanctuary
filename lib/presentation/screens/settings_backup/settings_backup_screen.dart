@@ -9,17 +9,20 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../core/utils/cover_cache_manager.dart';
+import '../../../data/backup/restore_backup_service.dart';
 import '../../../data/local/database.dart';
 import '../../../data/services/csv_import_service.dart';
 import '../../../data/services/google_drive_backup_service.dart';
 import '../../../data/services/revenuecat_service.dart';
 import '../../../data/services/shelf_widget_service.dart';
+import '../bookshelf/manage_shelves_screen.dart';
 import 'dialogs/gift_redeem_dialog.dart';
 import 'dialogs/pro_paywall_sheet.dart';
 import 'widgets/pro_status_banner.dart';
 
-/// Screen managing Google Drive Cloud Sync (Pro), Local Backup Export/Import (100% Free),
-/// CSV Migration & Export, and Promotional Gift Code Redemption.
+/// Screen managing Google Drive Cloud Sync (Pro), Local Backup Export/Import (.rsbk & .zip),
+/// Storage Management, and Settings.
 class SettingsBackupScreen extends ConsumerStatefulWidget {
   const SettingsBackupScreen({super.key});
 
@@ -31,6 +34,38 @@ class SettingsBackupScreen extends ConsumerStatefulWidget {
 class _SettingsBackupScreenState extends ConsumerState<SettingsBackupScreen> {
   bool _isBackingUp = false;
   int _creatorTapCount = 0;
+  int _dbSizeBytes = 0;
+  int _coverCacheSizeBytes = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshStorageStats();
+  }
+
+  Future<void> _refreshStorageStats() async {
+    try {
+      final appDocs = await getApplicationDocumentsDirectory();
+      final dbFile = File(p.join(appDocs.path, 'app_database.sqlite'));
+      final dbBytes = dbFile.existsSync() ? dbFile.lengthSync() : 0;
+
+      final coverCache = ref.read(coverCacheManagerProvider);
+      final cacheBytes = await coverCache.getCacheSizeBytes();
+
+      if (mounted) {
+        setState(() {
+          _dbSizeBytes = dbBytes;
+          _coverCacheSizeBytes = cacheBytes;
+        });
+      }
+    } catch (_) {}
+  }
+
+  String _formatBytes(int bytes) {
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+  }
 
   Future<void> _handleGoogleDriveBackup() async {
     final isPro = ref.read(isProUserProvider);
@@ -43,7 +78,7 @@ class _SettingsBackupScreenState extends ConsumerState<SettingsBackupScreen> {
     final backupService = ref.read(googleDriveBackupServiceProvider);
     final db = ref.read(appDatabaseProvider);
 
-    final result = await backupService.createAndUploadBackup(db: db);
+    final result = await backupService.createAndUploadRsbkBackup(db: db);
     setState(() => _isBackingUp = false);
 
     if (mounted) {
@@ -62,14 +97,128 @@ class _SettingsBackupScreenState extends ConsumerState<SettingsBackupScreen> {
 
     setState(() => _isBackingUp = true);
     final backupService = ref.read(googleDriveBackupServiceProvider);
+    final db = ref.read(appDatabaseProvider);
 
-    final result = await backupService.downloadAndRestoreBackup(ref: ref);
+    final result = await backupService.downloadAndRestoreLatestRsbk(
+      db: db,
+      mode: RestoreMode.smartMerge,
+    );
     setState(() => _isBackingUp = false);
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(result.message)),
       );
+    }
+  }
+
+  Future<void> _handleRsbkExport() async {
+    try {
+      final filename =
+          'readsanctuary_snapshot_${DateTime.now().millisecondsSinceEpoch}.rsbk';
+      File targetFile;
+
+      if (Platform.isAndroid || Platform.isIOS) {
+        final tempDir = await getTemporaryDirectory();
+        targetFile = File(p.join(tempDir.path, filename));
+      } else {
+        final FileSaveLocation? result = await getSaveLocation(
+          suggestedName: filename,
+        );
+        if (result == null) return;
+        targetFile = File(result.path);
+      }
+
+      setState(() => _isBackingUp = true);
+      final backupService = ref.read(googleDriveBackupServiceProvider);
+      final db = ref.read(appDatabaseProvider);
+
+      await backupService.exportLocalRsbk(
+        db: db,
+        targetFile: targetFile,
+      );
+
+      setState(() => _isBackingUp = false);
+
+      if (Platform.isAndroid || Platform.isIOS) {
+        await SharePlus.instance.share(
+          ShareParams(
+            files: [XFile(targetFile.path, mimeType: 'application/gzip')],
+            text: 'ReadSanctuary Versioned Snapshot (.rsbk) 📚',
+          ),
+        );
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Exported snapshot to ${targetFile.path}')),
+        );
+      }
+    } catch (e) {
+      setState(() => _isBackingUp = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Export failed: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _handleRsbkImport() async {
+    try {
+      const typeGroup = XTypeGroup(
+        label: 'ReadSanctuary Backup (.rsbk)',
+        extensions: ['rsbk', 'gz'],
+      );
+      final XFile? file = await openFile(acceptedTypeGroups: [typeGroup]);
+      if (file == null) return;
+      if (!mounted) return;
+
+      final shouldMerge = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Restore Backup Snapshot'),
+          content: const Text(
+            'Smart Merge (Recommended): Merges records using Last-Write-Wins and preserves books you added recently.\n\nOverwrite: Clears local library and replaces everything with this backup.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Smart Merge'),
+            ),
+          ],
+        ),
+      );
+
+      if (shouldMerge != true) return;
+
+      setState(() => _isBackingUp = true);
+      final backupService = ref.read(googleDriveBackupServiceProvider);
+      final db = ref.read(appDatabaseProvider);
+
+      final result = await backupService.importLocalRsbk(
+        db: db,
+        sourceFile: File(file.path),
+        mode: RestoreMode.smartMerge,
+      );
+
+      setState(() => _isBackingUp = false);
+      await _refreshStorageStats();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(result.message)),
+        );
+      }
+    } catch (e) {
+      setState(() => _isBackingUp = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Restore failed: $e')),
+        );
+      }
     }
   }
 
@@ -98,21 +247,19 @@ class _SettingsBackupScreenState extends ConsumerState<SettingsBackupScreen> {
         db: db,
         targetFile: targetFile,
       );
+
       setState(() => _isBackingUp = false);
 
       if (Platform.isAndroid || Platform.isIOS) {
         await SharePlus.instance.share(
           ShareParams(
             files: [XFile(targetFile.path, mimeType: 'application/zip')],
-            text: 'ReadSanctuary Library Backup Archive 📦',
+            text: 'ReadSanctuary Library Backup Archive 📚',
           ),
         );
-      }
-
-      if (mounted) {
+      } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Local backup archive exported successfully! 📦')),
+          SnackBar(content: Text('Exported backup to ${targetFile.path}')),
         );
       }
     } catch (e) {
@@ -126,53 +273,31 @@ class _SettingsBackupScreenState extends ConsumerState<SettingsBackupScreen> {
   }
 
   Future<void> _handleLocalRestore() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Restore Local Backup? 📦'),
-        content: const Text(
-          'Restoring will replace your current local library, book spines, and shelves with the contents of the backup archive.\n\nAre you sure you want to proceed?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.amber.shade800,
-              foregroundColor: Colors.white,
-            ),
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Restore Archive'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true) return;
-
     try {
       const typeGroup = XTypeGroup(
-        label: 'ZIP Backup Archives',
+        label: 'ZIP Archive',
         extensions: ['zip'],
       );
       final XFile? file = await openFile(acceptedTypeGroups: [typeGroup]);
       if (file == null) return;
+      if (!mounted) return;
 
       setState(() => _isBackingUp = true);
       final backupService = ref.read(googleDriveBackupServiceProvider);
+
       final manifest = await backupService.importLocalBackup(
         sourceZipFile: File(file.path),
         ref: ref,
       );
+
       setState(() => _isBackingUp = false);
+      await _refreshStorageStats();
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Library restored successfully (${manifest.bookCount} books)! 📚✨',
+              'Library restored from archive (${manifest.bookCount} books)! 📚✨',
             ),
           ),
         );
@@ -181,7 +306,7 @@ class _SettingsBackupScreenState extends ConsumerState<SettingsBackupScreen> {
       setState(() => _isBackingUp = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Local restore failed: $e')),
+          SnackBar(content: Text('Restore failed: $e')),
         );
       }
     }
@@ -190,11 +315,12 @@ class _SettingsBackupScreenState extends ConsumerState<SettingsBackupScreen> {
   Future<void> _handleCsvImport() async {
     try {
       const typeGroup = XTypeGroup(
-        label: 'CSV Files',
+        label: 'CSV File',
         extensions: ['csv'],
       );
       final XFile? file = await openFile(acceptedTypeGroups: [typeGroup]);
       if (file == null) return;
+      if (!mounted) return;
 
       final content = await file.readAsString();
       final csvService = ref.read(csvImportServiceProvider);
@@ -212,7 +338,6 @@ class _SettingsBackupScreenState extends ConsumerState<SettingsBackupScreen> {
       final db = ref.read(appDatabaseProvider);
       await db.bookDao.insertBooks(parseResult.books);
 
-      // Populate shelf items for imported books so they render immediately
       var shelves = await db.shelfDao.getAllShelves();
       if (shelves.isEmpty) {
         await db.shelfDao.insertShelf(
@@ -243,6 +368,7 @@ class _SettingsBackupScreenState extends ConsumerState<SettingsBackupScreen> {
         );
       }
       await db.shelfDao.insertShelfItems(shelfItems);
+      await _refreshStorageStats();
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -335,8 +461,8 @@ class _SettingsBackupScreenState extends ConsumerState<SettingsBackupScreen> {
               ElevatedButton(
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
                 onPressed: () => Navigator.of(ctx).pop(true),
-                child:
-                    const Text('Reset to Free', style: TextStyle(color: Colors.white)),
+                child: const Text('Reset to Free',
+                    style: TextStyle(color: Colors.white)),
               ),
             ],
           ),
@@ -376,7 +502,6 @@ class _SettingsBackupScreenState extends ConsumerState<SettingsBackupScreen> {
             )
           : ListView(
               children: [
-                // Pro Banner
                 ProStatusBanner(
                   isPro: isPro,
                   onTap: !isPro
@@ -384,7 +509,6 @@ class _SettingsBackupScreenState extends ConsumerState<SettingsBackupScreen> {
                       : null,
                 ),
 
-                // Redeem Gift Code Tile
                 ListTile(
                   leading: const Icon(Icons.card_giftcard, color: Colors.amber),
                   title: const Text('Redeem Gift Code / Voucher'),
@@ -397,12 +521,74 @@ class _SettingsBackupScreenState extends ConsumerState<SettingsBackupScreen> {
 
                 const Divider(),
 
+                // Storage & Cache Analytics
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
+                  child: Text(
+                    'STORAGE & LOCAL CACHE',
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey),
+                  ),
+                ),
+                ListTile(
+                  leading:
+                      const Icon(Icons.storage_outlined, color: Colors.blueGrey),
+                  title: const Text('Local Database Size'),
+                  subtitle: Text(_formatBytes(_dbSizeBytes)),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.refresh, size: 20),
+                    onPressed: _refreshStorageStats,
+                  ),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.image_outlined, color: Colors.teal),
+                  title: const Text('Offline Cover Cache'),
+                  subtitle: Text(_formatBytes(_coverCacheSizeBytes)),
+                  trailing: TextButton(
+                    onPressed: () async {
+                      await ref.read(coverCacheManagerProvider).clearCoverCache();
+                      await _refreshStorageStats();
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Cover cache cleared.')),
+                        );
+                      }
+                    },
+                    child: const Text('Clear'),
+                  ),
+                ),
+                ListTile(
+                  leading:
+                      const Icon(Icons.category_outlined, color: Colors.purple),
+                  title: const Text('Manage Shelves & Categories'),
+                  subtitle: const Text('Reorder or edit custom shelves'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                        builder: (_) => const ManageShelvesScreen()),
+                  ),
+                ),
+
+                const Divider(),
+
                 // Google Drive Sync (Pro)
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
+                  child: Text(
+                    'CLOUD SYNC (PRO)',
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey),
+                  ),
+                ),
                 ListTile(
                   leading: const Icon(Icons.cloud_upload_outlined,
                       color: Colors.blue),
                   title: const Text('Google Drive AppData Backup'),
-                  subtitle: const Text('Automated sandbox sync (Pro)'),
+                  subtitle: const Text('Automated sandbox sync with 5-snapshot retention'),
                   trailing: isPro
                       ? null
                       : const Icon(Icons.lock, size: 18, color: Colors.amber),
@@ -412,7 +598,7 @@ class _SettingsBackupScreenState extends ConsumerState<SettingsBackupScreen> {
                   leading: const Icon(Icons.cloud_download_outlined,
                       color: Colors.blue),
                   title: const Text('Google Drive Restore'),
-                  subtitle: const Text('Restore library from Google Drive'),
+                  subtitle: const Text('Smart-merge newest cloud snapshot'),
                   trailing: isPro
                       ? null
                       : const Icon(Icons.lock, size: 18, color: Colors.amber),
@@ -425,7 +611,7 @@ class _SettingsBackupScreenState extends ConsumerState<SettingsBackupScreen> {
                 const Padding(
                   padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
                   child: Text(
-                    'DATA FREEDOM (100% FREE)',
+                    'PORTABLE BACKUPS (100% FREE & OPEN)',
                     style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
@@ -433,8 +619,20 @@ class _SettingsBackupScreenState extends ConsumerState<SettingsBackupScreen> {
                   ),
                 ),
                 ListTile(
+                  leading: const Icon(Icons.save_alt_outlined, color: Colors.green),
+                  title: const Text('Export .RSBK Snapshot'),
+                  subtitle: const Text('Portable Gzipped versioned JSON snapshot'),
+                  onTap: _handleRsbkExport,
+                ),
+                ListTile(
+                  leading: const Icon(Icons.restore_outlined, color: Colors.green),
+                  title: const Text('Import & Merge .RSBK Snapshot'),
+                  subtitle: const Text('Smart idempotent merge (Last-Write-Wins)'),
+                  onTap: _handleRsbkImport,
+                ),
+                ListTile(
                   leading: const Icon(Icons.folder_zip_outlined,
-                      color: Colors.green),
+                      color: Colors.blueGrey),
                   title: const Text('Export Local .ZIP Backup'),
                   subtitle:
                       const Text('SQLite database + covers + spines archive'),
@@ -442,7 +640,7 @@ class _SettingsBackupScreenState extends ConsumerState<SettingsBackupScreen> {
                 ),
                 ListTile(
                   leading: const Icon(Icons.unarchive_outlined,
-                      color: Colors.green),
+                      color: Colors.blueGrey),
                   title: const Text('Restore Local .ZIP Backup'),
                   subtitle:
                       const Text('Restore whole library from .zip archive file'),
@@ -512,7 +710,7 @@ class _SettingsBackupScreenState extends ConsumerState<SettingsBackupScreen> {
                         child: Column(
                           children: [
                             Text(
-                              'ReadSanctuary v1.1.0',
+                              'ReadSanctuary v1.2.0',
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Colors.grey.shade500,

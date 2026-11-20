@@ -7,6 +7,9 @@ import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
+import '../backup/backup_deserializer.dart';
+import '../backup/backup_serializer.dart';
+import '../backup/restore_backup_service.dart';
 import '../local/database.dart';
 import 'backup_archive_service.dart';
 
@@ -15,29 +18,42 @@ class BackupOperationResult {
   final bool success;
   final String message;
   final BackupManifest? manifest;
+  final RestoreResult? restoreResult;
 
   const BackupOperationResult({
     required this.success,
     required this.message,
     this.manifest,
+    this.restoreResult,
   });
 }
 
 /// Service managing automated Google Drive AppData sandbox backup & restore,
-/// SQLite WAL checkpointing, and local anti-lock-in ZIP export/import.
+/// SQLite WAL checkpointing, and local anti-lock-in ZIP/RSBK export/import.
 class GoogleDriveBackupService {
   static const String backupFileName = 'readsanctuary_backup.zip';
+  static const int maxRollingSnapshots = 5;
+
   final GoogleSignIn _googleSignIn;
   final BackupArchiveService _archiveService;
+  final BackupSerializer _serializer;
+  final BackupDeserializer _deserializer;
+  final RestoreBackupService _restoreService;
 
   GoogleDriveBackupService({
     GoogleSignIn? googleSignIn,
     BackupArchiveService? archiveService,
+    BackupSerializer? serializer,
+    BackupDeserializer? deserializer,
+    RestoreBackupService? restoreService,
   })  : _googleSignIn = googleSignIn ??
             GoogleSignIn(
               scopes: [drive.DriveApi.driveAppdataScope],
             ),
-        _archiveService = archiveService ?? BackupArchiveService();
+        _archiveService = archiveService ?? BackupArchiveService(),
+        _serializer = serializer ?? BackupSerializer(),
+        _deserializer = deserializer ?? BackupDeserializer(),
+        _restoreService = restoreService ?? RestoreBackupService();
 
   /// Prompts user to sign in to Google.
   Future<GoogleSignInAccount?> signIn() async {
@@ -54,13 +70,196 @@ class GoogleDriveBackupService {
     return _googleSignIn.isSignedIn();
   }
 
+  /// Exports local database state to a portable Gzipped .rsbk file.
+  Future<File> exportLocalRsbk({
+    required AppDatabase db,
+    required File targetFile,
+  }) async {
+    await db.checkpointWal();
+    return _serializer.exportToFile(db, targetFile);
+  }
+
+  /// Imports and smart-merges a local .rsbk file idempotently into the database.
+  Future<RestoreResult> importLocalRsbk({
+    required AppDatabase db,
+    required File sourceFile,
+    RestoreMode mode = RestoreMode.smartMerge,
+  }) async {
+    final snapshot = await _deserializer.deserializeFile(sourceFile);
+    return _restoreService.restoreSnapshot(db, snapshot, mode: mode);
+  }
+
+  /// Creates and uploads a versioned .rsbk snapshot to Google Drive appDataFolder,
+  /// and automatically trims backups to the latest 5 snapshots.
+  Future<BackupOperationResult> createAndUploadRsbkBackup({
+    required AppDatabase db,
+  }) async {
+    try {
+      var account = _googleSignIn.currentUser;
+      account ??= await _googleSignIn.signInSilently();
+      account ??= await _googleSignIn.signIn();
+
+      if (account == null) {
+        return const BackupOperationResult(
+          success: false,
+          message: 'Google Sign-In required for cloud sync.',
+        );
+      }
+
+      final authClient = await _googleSignIn.authenticatedClient();
+      if (authClient == null) {
+        return const BackupOperationResult(
+          success: false,
+          message: 'Failed to acquire authenticated Drive client.',
+        );
+      }
+
+      final driveApi = drive.DriveApi(authClient);
+      await db.checkpointWal();
+
+      // Serialize to Gzipped bytes
+      final bytes = await _serializer.serializeDatabase(db);
+      final filename =
+          'readsanctuary_snapshot_${DateTime.now().millisecondsSinceEpoch}.rsbk';
+
+      final tempDir = await getTemporaryDirectory();
+      final tempFile = File(p.join(tempDir.path, filename));
+      await tempFile.writeAsBytes(bytes);
+
+      final uploadMedia = drive.Media(
+        tempFile.openRead(),
+        bytes.length,
+      );
+
+      final driveFile = drive.File(
+        name: filename,
+        parents: ['appDataFolder'],
+      );
+
+      await driveApi.files.create(
+        driveFile,
+        uploadMedia: uploadMedia,
+      );
+
+      if (await tempFile.exists()) {
+        await tempFile.delete();
+      }
+
+      // Enforce rolling retention limit (keep newest 5, delete older)
+      await _trimRollingSnapshots(driveApi);
+
+      return const BackupOperationResult(
+        success: true,
+        message: 'Versioned .rsbk snapshot uploaded to Google Drive.',
+      );
+    } catch (e) {
+      return BackupOperationResult(
+        success: false,
+        message: 'Backup failed: $e',
+      );
+    }
+  }
+
+  /// Downloads and smart-merges the most recent .rsbk snapshot from Google Drive.
+  Future<BackupOperationResult> downloadAndRestoreLatestRsbk({
+    required AppDatabase db,
+    RestoreMode mode = RestoreMode.smartMerge,
+  }) async {
+    try {
+      var account = _googleSignIn.currentUser;
+      account ??= await _googleSignIn.signInSilently();
+      account ??= await _googleSignIn.signIn();
+
+      if (account == null) {
+        return const BackupOperationResult(
+          success: false,
+          message: 'Google Sign-In required to restore backup.',
+        );
+      }
+
+      final authClient = await _googleSignIn.authenticatedClient();
+      if (authClient == null) {
+        return const BackupOperationResult(
+          success: false,
+          message: 'Failed to acquire authenticated Drive client.',
+        );
+      }
+
+      final driveApi = drive.DriveApi(authClient);
+
+      final fileList = await driveApi.files.list(
+        spaces: 'appDataFolder',
+        q: "name contains 'readsanctuary_snapshot_' and trashed = false",
+        orderBy: 'createdTime desc',
+        $fields: 'files(id, name, createdTime)',
+      );
+
+      if (fileList.files == null || fileList.files!.isEmpty) {
+        return const BackupOperationResult(
+          success: false,
+          message: 'No .rsbk snapshots found in Google Drive AppData.',
+        );
+      }
+
+      final latestFile = fileList.files!.first;
+      final fileId = latestFile.id!;
+
+      final media = await driveApi.files.get(
+        fileId,
+        downloadOptions: drive.DownloadOptions.fullMedia,
+      ) as drive.Media;
+
+      final byteChunks = <int>[];
+      await for (final chunk in media.stream) {
+        byteChunks.addAll(chunk);
+      }
+
+      final snapshot = await _deserializer.deserializeBytes(byteChunks);
+      final result =
+          await _restoreService.restoreSnapshot(db, snapshot, mode: mode);
+
+      return BackupOperationResult(
+        success: true,
+        message:
+            'Snapshot restored: ${result.booksMerged} books merged idempotently.',
+        restoreResult: result,
+      );
+    } catch (e) {
+      return BackupOperationResult(
+        success: false,
+        message: 'Restore failed: $e',
+      );
+    }
+  }
+
+  /// Trims cloud backups in appDataFolder to keep only the newest [maxRollingSnapshots].
+  Future<void> _trimRollingSnapshots(drive.DriveApi driveApi) async {
+    try {
+      final fileList = await driveApi.files.list(
+        spaces: 'appDataFolder',
+        q: "name contains 'readsanctuary_snapshot_' and trashed = false",
+        orderBy: 'createdTime desc',
+        $fields: 'files(id, name, createdTime)',
+      );
+
+      final files = fileList.files ?? [];
+      if (files.length > maxRollingSnapshots) {
+        for (int i = maxRollingSnapshots; i < files.length; i++) {
+          final oldId = files[i].id;
+          if (oldId != null) {
+            await driveApi.files.delete(oldId);
+          }
+        }
+      }
+    } catch (_) {}
+  }
+
   /// Creates and uploads a full backup archive to Google Drive appDataFolder.
   /// Flushes SQLite WAL first so that app_database.sqlite is 100% current.
   Future<BackupOperationResult> createAndUploadBackup({
     required AppDatabase db,
   }) async {
     try {
-      // 1. Ensure user is authenticated
       var account = _googleSignIn.currentUser;
       account ??= await _googleSignIn.signInSilently();
       account ??= await _googleSignIn.signIn();
@@ -116,7 +315,6 @@ class GoogleDriveBackupService {
       );
 
       if (fileList.files != null && fileList.files!.isNotEmpty) {
-        // Update existing backup file
         final existingId = fileList.files!.first.id!;
         await driveApi.files.update(
           drive.File(),
@@ -124,7 +322,6 @@ class GoogleDriveBackupService {
           uploadMedia: uploadMedia,
         );
       } else {
-        // Create new backup file in appDataFolder
         final driveFile = drive.File(
           name: backupFileName,
           parents: ['appDataFolder'],
@@ -135,7 +332,6 @@ class GoogleDriveBackupService {
         );
       }
 
-      // Cleanup local temp zip
       if (await zipFile.exists()) {
         await zipFile.delete();
       }
@@ -178,7 +374,6 @@ class GoogleDriveBackupService {
 
       final driveApi = drive.DriveApi(authClient);
 
-      // 1. Locate file in appDataFolder
       final fileList = await driveApi.files.list(
         spaces: 'appDataFolder',
         q: "name = '$backupFileName' and trashed = false",
@@ -194,7 +389,6 @@ class GoogleDriveBackupService {
 
       final fileId = fileList.files!.first.id!;
 
-      // 2. Download into temporary file
       final tempDir = await getTemporaryDirectory();
       final tempZip = File(p.join(tempDir.path, 'downloaded_$backupFileName'));
 
@@ -206,22 +400,18 @@ class GoogleDriveBackupService {
       final sink = tempZip.openWrite();
       await media.stream.pipe(sink);
 
-      // 3. Close active database connection to safely replace SQLite file
       ref.invalidate(appDatabaseProvider);
 
-      // 4. Extract into App Documents Directory
       final appDocs = await getApplicationDocumentsDirectory();
       final manifest = await _archiveService.restoreBackupArchive(
         backupZipFile: tempZip,
         targetDirectory: appDocs,
       );
 
-      // 5. Cleanup temp downloaded zip
       if (await tempZip.exists()) {
         await tempZip.delete();
       }
 
-      // 6. Refresh provider so UI and DAOs reconnect to restored DB
       ref.invalidate(appDatabaseProvider);
 
       return BackupOperationResult(

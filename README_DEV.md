@@ -5,9 +5,9 @@
 [![Flutter Version](https://img.shields.io/badge/Flutter-3.24%2B-02569B?logo=flutter)](https://flutter.dev)
 [![Dart Version](https://img.shields.io/badge/Dart-3.5%2B-0175C2?logo=dart)](https://dart.dev)
 [![Architecture](https://img.shields.io/badge/Architecture-Clean%20Architecture%20%2F%20MVVM-informational)](https://github.com)
-[![Database](https://img.shields.io/badge/Database-Drift%20(SQLite)%20v5-blue)](https://drift.simonbinder.eu)
+[![Database](https://img.shields.io/badge/Database-Drift%20(SQLite)%20v6%20%2B%20FTS5-blue)](https://drift.simonbinder.eu)
 [![State Management](https://img.shields.io/badge/State-Flutter%20Riverpod%202.x-teal)](https://riverpod.dev)
-[![Tests Passing](https://img.shields.io/badge/Tests-108%2F108%20Passing-success)](test/)
+[![Tests Passing](https://img.shields.io/badge/Tests-128%2B%20Passing-success)](test/)
 [![User Guide](https://img.shields.io/badge/Documentation-User%20README-green)](README.md)
 
 ---
@@ -22,7 +22,7 @@
 1. [Architecture & Design Principles](#-architecture--design-principles)
 2. [Codebase Directory Structure](#-codebase-directory-structure)
 3. [Database Architecture & Drift Specifications](#-database-architecture--drift-specifications)
-   - [Schema Definition (Schema V5)](#schema-definition-schema-v5)
+   - [Schema Definition (Schema V6)](#schema-definition-schema-v6)
    - [Architectural Schema Decisions](#architectural-schema-decisions)
    - [Data Access Objects (DAOs) & Reactive Streams](#data-access-objects-daos--reactive-streams)
 4. [Deep Dives: Key Systems & Algorithms](#-deep-dives-key-systems--algorithms)
@@ -60,30 +60,35 @@ flowchart TD
     subgraph Presentation ["Presentation Layer (Flutter + Riverpod)"]
         UI[Screens & Widgets]
         VM[Riverpod Providers / StateNotifiers]
-        EPUB[In-App EPUB Reader]
+        Grid[Library Grid & Filter State]
+        EPUB[In-App EPUB & PDF Readers]
         WidgetSync[Home Widget Provider]
     end
 
-    subgraph Domain ["Domain Layer"]
-        M[Domain Models & Value Objects]
+    subgraph Domain ["Domain Layer (100% Pure Dart)"]
+        Entities[Domain Entities: Book, Shelf, Session, Note]
+        RepoInterfaces[Repository Interfaces]
+        SourceInterfaces[Metadata Source Interfaces]
     end
 
     subgraph Data ["Data Layer"]
-        DAOs[Drift DAOs & SQLite Tables (v5)]
-        EpubService[Pure Dart EPUB Parser]
-        RemoteServices[Book Lookup & Gutenberg APIs]
-        StorageHelper[Image Storage & Path Resolver]
-        BackupService[ZIP Archiver & Drive Sync]
+        Repos[Repository Implementations]
+        DAOs[Drift DAOs & SQLite Tables - Schema v6 + FTS5]
+        MetaAggregator[Metadata Aggregator Service]
+        Sources[OpenLibrary & Google Books Sources]
+        BackupEngine[Versioned .RSBK Serializer & ZIP Archiver]
+        StorageHelper[CoverCacheManager & ImageStorageHelper]
     end
 
     UI --> VM
-    VM --> DAOs
-    VM --> RemoteServices
-    VM --> EpubService
-    VM --> WidgetSync
-    VM --> M
-    DAOs --> StorageHelper
-    RemoteServices --> StorageHelper
+    VM --> Repos
+    Repos --> DAOs
+    Repos --> MetaAggregator
+    MetaAggregator --> Sources
+    VM --> BackupEngine
+    VM --> StorageHelper
+    Repos --> Entities
+    RepoInterfaces --> Entities
 ```
 
 ### Core Architectural Pillars
@@ -105,35 +110,48 @@ lib/
 ├── main.dart                               # Application bootstrap, DI container initialization
 │
 ├── core/
-│   ├── constants/
-│   │   └── app_colors.dart                 # Color tokens, wood themes, and UI palettes
-│   ├── theme/
-│   │   └── app_theme.dart                  # Material3 light/dark ThemeData
+│   ├── constants/                          # Book formats, reading statuses, shelf props
+│   ├── errors/                             # Failure domain classes
+│   ├── theme/                              # AppColors, AppTheme, ShelfThemes
 │   └── utils/
 │       ├── color_extractor.dart            # PaletteGenerator cover analysis & WCAG luminance contrast
+│       ├── cover_cache_manager.dart        # Disk & memory image cache with size calculation
 │       ├── formatters.dart                 # Duration and date formatting helpers
 │       ├── image_storage_helper.dart       # Relative filesystem storage in <AppDocs>/media/
 │       └── streak_calculator.dart          # Habit calculations, retroactive backfills, and grace periods
 │
 ├── data/
+│   ├── backup/                             # Versioned .rsbk JSON serializer, deserializer & LWW restore
+│   │   ├── backup_deserializer.dart
+│   │   ├── backup_serializer.dart
+│   │   ├── restore_backup_service.dart
+│   │   └── models/backup_snapshot_dto.dart
 │   ├── local/
-│   │   ├── database.dart                   # Drift AppDatabase instance (Schema v5) and providers
+│   │   ├── database.dart                   # Drift AppDatabase instance (Schema v6 + FTS5)
 │   │   ├── database.g.dart                 # Generated Drift database code
 │   │   ├── daos/
-│   │   │   ├── book_dao.dart               # CRUD, batch inserts, and fractional series queries
+│   │   │   ├── book_dao.dart               # CRUD, FTS5 live queries, and fractional series queries
 │   │   │   ├── session_dao.dart            # Reading sessions and book note queries
 │   │   │   └── shelf_dao.dart              # Shelf CRUD and horizontal reorder transactions
+│   │   ├── mappers/                        # Entity / Companion data mappers
 │   │   └── tables/
-│   │       ├── books.dart                  # Drift table: books (with sub-ratings, seriesIndex REAL, lending)
+│   │       ├── books.dart                  # Drift table: books (with sub-ratings, lastReadAt, deletedAt)
 │   │       ├── book_notes.dart             # Drift table: book_notes (quotes, thoughts, OCR notes)
+│   │       ├── book_shelves.dart           # Drift table: book_shelves (many-to-many relationship)
 │   │       ├── reading_sessions.dart       # Drift table: reading_sessions (start, duration, pages)
 │   │       ├── shelf_items.dart            # Drift table: shelf_items (books, props, spacer gaps)
-│   │       └── shelves.dart                # Drift table: shelves (wood theme, sort order)
+│   │       └── shelves.dart                # Drift table: shelves (wood theme, sort order, deletedAt)
 │   ├── remote/
-│   │   ├── book_lookup_service.dart        # Dual-API orchestrator: OpenLibrary with Google Books fallback
+│   │   ├── metadata_aggregator_service.dart# Mihon-inspired multi-source aggregator with enrichment
+│   │   ├── book_lookup_service.dart        # Unified book lookup orchestrator
 │   │   ├── free_book_service.dart          # Project Gutenberg API client for free eBooks
-│   │   ├── google_books_api.dart           # Fallback Google Books v1 REST client
-│   │   └── open_library_api.dart           # Primary OpenLibrary ISBN and Work resolution client
+│   │   ├── google_books_api.dart           # Google Books v1 REST client
+│   │   ├── open_library_api.dart           # OpenLibrary ISBN and Work resolution client
+│   │   └── sources/                        # Pluggable BookMetadataSource implementations
+│   ├── repositories/                       # Repository implementations (Clean Architecture)
+│   │   ├── book_repository_impl.dart
+│   │   ├── reading_session_repository_impl.dart
+│   │   └── shelf_repository_impl.dart
 │   └── services/
 │       ├── backup_archive_service.dart     # SQLite WAL flush and ZipFileEncoder packager
 │       ├── csv_import_service.dart         # Clean-room Goodreads and StoryGraph CSV parser & exporter
@@ -142,64 +160,45 @@ lib/
 │       ├── revenuecat_service.dart         # RevenueCat & offline gift code entitlement provider
 │       └── shelf_widget_service.dart       # HomeWidget synchronization service for Android home screen
 │
-├── domain/
-│   └── models/
-│       └── book_metadata.dart              # Unified book metadata transfer entity
+├── domain/                                 # 100% Pure Dart Layer (Zero Flutter/Drift imports)
+│   ├── entities/                           # BookEntity, ShelfEntity, ReadingSessionEntity, BookNoteEntity
+│   ├── models/                             # BookMetadata
+│   ├── repositories/                       # BookRepository, ShelfRepository, ReadingSessionRepository
+│   └── sources/                            # BookMetadataSource interface
 │
 └── presentation/
+    ├── providers/                          # Riverpod providers, library filter state, filtered books
     ├── screens/
     │   ├── bookshelf/
-    │   │   ├── bookshelf_screen.dart       # Main 2.5D bookshelf screen
+    │   │   ├── bookshelf_screen.dart       # Main 2.5D bookshelf screen & Grid/List switcher
+    │   │   ├── manage_shelves_screen.dart  # Dedicated shelf reordering and customization screen
     │   │   ├── shelf_share_exporter.dart   # High-resolution 3.0x pixelRatio social share generator
-    │   │   ├── dialogs/                    # Shelf creation and edit dialogs
-    │   │   └── widgets/
-    │   │       ├── book_cover_tilt_widget.dart     # 3D isometric front cover preview
-    │   │       ├── book_spine_25d_widget.dart      # 2.5D procedural spine with cylindrical shader
-    │   │       ├── interactive_3d_book_viewer.dart # Gyroscopic and touch drag 3D book model
-    │   │       ├── shelf_prop_widget.dart          # Decorative props (plants, candles, mugs, gaps)
-    │   │       ├── shelf_section.dart              # Sectioned shelf wrapper
-    │   │       └── wooden_shelf_row.dart           # Custom-painted wooden shelf row
-    │   ├── book_detail/
-    │   │   ├── book_detail_screen.dart     # Book details, sub-ratings badges, and share actions
-    │   │   ├── ocr_quote_scanner.dart      # On-device ML Kit camera text recognition
-    │   │   ├── dialogs/                    # EditBookDialog with sub-ratings sliders & lending
-    │   │   └── widgets/                    # BookDetailHeader, BookActionButtons, BookNotesList
-    │   ├── book_search/
-    │   │   └── book_search_screen.dart     # Search UI with Project Gutenberg eBook discovery
-    │   ├── epub_reader/
-    │   │   └── epub_reader_screen.dart     # Reflowable EPUB reader with Light/Sepia/Night themes
-    │   ├── pdf_reader/
-    │   │   └── pdf_reader_screen.dart      # In-app PDF reader viewer
-    │   ├── scanner/
-    │   │   └── barcode_scanner_screen.dart # MobileScanner ISBN overlay with batch scan queue
-    │   ├── settings_backup/
-    │   │   ├── settings_backup_screen.dart # Backup management, restore, and gift redemption
-    │   │   └── dialogs/
-    │   │       └── gift_redeem_dialog.dart # Offline voucher and creator code entry dialog
-    │   ├── spine_cropper/
-    │   │   └── spine_cropper_screen.dart   # CropYourImage custom physical spine cropper
-    │   ├── stats/
-    │   │   ├── stats_screen.dart           # fl_chart analytics, streak flame cards, format charts
-    │   │   └── widgets/
-    │   │       └── yearly_goal_card.dart   # Editable yearly reading challenge goal card
-    │   └── timer/
-    │       ├── reading_timer_screen.dart   # Resilient reading stopwatch with SharedPreferences state
-    │       └── dialogs/
-    │           └── log_manual_session_dialog.dart # Retroactive missed-day backfill dialog
+    │   │   ├── dialogs/                    # Add shelf, add book, library filter bottom sheet
+    │   │   └── widgets/                    # 2.5D Spines, 3D Tilt, LibraryGridView, WoodenShelfRow
+    │   ├── book_detail/                    # Book details, sub-ratings badges, and share actions
+    │   ├── book_search/                    # Search UI with Project Gutenberg eBook discovery
+    │   ├── epub_reader/                    # Reflowable EPUB reader with Light/Sepia/Night themes
+    │   ├── pdf_reader/                     # In-app PDF reader viewer & bookmarks
+    │   ├── scanner/                        # MobileScanner ISBN overlay with batch scan queue
+    │   ├── settings_backup/                # .rsbk export/import, .zip backup, cache manager, gift vouchers
+    │   ├── spine_cropper/                  # CropYourImage custom physical spine cropper
+    │   ├── stats/                          # fl_chart analytics, streak flame cards, format charts
+    │   └── timer/                          # Resilient reading stopwatch with SharedPreferences state
     └── widgets/
-        └── global UI reusable components
+        ├── cover_image_card.dart           # High-performance cover image card with typographic fallback
+        └── home_widget/                    # Launcher AppWidget view
 ```
 
 ---
 
 ## 🗄️ Database Architecture & Drift Specifications
 
-### Schema Definition (Schema V5)
+### Schema Definition (Schema V6)
 
-ReadSanctuary uses **Drift** on top of SQLite, ensuring high-speed transactional reliability and typed Dart mappings.
+ReadSanctuary uses **Drift** on top of SQLite, ensuring high-speed transactional reliability, typed Dart mappings, and sub-15ms FTS5 text querying.
 
 ```sql
--- Schema Version 5
+-- Schema Version 6
 CREATE TABLE books (
   id TEXT PRIMARY KEY,
   isbn13 TEXT NULL,
@@ -230,25 +229,75 @@ CREATE TABLE books (
   borrower_name TEXT NULL,
   lent_date INTEGER NULL,                 -- Unix epoch ms
   last_read_page INTEGER NOT NULL DEFAULT 0,
+  pdf_path TEXT NULL,                     -- Relative path in <AppDocs>/media/pdfs/
+  last_read_at INTEGER NULL,              -- Unix epoch ms for last active reading activity (Schema v6)
+  deleted_at INTEGER NULL,                -- Soft-deletion timestamp (Schema v6)
   created_at INTEGER NOT NULL,            -- Unix epoch ms
   updated_at INTEGER NOT NULL             -- Unix epoch ms
 );
 
--- Schema Version 4 Performance Indices
+-- Multi-Shelf Junction Table (Schema v6)
+CREATE TABLE book_shelves (
+  book_id TEXT NOT NULL REFERENCES books(id) ON DELETE CASCADE,
+  shelf_id TEXT NOT NULL REFERENCES shelves(id) ON DELETE CASCADE,
+  added_at INTEGER NOT NULL,
+  PRIMARY KEY (book_id, shelf_id)
+);
+
+-- Performance & Query Indices
 CREATE INDEX books_status_idx ON books (status);
+CREATE INDEX books_last_read_at_idx ON books (last_read_at);
 CREATE INDEX shelves_sort_order_idx ON shelves (sort_order);
 CREATE INDEX shelf_items_shelf_idx ON shelf_items (shelf_id, position_index);
 CREATE INDEX shelf_items_book_idx ON shelf_items (book_id);
+CREATE INDEX book_shelves_shelf_idx ON book_shelves (shelf_id);
 CREATE INDEX reading_sessions_book_idx ON reading_sessions (book_id);
 CREATE INDEX reading_sessions_time_idx ON reading_sessions (start_time);
 CREATE INDEX book_notes_book_idx ON book_notes (book_id);
+
+-- SQLite FTS5 Full-Text Virtual Table & Triggers (Schema v6)
+CREATE VIRTUAL TABLE books_fts USING fts5(
+  book_id UNINDEXED,
+  title,
+  authors,
+  description,
+  notes,
+  tokenize='porter unicode61'
+);
+
+CREATE TRIGGER books_fts_ai AFTER INSERT ON books BEGIN
+  INSERT INTO books_fts(book_id, title, authors, description, notes)
+  VALUES (new.id, new.title, new.authors, coalesce(new.description, ''), '');
+END;
+
+CREATE TRIGGER books_fts_au AFTER UPDATE ON books BEGIN
+  DELETE FROM books_fts WHERE book_id = old.id;
+  INSERT INTO books_fts(book_id, title, authors, description, notes)
+  VALUES (new.id, new.title, new.authors, coalesce(new.description, ''), '');
+END;
+
+CREATE TRIGGER books_fts_ad AFTER DELETE ON books BEGIN
+  DELETE FROM books_fts WHERE book_id = old.id;
+END;
+
+CREATE TRIGGER book_notes_fts_ai AFTER INSERT ON book_notes BEGIN
+  INSERT INTO books_fts(book_id, title, authors, description, notes)
+  VALUES (new.book_id, '', '', '', new.content);
+END;
+
+CREATE TRIGGER book_notes_fts_ad AFTER DELETE ON book_notes BEGIN
+  DELETE FROM books_fts WHERE rowid IN (
+    SELECT rowid FROM books_fts WHERE book_id = old.book_id AND notes = old.content LIMIT 1
+  );
+END;
 ```
 
 #### Other Core Tables:
-* **`shelves`**: Physical/logical shelves with `wood_theme_id` (`oak`, `walnut`, `mahogany`, `birch`) and `sort_order`.
+* **`shelves`**: Physical/logical shelves with `wood_theme_id` (`oak`, `walnut`, `mahogany`, `birch`), `sort_order`, `created_at`, `updated_at`, and soft-delete `deleted_at`.
 * **`shelf_items`**: Polymorphic table referencing `books(id)` or `prop_asset_id` (`plant_monstera`, `candle_amber`, `gap`, etc.) with `display_mode` (`spine`, `cover_out`, `stacked`) and `position_index`.
 * **`reading_sessions`**: `book_id`, `start_time`, `duration_seconds`, `start_page`, `end_page`.
-* **`book_notes`**: `book_id`, `note_type` (`quote`, `thought`, `character`), `content`, `page_number`, `created_at`.
+* **`book_notes`**: `book_id`, `note_type` (`quote`, `thought`, `character`, `bookmark`), `content`, `page_number`, `created_at`.
+* **`book_shelves`**: Many-to-many relationship linking books across multiple custom collections.
 
 ### Architectural Schema Decisions
 
@@ -283,6 +332,18 @@ CREATE INDEX book_notes_book_idx ON book_notes (book_id);
      if (from < 5) {
        await migrator.addColumn(books, books.backCoverPath);
      }
+     if (from < 6) {
+       await migrator.addColumn(books, books.lastReadAt);
+       await migrator.addColumn(books, books.deletedAt);
+       await migrator.addColumn(shelves, shelves.createdAt);
+       await migrator.addColumn(shelves, shelves.updatedAt);
+       await migrator.addColumn(shelves, shelves.deletedAt);
+       await migrator.createTable(bookShelves);
+       await customStatement('CREATE INDEX IF NOT EXISTS books_last_read_at_idx ON books (last_read_at);');
+       await customStatement('CREATE INDEX IF NOT EXISTS book_shelves_shelf_idx ON book_shelves (shelf_id);');
+       await createFtsTableAndTriggers();
+       await populateFtsFromExistingBooks();
+     }
    }
    ```
    All new columns are nullable or have sensible defaults, guaranteeing zero data loss when updating.
@@ -300,6 +361,7 @@ CREATE INDEX book_notes_book_idx ON book_notes (book_id);
 Drift DAOs provide reactive streams to the presentation layer:
 * **`BookDao`**:
   * `watchAllBooks()`: Continuous stream for search and statistics.
+  * `searchBooksFts(String query)`: Sub-15ms full-text search across titles, authors, descriptions, and notes via SQLite FTS5.
   * `watchBookById(String id)`: Emits updates immediately when the book is edited or a rating is changed.
   * `insertBooks(List<Insertable<Book>> bookList)`: High-performance atomic batch intake (`batch((b) => b.insertAll(books, bookList))`) used by CSV import and batch barcode scanner.
 * **`ShelfDao`**:

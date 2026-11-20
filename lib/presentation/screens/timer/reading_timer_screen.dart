@@ -296,6 +296,7 @@ class _ReadingTimerScreenState extends ConsumerState<ReadingTimerScreen> {
                   if (_isRunning)
                     FloatingActionButton.large(
                       heroTag: 'pause_btn',
+                      elevation: 2,
                       backgroundColor: Colors.amber.shade700,
                       onPressed: _pauseTimer,
                       child: const Icon(Icons.pause,
@@ -304,6 +305,7 @@ class _ReadingTimerScreenState extends ConsumerState<ReadingTimerScreen> {
                   else
                     FloatingActionButton.large(
                       heroTag: 'play_btn',
+                      elevation: 2,
                       backgroundColor: color,
                       onPressed: _startTimer,
                       child: const Icon(Icons.play_arrow,
@@ -313,6 +315,7 @@ class _ReadingTimerScreenState extends ConsumerState<ReadingTimerScreen> {
                     const SizedBox(width: 24),
                     FloatingActionButton(
                       heroTag: 'stop_btn',
+                      elevation: 2,
                       backgroundColor: Colors.red.shade600,
                       onPressed: _finishSession,
                       child: const Icon(Icons.stop, color: Colors.white),

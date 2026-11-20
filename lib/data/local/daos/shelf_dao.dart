@@ -56,6 +56,22 @@ class ShelfDao extends DatabaseAccessor<AppDatabase> with _$ShelfDaoMixin {
     return (delete(shelves)..where((t) => t.id.equals(id))).go();
   }
 
+  Future<void> reorderShelves(List<String> shelfIdsInOrder) {
+    return batch((b) {
+      for (int i = 0; i < shelfIdsInOrder.length; i++) {
+        b.update(
+          shelves,
+          ShelvesCompanion(sortOrder: Value(i)),
+          where: (t) => t.id.equals(shelfIdsInOrder[i]),
+        );
+      }
+    });
+  }
+
+  Future<int> upsertShelfItem(Insertable<ShelfItem> item) {
+    return into(shelfItems).insertOnConflictUpdate(item);
+  }
+
   Stream<List<ShelfItem>> watchItemsForShelf(String shelfId) {
     return (select(shelfItems)
           ..where((t) => t.shelfId.equals(shelfId))

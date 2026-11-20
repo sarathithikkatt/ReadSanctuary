@@ -10,6 +10,7 @@ import 'daos/book_dao.dart';
 import 'daos/session_dao.dart';
 import 'daos/shelf_dao.dart';
 import 'tables/book_notes.dart';
+import 'tables/book_shelves.dart';
 import 'tables/books.dart';
 import 'tables/reading_sessions.dart';
 import 'tables/shelf_items.dart';
@@ -22,14 +23,14 @@ export 'daos/shelf_dao.dart';
 part 'database.g.dart';
 
 @DriftDatabase(
-  tables: [Books, Shelves, ShelfItems, ReadingSessions, BookNotes],
+  tables: [Books, Shelves, ShelfItems, ReadingSessions, BookNotes, BookShelves],
   daos: [BookDao, ShelfDao, SessionDao],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? e]) : super(e ?? _openConnection());
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -67,10 +68,25 @@ class AppDatabase extends _$AppDatabase {
           if (from < 5) {
             await m.addColumn(books, books.backCoverPath);
           }
+          if (from < 6) {
+            await m.addColumn(books, books.lastReadAt);
+            await m.addColumn(books, books.deletedAt);
+            await m.addColumn(shelves, shelves.createdAt);
+            await m.addColumn(shelves, shelves.updatedAt);
+            await m.addColumn(shelves, shelves.deletedAt);
+            await m.createTable(bookShelves);
+            await customStatement(
+                'CREATE INDEX IF NOT EXISTS books_last_read_at_idx ON books (last_read_at);');
+            await customStatement(
+                'CREATE INDEX IF NOT EXISTS book_shelves_shelf_idx ON book_shelves (shelf_id);');
+            await createFtsTableAndTriggers();
+            await populateFtsFromExistingBooks();
+          }
         },
         beforeOpen: (details) async {
           await customStatement('PRAGMA foreign_keys = ON;');
           if (details.wasCreated) {
+            await createFtsTableAndTriggers();
             final count = await customSelect('SELECT COUNT(*) AS c FROM shelves;')
                 .map((row) => row.read<int>('c'))
                 .getSingle();
@@ -82,6 +98,8 @@ class AppDatabase extends _$AppDatabase {
                   woodThemeId: const Value('oak'),
                   wallThemeId: const Value('warm_cream'),
                   sortOrder: 0,
+                  createdAt: Value(DateTime.now().millisecondsSinceEpoch),
+                  updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
                 ),
               );
               await into(shelves).insert(
@@ -91,12 +109,76 @@ class AppDatabase extends _$AppDatabase {
                   woodThemeId: const Value('oak'),
                   wallThemeId: const Value('warm_cream'),
                   sortOrder: 1,
+                  createdAt: Value(DateTime.now().millisecondsSinceEpoch),
+                  updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
                 ),
               );
             }
           }
         },
       );
+
+  /// Creates SQLite FTS5 virtual table and synchronization triggers.
+  Future<void> createFtsTableAndTriggers() async {
+    await customStatement('''
+      CREATE VIRTUAL TABLE IF NOT EXISTS books_fts USING fts5(
+        book_id UNINDEXED,
+        title,
+        authors,
+        description,
+        notes,
+        tokenize='porter unicode61'
+      );
+    ''');
+
+    await customStatement('''
+      CREATE TRIGGER IF NOT EXISTS books_fts_ai AFTER INSERT ON books BEGIN
+        INSERT INTO books_fts(book_id, title, authors, description, notes)
+        VALUES (new.id, new.title, new.authors, coalesce(new.description, ''), '');
+      END;
+    ''');
+
+    await customStatement('''
+      CREATE TRIGGER IF NOT EXISTS books_fts_au AFTER UPDATE ON books BEGIN
+        DELETE FROM books_fts WHERE book_id = old.id;
+        INSERT INTO books_fts(book_id, title, authors, description, notes)
+        VALUES (new.id, new.title, new.authors, coalesce(new.description, ''), '');
+      END;
+    ''');
+
+    await customStatement('''
+      CREATE TRIGGER IF NOT EXISTS books_fts_ad AFTER DELETE ON books BEGIN
+        DELETE FROM books_fts WHERE book_id = old.id;
+      END;
+    ''');
+
+    await customStatement('''
+      CREATE TRIGGER IF NOT EXISTS book_notes_fts_ai AFTER INSERT ON book_notes BEGIN
+        INSERT INTO books_fts(book_id, title, authors, description, notes)
+        VALUES (new.book_id, '', '', '', new.content);
+      END;
+    ''');
+
+    await customStatement('''
+      CREATE TRIGGER IF NOT EXISTS book_notes_fts_ad AFTER DELETE ON book_notes BEGIN
+        DELETE FROM books_fts WHERE rowid IN (
+          SELECT rowid FROM books_fts WHERE book_id = old.book_id AND notes = old.content LIMIT 1
+        );
+      END;
+    ''');
+  }
+
+  /// Populates the FTS5 table with existing rows on migration.
+  Future<void> populateFtsFromExistingBooks() async {
+    await customStatement('''
+      INSERT INTO books_fts(book_id, title, authors, description, notes)
+      SELECT id, title, authors, coalesce(description, ''), '' FROM books;
+    ''');
+    await customStatement('''
+      INSERT INTO books_fts(book_id, title, authors, description, notes)
+      SELECT book_id, '', '', '', content FROM book_notes;
+    ''');
+  }
 
   /// Checkpoints SQLite WAL so all data is flushed to app_database.sqlite
   Future<void> checkpointWal() async {

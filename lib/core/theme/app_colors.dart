@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 abstract final class AppColors {
   // Brand Warm Oak & Amber
   static const Color primaryOak = Color(0xFFC79C5E);
+  static const Color primaryBurgundy = Color(0xFF6B1D2F);
   static const Color oakDark = Color(0xFFA87E42);
   static const Color oakFascia = Color(0xFF986F35);
   static const Color oakHighlight = Color(0xFFDEBA82);

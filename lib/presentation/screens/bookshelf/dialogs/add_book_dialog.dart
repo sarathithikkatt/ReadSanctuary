@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../../../core/constants/book_formats.dart';
 import '../../../../core/constants/reading_statuses.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/color_extractor.dart';
 import '../../../../core/utils/image_storage_helper.dart';
 import '../../../../data/local/database.dart';
@@ -160,17 +161,56 @@ class _AddBookDialogState extends State<AddBookDialog> {
     }
 
     return AlertDialog(
-      title: const Text('Add Book to Shelf'),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22.0)),
+      titlePadding: const EdgeInsets.fromLTRB(22, 20, 22, 8),
+      contentPadding: const EdgeInsets.fromLTRB(22, 8, 22, 12),
+      actionsPadding: const EdgeInsets.fromLTRB(22, 0, 22, 18),
+      title: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: AppColors.primaryBurgundy.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(Icons.auto_stories,
+                color: AppColors.primaryBurgundy, size: 20),
+          ),
+          const SizedBox(width: 12),
+          const Text(
+            'Add Book to Shelf',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.2,
+            ),
+          ),
+        ],
+      ),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Switch to online search
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                icon: const Icon(Icons.search),
-                label: const Text('Search Online / Free Books'),
+            // Switch to online search prompt
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.primaryBurgundy.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                    color: AppColors.primaryBurgundy.withOpacity(0.12)),
+              ),
+              child: TextButton.icon(
+                icon: const Icon(Icons.search,
+                    size: 18, color: AppColors.primaryBurgundy),
+                label: const Text(
+                  'Search Online / Free Books',
+                  style: TextStyle(
+                    color: AppColors.primaryBurgundy,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                ),
                 onPressed: () {
                   Navigator.of(context).pop();
                   Navigator.of(context).push(
@@ -187,18 +227,41 @@ class _AddBookDialogState extends State<AddBookDialog> {
               controller: _titleCtrl,
               decoration: const InputDecoration(labelText: 'Book Title *'),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             TextField(
               controller: _authorCtrl,
               decoration: const InputDecoration(labelText: 'Author *'),
             ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _pageCtrl,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Page Count'),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  flex: 1,
+                  child: TextField(
+                    controller: _pageCtrl,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(labelText: 'Page Count'),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  flex: 1,
+                  child: DropdownButtonFormField<String>(
+                    isExpanded: true,
+                    value: _format,
+                    decoration: const InputDecoration(labelText: 'Format'),
+                    items: BookFormat.values
+                        .map((f) =>
+                            DropdownMenuItem(value: f.id, child: Text(f.label)))
+                        .toList(),
+                    onChanged: (val) {
+                      if (val != null) setState(() => _format = val);
+                    },
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             Row(
               children: [
                 Expanded(
@@ -209,7 +272,7 @@ class _AddBookDialogState extends State<AddBookDialog> {
                         const InputDecoration(labelText: 'Series (optional)'),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 10),
                 Expanded(
                   flex: 1,
                   child: TextField(
@@ -222,72 +285,82 @@ class _AddBookDialogState extends State<AddBookDialog> {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              isExpanded: true,
-              value: _format,
-              decoration: const InputDecoration(labelText: 'Format'),
-              items: BookFormat.values
-                  .map((f) =>
-                      DropdownMenuItem(value: f.id, child: Text(f.label)))
-                  .toList(),
-              onChanged: (val) {
-                if (val != null) setState(() => _format = val);
-              },
-            ),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              isExpanded: true,
-              value: _status,
-              decoration: const InputDecoration(labelText: 'Status'),
-              items: ReadingStatus.values
-                  .map((s) =>
-                      DropdownMenuItem(value: s.id, child: Text(s.label)))
-                  .toList(),
-              onChanged: (val) {
-                if (val != null) setState(() => _status = val);
-              },
-            ),
-            const SizedBox(height: 8),
-            // Upload PDF Option
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 4.0),
-              child: OutlinedButton.icon(
-                icon: Icon(_pickedPdfPath != null
-                    ? Icons.picture_as_pdf
-                    : Icons.upload_file),
-                label: Text(
-                  _pdfFileName != null
-                      ? 'PDF: $_pdfFileName'
-                      : 'Attach PDF File (eBook)',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: DropdownButtonFormField<String>(
+                    isExpanded: true,
+                    value: _status,
+                    decoration: const InputDecoration(labelText: 'Status'),
+                    items: ReadingStatus.values
+                        .map((s) =>
+                            DropdownMenuItem(value: s.id, child: Text(s.label)))
+                        .toList(),
+                    onChanged: (val) {
+                      if (val != null) setState(() => _status = val);
+                    },
+                  ),
                 ),
-                onPressed: () async {
-                  final storage = ImageStorageHelper();
-                  final path = await storage.pickAndSavePdf();
-                  if (path != null && mounted) {
-                    setState(() {
-                      _pickedPdfPath = path;
-                      _pdfFileName = path.split('/').last;
-                      _format = BookFormat.ebook.id;
-                    });
-                  }
-                },
-              ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: DropdownButtonFormField<String>(
+                    isExpanded: true,
+                    value: _selectedShelfId,
+                    decoration:
+                        const InputDecoration(labelText: 'Target Shelf'),
+                    items: _shelves
+                        .map((s) =>
+                            DropdownMenuItem(value: s.id, child: Text(s.name)))
+                        .toList(),
+                    onChanged: (val) {
+                      if (val != null) setState(() => _selectedShelfId = val);
+                    },
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              isExpanded: true,
-              value: _selectedShelfId,
-              decoration: const InputDecoration(labelText: 'Target Shelf'),
-              items: _shelves
-                  .map(
-                      (s) => DropdownMenuItem(value: s.id, child: Text(s.name)))
-                  .toList(),
-              onChanged: (val) {
-                if (val != null) setState(() => _selectedShelfId = val);
+            const SizedBox(height: 10),
+            // Upload PDF Option
+            OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                side: BorderSide(
+                  color: _pickedPdfPath != null
+                      ? Colors.green.shade600
+                      : Colors.black.withOpacity(0.12),
+                ),
+                backgroundColor:
+                    _pickedPdfPath != null ? Colors.green.shade50 : null,
+              ),
+              icon: Icon(
+                _pickedPdfPath != null
+                    ? Icons.picture_as_pdf
+                    : Icons.upload_file,
+                size: 18,
+                color: _pickedPdfPath != null ? Colors.green.shade700 : null,
+              ),
+              label: Text(
+                _pdfFileName != null
+                    ? 'PDF: $_pdfFileName'
+                    : 'Attach PDF File (eBook)',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: _pickedPdfPath != null ? Colors.green.shade800 : null,
+                ),
+              ),
+              onPressed: () async {
+                final storage = ImageStorageHelper();
+                final path = await storage.pickAndSavePdf();
+                if (path != null && mounted) {
+                  setState(() {
+                    _pickedPdfPath = path;
+                    _pdfFileName = path.split('/').last;
+                    _format = BookFormat.ebook.id;
+                  });
+                }
               },
             ),
           ],
@@ -296,10 +369,21 @@ class _AddBookDialogState extends State<AddBookDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
+          style: TextButton.styleFrom(
+            foregroundColor: Colors.grey.shade700,
+          ),
           child: const Text('Cancel'),
         ),
         ElevatedButton(
           onPressed: _submit,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primaryBurgundy,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
           child: const Text('Add Book'),
         ),
       ],
